@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { AuthShell } from '@/components/auth/auth-shell'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -61,83 +61,55 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh w-full flex-col bg-primary">
-      <div className="flex flex-1 items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-sm">
-          <div className="mb-8 flex flex-col items-center gap-3 text-center">
-            <Image
-              src="/images/banner-practicas-profesionalizantes-dte.png"
-              alt="Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE)"
-              width={1920}
-              height={176}
-              className="h-auto w-full max-w-[420px]"
-              priority
-            />
-            <span className="font-heading text-sm font-semibold tracking-wide text-accent uppercase">
-              DTE · Región 1
-            </span>
-            <p className="text-sm text-primary-foreground/70">EEST N°3</p>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-heading text-xl">Iniciar sesión</CardTitle>
-              <CardDescription>Ingresá con tu email y contraseña</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleLogin}>
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="email">Email</FieldLabel>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="nombre@escuela.edu.ar"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-                    <Input
-                      id="password"
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </Field>
-                  {error && (
-                    <p role="alert" className="text-sm text-destructive">
-                      {error}
-                    </p>
-                  )}
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading && <Spinner data-icon="inline-start" />}
-                    {isLoading ? 'Ingresando...' : 'Ingresar'}
-                  </Button>
-                </FieldGroup>
-                <FieldDescription className="mt-4 text-center">
-                  ¿No tenés cuenta?{' '}
-                  <Link href="/auth/sign-up" className="underline underline-offset-4">
-                    Registrate
-                  </Link>
-                </FieldDescription>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-      <footer className="flex w-full items-center justify-center px-6 py-8">
-        <Image
-          src="/images/dgcye-pba-horizontal.png"
-          alt="Dirección General de Cultura y Educación — Gobierno de la Provincia de Buenos Aires"
-          width={1080}
-          height={142}
-          className="h-auto w-full max-w-xl sm:max-w-2xl"
-          priority
-        />
-      </footer>
-    </div>
+    <AuthShell>
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading text-xl">Iniciar sesión</CardTitle>
+          <CardDescription>Ingresá con tu email y contraseña</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleLogin}>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="nombre@escuela.edu.ar"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Field>
+              {error && (
+                <p role="alert" className="text-sm text-destructive">
+                  {error}
+                </p>
+              )}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading && <Spinner data-icon="inline-start" />}
+                {isLoading ? 'Ingresando...' : 'Ingresar'}
+              </Button>
+            </FieldGroup>
+            <FieldDescription className="mt-4 text-center">
+              ¿No tenés cuenta?{' '}
+              <Link href="/auth/sign-up" className="underline underline-offset-4">
+                Registrate
+              </Link>
+            </FieldDescription>
+          </form>
+        </CardContent>
+      </Card>
+    </AuthShell>
   )
 }

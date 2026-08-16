@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { AuthShell } from '@/components/auth/auth-shell'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -105,18 +106,8 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center bg-primary p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <span className="font-heading text-sm font-semibold tracking-wide text-accent uppercase">
-            DTE · Región 1
-          </span>
-          <h1 className="font-heading text-2xl font-bold text-primary-foreground text-balance">
-            Bitácora de Prácticas Profesionalizantes
-          </h1>
-          <p className="text-sm text-primary-foreground/70">EEST N°3</p>
-        </div>
-        <Card>
+    <AuthShell>
+      <Card>
           <CardHeader>
             <CardTitle className="font-heading text-xl">Crear cuenta</CardTitle>
             <CardDescription>Registrate para acceder a la bitácora</CardDescription>
@@ -216,8 +207,7 @@ export default function SignUpPage() {
               </FieldDescription>
             </form>
           </CardContent>
-        </Card>
-      </div>
-    </div>
+      </Card>
+    </AuthShell>
   )
 }
