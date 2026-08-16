@@ -64,13 +64,18 @@ export default function LoginPage() {
     <div className="flex min-h-svh w-full flex-col bg-primary">
       <div className="flex flex-1 items-center justify-center p-6 md:p-10">
         <div className="w-full max-w-sm">
-          <div className="mb-8 flex flex-col items-center gap-2 text-center">
+          <div className="mb-8 flex flex-col items-center gap-3 text-center">
+            <Image
+              src="/images/banner-practicas-profesionalizantes-dte.png"
+              alt="Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE)"
+              width={1920}
+              height={176}
+              className="h-auto w-full max-w-[420px]"
+              priority
+            />
             <span className="font-heading text-sm font-semibold tracking-wide text-accent uppercase">
               DTE · Región 1
             </span>
-            <h1 className="font-heading text-2xl font-bold text-primary-foreground text-balance">
-              Bitácora de Prácticas Profesionalizantes
-            </h1>
             <p className="text-sm text-primary-foreground/70">EEST N°3</p>
           </div>
           <Card>
