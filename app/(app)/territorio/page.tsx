@@ -1,0 +1,72 @@
+import { createClient } from '@/lib/supabase/server'
+import { WorkOrderForm } from '@/components/work-order-form'
+import { WorkOrderCard } from '@/components/work-order-card'
+import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { MapPin } from 'lucide-react'
+import type { Equipment, Profile, School, WorkOrder } from '@/lib/types'
+
+export default async function TerritorioPage() {
+  const supabase = await createClient()
+
+  const [{ data: workOrders }, { data: equipment }, { data: profiles }, { data: schools }] =
+    await Promise.all([
+      supabase
+        .from('work_orders')
+        .select(
+          '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*)',
+        )
+        .eq('tipo', 'territorio')
+        .order('fecha', { ascending: false })
+        .limit(60),
+      supabase.from('equipment').select('*').order('numero_serie'),
+      supabase.from('profiles').select('*').order('apellido_nombre'),
+      supabase.from('schools').select('*').order('nombre'),
+    ])
+
+  const orders = (workOrders ?? []) as unknown as WorkOrder[]
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Territorio</h1>
+          <p className="text-sm text-muted-foreground">
+            Órdenes de trabajo en escuelas de la Región 1.
+          </p>
+        </div>
+        <WorkOrderForm
+          tipo="territorio"
+          equipment={(equipment ?? []) as Equipment[]}
+          profiles={(profiles ?? []) as Profile[]}
+          schools={(schools ?? []) as School[]}
+        />
+      </div>
+
+      {orders.length === 0 ? (
+        <Empty>
+          <EmptyMedia variant="icon">
+            <MapPin />
+          </EmptyMedia>
+          <EmptyTitle>Sin órdenes de territorio</EmptyTitle>
+          <EmptyDescription>
+            Creá la primera OT de territorio con el botón &quot;Nueva OT&quot;.
+          </EmptyDescription>
+        </Empty>
+      ) : (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {orders.map((wo) => (
+            <WorkOrderForm
+              key={wo.id}
+              tipo="territorio"
+              equipment={(equipment ?? []) as Equipment[]}
+              profiles={(profiles ?? []) as Profile[]}
+              schools={(schools ?? []) as School[]}
+              workOrder={wo}
+              trigger={<WorkOrderCard workOrder={wo} />}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}

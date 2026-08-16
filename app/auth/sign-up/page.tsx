@@ -137,7 +137,11 @@ export default function SignUpPage() {
 
                 <Field data-disabled={isAdmin || undefined}>
                   <FieldLabel htmlFor="grupo">Grupo</FieldLabel>
-                  <Select value={grupo} onValueChange={setGrupo} disabled={isAdmin}>
+                  <Select
+                    value={grupo}
+                    onValueChange={(value) => setGrupo(value ?? '')}
+                    disabled={isAdmin}
+                  >
                     <SelectTrigger id="grupo" className="w-full">
                       <SelectValue placeholder="Seleccioná tu grupo" />
                     </SelectTrigger>
