@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -60,66 +61,78 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center bg-primary p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <span className="font-heading text-sm font-semibold tracking-wide text-accent uppercase">
-            DTE · Región 1
-          </span>
-          <h1 className="font-heading text-2xl font-bold text-primary-foreground text-balance">
-            Bitácora de Prácticas Profesionalizantes
-          </h1>
-          <p className="text-sm text-primary-foreground/70">EEST N°3</p>
+    <div className="flex min-h-svh w-full flex-col bg-primary">
+      <div className="flex flex-1 items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-sm">
+          <div className="mb-8 flex flex-col items-center gap-2 text-center">
+            <span className="font-heading text-sm font-semibold tracking-wide text-accent uppercase">
+              DTE · Región 1
+            </span>
+            <h1 className="font-heading text-2xl font-bold text-primary-foreground text-balance">
+              Bitácora de Prácticas Profesionalizantes
+            </h1>
+            <p className="text-sm text-primary-foreground/70">EEST N°3</p>
+          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-heading text-xl">Iniciar sesión</CardTitle>
+              <CardDescription>Ingresá con tu email y contraseña</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleLogin}>
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="nombre@escuela.edu.ar"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+                    <Input
+                      id="password"
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </Field>
+                  {error && (
+                    <p role="alert" className="text-sm text-destructive">
+                      {error}
+                    </p>
+                  )}
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading && <Spinner data-icon="inline-start" />}
+                    {isLoading ? 'Ingresando...' : 'Ingresar'}
+                  </Button>
+                </FieldGroup>
+                <FieldDescription className="mt-4 text-center">
+                  ¿No tenés cuenta?{' '}
+                  <Link href="/auth/sign-up" className="underline underline-offset-4">
+                    Registrate
+                  </Link>
+                </FieldDescription>
+              </form>
+            </CardContent>
+          </Card>
         </div>
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-xl">Iniciar sesión</CardTitle>
-            <CardDescription>Ingresá con tu email y contraseña</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin}>
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="nombre@escuela.edu.ar"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-                  <Input
-                    id="password"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </Field>
-                {error && (
-                  <p role="alert" className="text-sm text-destructive">
-                    {error}
-                  </p>
-                )}
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Spinner data-icon="inline-start" />}
-                  {isLoading ? 'Ingresando...' : 'Ingresar'}
-                </Button>
-              </FieldGroup>
-              <FieldDescription className="mt-4 text-center">
-                ¿No tenés cuenta?{' '}
-                <Link href="/auth/sign-up" className="underline underline-offset-4">
-                  Registrate
-                </Link>
-              </FieldDescription>
-            </form>
-          </CardContent>
-        </Card>
       </div>
+      <footer className="flex w-full items-center justify-center bg-background px-6 py-5">
+        <Image
+          src="/images/dgcye-pba-horizontal.png"
+          alt="Dirección General de Cultura y Educación — Gobierno de la Provincia de Buenos Aires"
+          width={1080}
+          height={142}
+          className="h-auto w-full max-w-[280px] sm:max-w-xs"
+          priority
+        />
+      </footer>
     </div>
   )
 }
