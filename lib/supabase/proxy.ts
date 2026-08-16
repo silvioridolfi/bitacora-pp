@@ -43,14 +43,24 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    // if the user is not logged in and the app path, in this case, /protected, is accessed, redirect to the login page
-    request.nextUrl.pathname.startsWith('/protected') &&
-    !user
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
+  const { pathname } = request.nextUrl
+  const isAuthRoute = pathname.startsWith('/auth')
+  const isPublicRoute = pathname === '/' || isAuthRoute
+
+  if (!user && !isPublicRoute) {
+    // No hay sesión y se intenta acceder a una página protegida de la app.
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
+    return NextResponse.redirect(url)
+  }
+
+  if (
+    user &&
+    (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/sign-up'))
+  ) {
+    // Ya hay sesión, no tiene sentido mostrar login/sign-up.
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
     return NextResponse.redirect(url)
   }
 

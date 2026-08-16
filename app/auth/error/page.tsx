@@ -18,18 +18,18 @@ export default async function Page({
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">
-                Sorry, something went wrong.
+              <CardTitle className="font-heading text-2xl">
+                Ocurrió un error
               </CardTitle>
             </CardHeader>
             <CardContent>
               {isErrorCode ? (
                 <p className="text-sm text-muted-foreground">
-                  Code error: {code}
+                  Código de error: {code}
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  An unspecified error occurred.
+                  Ocurrió un error no especificado.
                 </p>
               )}
             </CardContent>
