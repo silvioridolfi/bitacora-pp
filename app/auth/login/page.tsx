@@ -129,7 +129,7 @@ export default function LoginPage() {
           alt="Dirección General de Cultura y Educación — Gobierno de la Provincia de Buenos Aires"
           width={1080}
           height={142}
-          className="h-auto w-full max-w-xs sm:max-w-sm"
+          className="h-auto w-full max-w-sm sm:max-w-md"
           priority
         />
       </footer>
