@@ -43,14 +43,21 @@ export function AuthShell({ children }: { children: ReactNode }) {
       </div>
 
       <footer className="relative flex w-full items-center justify-center px-6 py-8">
-        <Image
-          src="/images/dgcye-pba-horizontal.png"
-          alt="Dirección General de Cultura y Educación — Gobierno de la Provincia de Buenos Aires"
-          width={1080}
-          height={142}
-          className="h-auto w-full max-w-xl sm:max-w-2xl"
-          priority
-        />
+        <div
+          className="flex w-full max-w-xl items-center justify-center rounded-2xl px-8 py-5 shadow-lg sm:max-w-2xl"
+          style={{
+            background: 'linear-gradient(90deg, #e81f76 0%, #417099 50%, #00aec3 100%)',
+          }}
+        >
+          <Image
+            src="/images/logo-dte-2026.png"
+            alt="Dirección de Tecnología Educativa — Gobierno de la Provincia de Buenos Aires"
+            width={864}
+            height={152}
+            className="h-auto w-full max-w-md"
+            priority
+          />
+        </div>
       </footer>
     </div>
   )
