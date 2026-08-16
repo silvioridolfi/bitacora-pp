@@ -123,13 +123,13 @@ export default function LoginPage() {
           </Card>
         </div>
       </div>
-      <footer className="flex w-full items-center justify-center bg-background px-6 py-5">
+      <footer className="flex w-full items-center justify-center px-6 py-8">
         <Image
           src="/images/dgcye-pba-horizontal.png"
           alt="Dirección General de Cultura y Educación — Gobierno de la Provincia de Buenos Aires"
           width={1080}
           height={142}
-          className="h-auto w-full max-w-[280px] sm:max-w-xs"
+          className="h-auto w-full max-w-xs sm:max-w-sm"
           priority
         />
       </footer>
