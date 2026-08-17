@@ -38,13 +38,13 @@ export function AuthShell({ children }: { children: ReactNode }) {
             </span>
             <p className="text-sm text-primary-foreground/70">EEST N°3</p>
           </div>
-          {children}
+          <div className="shadow-2xl shadow-black/20">{children}</div>
         </div>
       </div>
 
       <footer className="relative flex w-full items-center justify-center px-6 py-8">
         <div
-          className="flex w-full max-w-xl items-center justify-center rounded-2xl px-8 py-5 shadow-lg sm:max-w-2xl"
+          className="flex w-full max-w-2xl items-center justify-center rounded-2xl px-6 py-4 shadow-lg sm:max-w-3xl"
           style={{
             background: 'linear-gradient(90deg, #e81f76 0%, #417099 50%, #00aec3 100%)',
           }}
@@ -54,7 +54,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
             alt="Dirección de Tecnología Educativa — Gobierno de la Provincia de Buenos Aires"
             width={864}
             height={152}
-            className="h-auto w-full max-w-md"
+            className="h-auto w-full max-w-2xl"
             priority
           />
         </div>
