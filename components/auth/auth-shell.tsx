@@ -21,7 +21,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
       />
 
       <div className="relative flex flex-1 items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-sm">
+        <div className="flex w-full max-w-lg flex-col items-center">
           <div className="mb-8 flex flex-col items-center gap-3 text-center">
             <div className="rounded-2xl border border-border/40 bg-card px-6 py-4 shadow-lg">
               <Image
@@ -29,16 +29,12 @@ export function AuthShell({ children }: { children: ReactNode }) {
                 alt="Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE)"
                 width={1920}
                 height={176}
-                className="h-auto w-full max-w-[320px]"
+                className="h-auto w-full max-w-[512px]"
                 priority
               />
             </div>
-            <span className="font-heading text-sm font-semibold tracking-wide text-accent uppercase">
-              DTE · Región 1
-            </span>
-            <p className="text-sm text-primary-foreground/70">EEST N°3</p>
           </div>
-          <div className="shadow-2xl shadow-black/20">{children}</div>
+          <div className="w-full max-w-sm shadow-2xl shadow-black/20">{children}</div>
         </div>
       </div>
 
