@@ -21,7 +21,6 @@ import {
   FieldSeparator,
 } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Select,
   SelectContent,
@@ -54,10 +53,11 @@ function signUpErrorMessage(error: unknown): string {
 }
 
 export default function SignUpPage() {
-  const [apellidoNombre, setApellidoNombre] = useState('')
+  const [apellido, setApellido] = useState('')
+  const [nombre, setNombre] = useState('')
   const [grupo, setGrupo] = useState<string>('')
-  const [isAdmin, setIsAdmin] = useState(false)
   const [email, setEmail] = useState('')
+  const [confirmEmail, setConfirmEmail] = useState('')
   const [password, setPassword] = useState('')
   const [repeatPassword, setRepeatPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -68,15 +68,20 @@ export default function SignUpPage() {
     e.preventDefault()
     setError(null)
 
+    if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
+      setError('Los emails no coinciden.')
+      return
+    }
     if (password !== repeatPassword) {
       setError('Las contraseñas no coinciden.')
       return
     }
-    if (!isAdmin && !grupo) {
+    if (!grupo) {
       setError('Seleccioná tu grupo.')
       return
     }
 
+    const apellidoNombre = `${apellido.trim()}, ${nombre.trim()}`
     const supabase = createClient()
     setIsLoading(true)
 
@@ -90,13 +95,15 @@ export default function SignUpPage() {
             `${window.location.origin}/auth/callback`,
           data: {
             apellido_nombre: apellidoNombre,
-            grupo: isAdmin ? null : grupo,
-            is_admin: isAdmin,
+            grupo,
+            is_admin: false,
           },
         },
       })
       if (error) throw error
-      router.push('/auth/sign-up-success')
+      router.push(
+        `/auth/sign-up-success?email=${encodeURIComponent(email.trim())}`
+      )
     } catch (err: unknown) {
       console.error('[v0] Sign-up error:', err)
       setError(signUpErrorMessage(err))
@@ -115,24 +122,32 @@ export default function SignUpPage() {
           <CardContent>
             <form onSubmit={handleSignUp}>
               <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="apellido-nombre">Apellido y nombre</FieldLabel>
-                  <Input
-                    id="apellido-nombre"
-                    placeholder="Pérez, Juan"
-                    required
-                    value={apellidoNombre}
-                    onChange={(e) => setApellidoNombre(e.target.value)}
-                  />
-                </Field>
+                <div className="grid grid-cols-2 gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="apellido">Apellido</FieldLabel>
+                    <Input
+                      id="apellido"
+                      placeholder="Pérez"
+                      required
+                      value={apellido}
+                      onChange={(e) => setApellido(e.target.value)}
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="nombre">Nombre</FieldLabel>
+                    <Input
+                      id="nombre"
+                      placeholder="Juan"
+                      required
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
+                    />
+                  </Field>
+                </div>
 
-                <Field data-disabled={isAdmin || undefined}>
+                <Field>
                   <FieldLabel htmlFor="grupo">Grupo</FieldLabel>
-                  <Select
-                    value={grupo}
-                    onValueChange={(value) => setGrupo(value ?? '')}
-                    disabled={isAdmin}
-                  >
+                  <Select value={grupo} onValueChange={(value) => setGrupo(value ?? '')}>
                     <SelectTrigger id="grupo" className="w-full">
                       <SelectValue placeholder="Seleccioná tu grupo" />
                     </SelectTrigger>
@@ -143,17 +158,6 @@ export default function SignUpPage() {
                       </SelectGroup>
                     </SelectContent>
                   </Select>
-                </Field>
-
-                <Field orientation="horizontal">
-                  <Checkbox
-                    id="is-admin"
-                    checked={isAdmin}
-                    onCheckedChange={(checked) => setIsAdmin(checked === true)}
-                  />
-                  <FieldLabel htmlFor="is-admin" className="font-normal">
-                    Soy coordinador/a FED (administrador)
-                  </FieldLabel>
                 </Field>
 
                 <FieldSeparator />
@@ -167,6 +171,18 @@ export default function SignUpPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="confirm-email">Confirmar email</FieldLabel>
+                  <Input
+                    id="confirm-email"
+                    type="email"
+                    placeholder="nombre@escuela.edu.ar"
+                    required
+                    value={confirmEmail}
+                    onChange={(e) => setConfirmEmail(e.target.value)}
+                    onPaste={(e) => e.preventDefault()}
                   />
                 </Field>
                 <Field>

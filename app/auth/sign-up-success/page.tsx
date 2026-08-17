@@ -8,7 +8,13 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 
-export default function SignUpSuccessPage() {
+export default async function SignUpSuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string }>
+}) {
+  const { email } = await searchParams
+
   return (
     <AuthShell>
       <Card>
@@ -21,9 +27,15 @@ export default function SignUpSuccessPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Te enviamos un correo de confirmación. Revisá tu bandeja de entrada (y
-            spam) y hacé clic en el enlace para activar tu cuenta antes de iniciar
-            sesión.
+            Te enviamos un correo de confirmación
+            {email ? (
+              <>
+                {' '}
+                a <span className="font-medium text-foreground">{email}</span>
+              </>
+            ) : null}
+            . Revisá tu bandeja de entrada (y spam) y hacé clic en el enlace
+            para activar tu cuenta antes de iniciar sesión.
           </p>
         </CardContent>
       </Card>
