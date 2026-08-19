@@ -54,14 +54,31 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (
-    user &&
-    (pathname.startsWith('/auth/login') || pathname.startsWith('/auth/sign-up'))
-  ) {
-    // Ya hay sesión, no tiene sentido mostrar login/sign-up.
+  if (user && pathname.startsWith('/auth/sign-up')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/login'
+    url.searchParams.set('message', 'El registro público no está disponible.')
+    return NextResponse.redirect(url)
+  }
+
+  if (user && pathname.startsWith('/auth/login')) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
+  }
+
+  if (user && !pathname.startsWith('/auth/change-password-required')) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('password_change_required')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (profile?.password_change_required) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/change-password-required'
+      return NextResponse.redirect(url)
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { AuthShell } from '@/components/auth/auth-shell'
@@ -13,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Field, FieldGroup, FieldLabel, FieldDescription } from '@/components/ui/field'
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 
@@ -101,12 +100,6 @@ export default function LoginPage() {
                 {isLoading ? 'Ingresando...' : 'Ingresar'}
               </Button>
             </FieldGroup>
-            <FieldDescription className="mt-4 text-center">
-              ¿No tenés cuenta?{' '}
-              <Link href="/auth/sign-up" className="underline underline-offset-4">
-                Registrate
-              </Link>
-            </FieldDescription>
           </form>
         </CardContent>
       </Card>
