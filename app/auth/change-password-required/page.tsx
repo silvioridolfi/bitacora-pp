@@ -50,45 +50,48 @@ export default function ChangePasswordRequiredPage() {
     }
 
     setIsLoading(true)
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user?.email) {
-      setError('Tu sesión expiró. Volvé a iniciar sesión.')
+    try {
+      const supabase = createClient()
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+      if (userError || !user?.email) {
+        setError('Tu sesión expiró. Volvé a iniciar sesión.')
+        return
+      }
+
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
+      })
+      if (verifyError) {
+        setError('La contraseña inicial no es correcta.')
+        return
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
+      if (updateError) {
+        setError('No se pudo actualizar la contraseña. Volvé a intentar.')
+        return
+      }
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ password_change_required: false })
+        .eq('id', user.id)
+
+      if (profileError) {
+        setError('La contraseña cambió, pero no pudimos completar tu perfil. Contactá al administrador.')
+        return
+      }
+
+      router.replace('/dashboard')
+      router.refresh()
+    } catch {
+      setError('Ocurrió un error inesperado. Volvé a intentar.')
+    } finally {
       setIsLoading(false)
-      return
     }
-
-    const { error: verifyError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: currentPassword,
-    })
-    if (verifyError) {
-      setError('La contraseña inicial no es correcta.')
-      setIsLoading(false)
-      return
-    }
-
-    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
-    if (updateError) {
-      setError('No se pudo actualizar la contraseña. Volvé a intentar.')
-      setIsLoading(false)
-      return
-    }
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({ password_change_required: false })
-      .eq('id', user.id)
-
-    if (profileError) {
-      setError('La contraseña cambió, pero no pudimos completar tu perfil. Contactá al administrador.')
-      setIsLoading(false)
-      return
-    }
-
-    router.replace('/dashboard')
-    router.refresh()
   }
 
   return (
