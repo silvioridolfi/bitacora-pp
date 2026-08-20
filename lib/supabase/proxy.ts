@@ -52,6 +52,16 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
+
+  // El registro público está deshabilitado para todos los visitantes,
+  // independientemente de que exista o no una sesión activa.
+  if (pathname === '/auth/sign-up' || pathname.startsWith('/auth/sign-up/')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/login'
+    url.searchParams.set('message', 'El registro público no está disponible.')
+    return NextResponse.redirect(url)
+  }
+
   const isAuthRoute = pathname.startsWith('/auth')
   const isPublicRoute = pathname === '/' || isAuthRoute
 
@@ -59,13 +69,6 @@ export async function updateSession(request: NextRequest) {
     // No hay sesión y se intenta acceder a una página protegida de la app.
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
-  }
-
-  if (user && pathname.startsWith('/auth/sign-up')) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/login'
-    url.searchParams.set('message', 'El registro público no está disponible.')
     return NextResponse.redirect(url)
   }
 
