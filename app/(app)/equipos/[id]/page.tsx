@@ -6,6 +6,7 @@ import { WorkOrderCard } from '@/components/work-order-card'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatDate } from '@/lib/format'
+import { getCurrentProfile } from '@/lib/data'
 import type { Equipment, WorkOrder } from '@/lib/types'
 
 export default async function EquipoPage({
@@ -16,15 +17,16 @@ export default async function EquipoPage({
   const { id } = await params
   const supabase = await createClient()
 
-  const [{ data: equipment }, { data: workOrders }] = await Promise.all([
+  const [{ data: equipment }, { data: workOrders }, { profile }] = await Promise.all([
     supabase.from('equipment').select('*').eq('id', id).maybeSingle(),
     supabase
       .from('work_orders')
       .select(
-        '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*)',
+        '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_stages(*, profile:profile_id(*))',
       )
       .eq('equipment_id', id)
       .order('fecha', { ascending: true }),
+    getCurrentProfile(),
   ])
 
   if (!equipment) notFound()
@@ -108,7 +110,12 @@ export default async function EquipoPage({
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {orders.map((wo) => (
-              <WorkOrderCard key={wo.id} workOrder={wo} />
+              <WorkOrderCard
+                key={wo.id}
+                workOrder={wo}
+                isAdmin={profile?.is_admin ?? false}
+                currentProfileId={profile?.id ?? null}
+              />
             ))}
           </div>
         )}

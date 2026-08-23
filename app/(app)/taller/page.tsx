@@ -65,7 +65,13 @@ export default async function TallerPage() {
               equipment={(equipment ?? []) as Equipment[]}
               profiles={(profiles ?? []) as Profile[]}
               workOrder={wo}
-              trigger={<WorkOrderCard workOrder={wo} />}
+              trigger={
+                <WorkOrderCard
+                  workOrder={wo}
+                  isAdmin={isAdmin}
+                  currentProfileId={currentProfileId}
+                />
+              }
               isAdmin={isAdmin}
               currentProfileId={currentProfileId}
             />

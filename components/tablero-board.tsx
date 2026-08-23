@@ -84,7 +84,13 @@ export function TableroBoard({
                     profiles={profiles}
                     schools={schools}
                     workOrder={wo}
-                    trigger={<WorkOrderCard workOrder={wo} />}
+                    trigger={
+                      <WorkOrderCard
+                        workOrder={wo}
+                        isAdmin={isAdmin}
+                        currentProfileId={currentProfileId}
+                      />
+                    }
                     isAdmin={isAdmin}
                     currentProfileId={currentProfileId}
                   />
