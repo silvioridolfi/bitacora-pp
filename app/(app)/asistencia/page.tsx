@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { AttendanceGrid } from '@/components/attendance-grid'
+import { getCurrentProfile } from '@/lib/data'
 import { cn } from '@/lib/utils'
 import type { Attendance, Grupo, Profile, Session } from '@/lib/types'
 
@@ -13,9 +14,10 @@ export default async function AsistenciaPage({
 
   const supabase = await createClient()
 
-  const [{ data: students }, { data: sessions }] = await Promise.all([
+  const [{ data: students }, { data: sessions }, { profile }] = await Promise.all([
     supabase.from('profiles').select('*').eq('grupo', grupo).order('apellido_nombre'),
     supabase.from('sessions').select('*').eq('grupo', grupo).order('sesion_n'),
+    getCurrentProfile(),
   ])
 
   const studentIds = (students ?? []).map((s) => s.id)
@@ -63,6 +65,7 @@ export default async function AsistenciaPage({
         students={(students ?? []) as Profile[]}
         sessions={(sessions ?? []) as Session[]}
         attendance={attendanceMap}
+        isAdmin={profile?.is_admin ?? false}
       />
     </div>
   )

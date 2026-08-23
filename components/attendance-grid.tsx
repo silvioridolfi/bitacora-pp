@@ -20,11 +20,13 @@ export function AttendanceGrid({
   students,
   sessions,
   attendance,
+  isAdmin = false,
 }: {
   grupo: Grupo
   students: Profile[]
   sessions: Session[]
   attendance: AttendanceMap
+  isAdmin?: boolean
 }) {
   const [optimisticAttendance, setOptimisticAttendance] = useState(attendance)
   const [pending, startTransition] = useTransition()
@@ -38,8 +40,8 @@ export function AttendanceGrid({
   }
 
   function handleClick(studentId: string, session: Session) {
-    if (isAttendanceLocked(session.fecha)) return
-    const allowPresente = !(session.fecha === today && pastNine)
+    if (!isAdmin && isAttendanceLocked(session.fecha)) return
+    const allowPresente = isAdmin || !(session.fecha === today && pastNine)
     const current = optimisticAttendance[key(studentId, session.id)] ?? null
     const next = nextAttendanceStatus(current, allowPresente)
 
@@ -119,25 +121,33 @@ export function AttendanceGrid({
           </thead>
           <tbody>
             {sessions.map((s) => {
-              const allowPresente = !(s.fecha === today && pastNine)
-              const locked = isAttendanceLocked(s.fecha)
+              const allowPresente = isAdmin || !(s.fecha === today && pastNine)
+              const locked = !isAdmin && isAttendanceLocked(s.fecha)
+              const closedButEditable = isAdmin && isAttendanceLocked(s.fecha)
               return (
                 <tr key={s.id} className="border-b border-border last:border-0">
                   <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-foreground">
                     <div className="flex items-center gap-1">
                       <span>#{s.sesion_n}</span>
-                      {locked && <Lock className="size-3 text-muted-foreground" />}
+                      {(locked || closedButEditable) && (
+                        <Lock className="size-3 text-muted-foreground" />
+                      )}
                     </div>
                     <div className="text-[11px] text-muted-foreground">
                       {formatDate(s.fecha)}
                     </div>
-                    {!locked && !allowPresente && (
+                    {!locked && !closedButEditable && !allowPresente && (
                       <div className="text-[10px] text-status-tardanza">
                         Después de las 9:00
                       </div>
                     )}
                     {locked && (
                       <div className="text-[10px] text-muted-foreground">Cerrada</div>
+                    )}
+                    {closedButEditable && (
+                      <div className="text-[10px] text-primary">
+                        Cerrada -- editable (admin)
+                      </div>
                     )}
                   </td>
                   {students.map((student) => {

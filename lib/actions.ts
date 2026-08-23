@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { WORK_ORDER_ETAPA_INFO, WORK_ORDER_ETAPAS, PROGRAMAS_NETBOOK } from '@/lib/types'
 import { isAttendanceLocked, isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
+import { getCurrentProfile } from '@/lib/data'
 import type {
   EstadoAsistencia,
   Grupo,
@@ -246,14 +247,17 @@ export async function setAttendance(
     .eq('id', sessionId)
     .maybeSingle()
 
-  if (session?.fecha && isAttendanceLocked(session.fecha)) {
+  const { profile } = await getCurrentProfile()
+  const isAdmin = profile?.is_admin ?? false
+
+  if (!isAdmin && session?.fecha && isAttendanceLocked(session.fecha)) {
     return {
       ok: false,
       error: 'Esta fecha ya está cerrada (pasado el mediodía) y no se puede modificar.',
     }
   }
 
-  if (estado === 'Presente') {
+  if (!isAdmin && estado === 'Presente') {
     if (session?.fecha === todayInArgentina() && isPastNineAmArgentina()) {
       return {
         ok: false,
