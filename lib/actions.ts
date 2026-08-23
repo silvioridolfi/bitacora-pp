@@ -10,6 +10,7 @@ import type {
   ProgramaNetbook,
   TipoEquipo,
   TipoOT,
+  WorkOrderAccion,
   WorkOrderEstado,
   WorkOrderEtapa,
 } from '@/lib/types'
@@ -297,5 +298,50 @@ export async function createSession(grupo: Grupo, fecha: string): Promise<Action
   revalidatePath('/asistencia')
   revalidatePath('/ranking')
   revalidatePath('/dashboard')
+  return { ok: true }
+}
+
+/**
+ * Tilda/destilda una acción del checklist "qué se hizo" de una OT.
+ * A diferencia de las etapas del pipeline, estas no son secuenciales ni
+ * excluyentes entre sí -- documentan intervenciones puntuales sobre el
+ * equipo (cambio de pila, actualización de SO, etc.) para el historial.
+ */
+export async function toggleWorkOrderAction(
+  workOrderId: string,
+  accion: WorkOrderAccion,
+  descripcion: string | null,
+): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+
+  const { data: existing } = await supabase
+    .from('work_order_actions')
+    .select('id')
+    .eq('work_order_id', workOrderId)
+    .eq('accion', accion)
+    .maybeSingle()
+
+  if (existing) {
+    const { error } = await supabase
+      .from('work_order_actions')
+      .delete()
+      .eq('id', existing.id)
+    if (error) return { ok: false, error: error.message }
+  } else {
+    const { error } = await supabase.from('work_order_actions').insert({
+      work_order_id: workOrderId,
+      accion,
+      fecha: todayInArgentina(),
+      descripcion,
+    })
+    if (error) return { ok: false, error: error.message }
+  }
+
+  revalidatePath('/taller')
+  revalidatePath('/territorio')
+  revalidatePath('/tablero')
+  revalidatePath('/equipos')
   return { ok: true }
 }

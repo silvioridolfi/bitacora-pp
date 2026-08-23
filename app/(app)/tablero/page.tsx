@@ -15,7 +15,7 @@ export default async function TableroPage({
   let query = supabase
     .from('work_orders')
     .select(
-      '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_stages(*, profile:profile_id(*))',
+      '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_stages(*, profile:profile_id(*)), work_order_actions(*)',
     )
     .order('fecha', { ascending: false })
     .limit(300)

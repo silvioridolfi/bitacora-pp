@@ -22,6 +22,7 @@ import { createWorkOrder, updateWorkOrder } from '@/lib/actions'
 import { WORK_ORDER_ESTADOS } from '@/lib/types'
 import type { Profile, School, TipoOT, WorkOrder } from '@/lib/types'
 import { WorkOrderStageChecklist } from '@/components/work-order-stage-checklist'
+import { WorkOrderActionsChecklist } from '@/components/work-order-actions-checklist'
 import { EquipoIntakeFields } from '@/components/equipo-intake-fields'
 import { todayInArgentina } from '@/lib/timezone'
 
@@ -235,6 +236,13 @@ export function WorkOrderForm({
                   ))}
                 </select>
               </Field>
+            )}
+
+            {workOrder && (
+              <WorkOrderActionsChecklist
+                workOrderId={workOrder.id}
+                actions={workOrder.work_order_actions ?? []}
+              />
             )}
 
             <Field>
