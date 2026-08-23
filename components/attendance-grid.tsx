@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { setAttendance, createSession } from '@/lib/actions'
 import { formatDate } from '@/lib/format'
-import { todayInArgentina } from '@/lib/timezone'
+import { isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
 import { ATTENDANCE_STATUS_STYLE, nextAttendanceStatus } from '@/lib/status'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,23 +29,30 @@ export function AttendanceGrid({
   const [optimisticAttendance, setOptimisticAttendance] = useState(attendance)
   const [pending, startTransition] = useTransition()
   const [newFecha, setNewFecha] = useState(todayInArgentina())
-  const [newHoras, setNewHoras] = useState('4')
   const router = useRouter()
+  const today = todayInArgentina()
+  const pastNine = isPastNineAmArgentina()
 
   function key(studentId: string, sessionId: string) {
     return `${studentId}:${sessionId}`
   }
 
-  function handleClick(studentId: string, sessionId: string) {
-    const current = optimisticAttendance[key(studentId, sessionId)] ?? 'Presente'
-    const next = nextAttendanceStatus(current)
+  function handleClick(studentId: string, session: Session) {
+    const allowPresente = !(session.fecha === today && pastNine)
+    const current = optimisticAttendance[key(studentId, session.id)] ?? null
+    const next = nextAttendanceStatus(current, allowPresente)
 
-    setOptimisticAttendance((prev) => ({ ...prev, [key(studentId, sessionId)]: next }))
+    setOptimisticAttendance((prev) => ({ ...prev, [key(studentId, session.id)]: next }))
     startTransition(async () => {
-      const result = await setAttendance(studentId, sessionId, next)
+      const result = await setAttendance(studentId, session.id, next)
       if (!result.ok) {
         toast.error(result.error)
-        setOptimisticAttendance((prev) => ({ ...prev, [key(studentId, sessionId)]: current }))
+        setOptimisticAttendance((prev) => {
+          const copy = { ...prev }
+          if (current) copy[key(studentId, session.id)] = current
+          else delete copy[key(studentId, session.id)]
+          return copy
+        })
       }
     })
   }
@@ -61,9 +68,9 @@ export function AttendanceGrid({
   function handleAddFecha() {
     if (!newFecha) return
     startTransition(async () => {
-      const result = await createSession(grupo, newFecha, Number(newHoras) || 0)
+      const result = await createSession(grupo, newFecha)
       if (result.ok) {
-        toast.success('Fecha agregada')
+        toast.success('Fecha agregada (4hs)')
         router.refresh()
       } else {
         toast.error(result.error)
@@ -76,7 +83,7 @@ export function AttendanceGrid({
       <div className="flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-border p-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground" htmlFor="new-fecha">
-            Nueva fecha
+            Nueva fecha (4hs)
           </label>
           <Input
             id="new-fecha"
@@ -84,20 +91,6 @@ export function AttendanceGrid({
             value={newFecha}
             onChange={(e) => setNewFecha(e.target.value)}
             className="h-9 w-40"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground" htmlFor="new-horas">
-            Horas
-          </label>
-          <Input
-            id="new-horas"
-            type="number"
-            step="0.5"
-            min="0"
-            value={newHoras}
-            onChange={(e) => setNewHoras(e.target.value)}
-            className="h-9 w-24"
           />
         </div>
         <Button type="button" size="sm" disabled={pending} onClick={handleAddFecha}>
@@ -124,35 +117,45 @@ export function AttendanceGrid({
             </tr>
           </thead>
           <tbody>
-            {sessions.map((s) => (
-              <tr key={s.id} className="border-b border-border last:border-0">
-                <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-foreground">
-                  <div>#{s.sesion_n}</div>
-                  <div className="text-[11px] text-muted-foreground">{formatDate(s.fecha)}</div>
-                </td>
-                {students.map((student) => {
-                  const estado = optimisticAttendance[key(student.id, s.id)] ?? null
-                  const style = estado ? ATTENDANCE_STATUS_STYLE[estado] : null
-                  return (
-                    <td key={student.id} className="p-1 text-center">
-                      <button
-                        type="button"
-                        onClick={() => handleClick(student.id, s.id)}
-                        title={estado ?? 'Sin registrar (click para marcar)'}
-                        className={cn(
-                          'flex size-8 items-center justify-center rounded-md border text-[10px] font-semibold transition-colors',
-                          style
-                            ? cn(style.bg, style.border, style.text)
-                            : 'border-border bg-transparent text-muted-foreground hover:bg-muted',
-                        )}
-                      >
-                        {estado ? estado.slice(0, 1) : '—'}
-                      </button>
-                    </td>
-                  )
-                })}
-              </tr>
-            ))}
+            {sessions.map((s) => {
+              const allowPresente = !(s.fecha === today && pastNine)
+              return (
+                <tr key={s.id} className="border-b border-border last:border-0">
+                  <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-foreground">
+                    <div>#{s.sesion_n}</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {formatDate(s.fecha)}
+                    </div>
+                    {!allowPresente && (
+                      <div className="text-[10px] text-status-tardanza">
+                        Después de las 9:00
+                      </div>
+                    )}
+                  </td>
+                  {students.map((student) => {
+                    const estado = optimisticAttendance[key(student.id, s.id)] ?? null
+                    const style = estado ? ATTENDANCE_STATUS_STYLE[estado] : null
+                    return (
+                      <td key={student.id} className="p-1 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleClick(student.id, s)}
+                          title={estado ?? 'Sin registrar (click para marcar)'}
+                          className={cn(
+                            'flex size-8 items-center justify-center rounded-md border text-[10px] font-semibold transition-colors',
+                            style
+                              ? cn(style.bg, style.border, style.text)
+                              : 'border-border bg-transparent text-muted-foreground hover:bg-muted',
+                          )}
+                        >
+                          {estado ? estado.slice(0, 1) : '—'}
+                        </button>
+                      </td>
+                    )
+                  })}
+                </tr>
+              )
+            })}
             {sessions.length === 0 && (
               <tr>
                 <td

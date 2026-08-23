@@ -16,20 +16,16 @@ export function todayInArgentina(): string {
 }
 
 /**
- * Timestamp completo (fecha y hora) en horario de Argentina, en formato
- * DD/MM/AAAA HH:mm. Para columnas timestamptz (ej. created_at).
+ * true si ya son las 9:00 o más, hora de Argentina. Usado para no permitir
+ * marcar "Presente" pasado ese horario en la fecha de hoy.
  */
-export function formatDateTimeArgentina(value: string | null | undefined): string {
-  if (!value) return '—'
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return '—'
-  const parts = new Intl.DateTimeFormat('es-AR', {
-    timeZone: APP_TIMEZONE,
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(d)
-  return parts
+export function isPastNineAmArgentina(): boolean {
+  const hour = Number(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: APP_TIMEZONE,
+      hour: 'numeric',
+      hour12: false,
+    }).format(new Date()),
+  )
+  return hour >= 9
 }

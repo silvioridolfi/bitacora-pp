@@ -153,12 +153,7 @@ export type Session = {
   created_at: string
 }
 
-export const ESTADO_ASISTENCIA_OPTIONS = [
-  'Presente',
-  'Tardanza',
-  'Justificado',
-  'Ausente',
-] as const
+export const ESTADO_ASISTENCIA_OPTIONS = ['Presente', 'Tardanza', 'Ausente'] as const
 
 export type EstadoAsistencia = (typeof ESTADO_ASISTENCIA_OPTIONS)[number]
 

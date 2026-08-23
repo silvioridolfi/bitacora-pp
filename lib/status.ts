@@ -93,13 +93,6 @@ export const ATTENDANCE_STATUS_STYLE: Record<EstadoAsistencia, StatusStyle> = {
     text: 'text-status-tardanza',
     dot: 'bg-status-tardanza',
   },
-  Justificado: {
-    label: 'Justificado',
-    bg: 'bg-status-justificado/10',
-    border: 'border-status-justificado/40',
-    text: 'text-status-justificado',
-    dot: 'bg-status-justificado',
-  },
   Ausente: {
     label: 'Ausente',
     bg: 'bg-status-ausente/10',
@@ -109,21 +102,31 @@ export const ATTENDANCE_STATUS_STYLE: Record<EstadoAsistencia, StatusStyle> = {
   },
 }
 
-export const ATTENDANCE_CYCLE: EstadoAsistencia[] = [
-  'Presente',
-  'Tardanza',
-  'Justificado',
-  'Ausente',
-]
+export const ATTENDANCE_CYCLE: EstadoAsistencia[] = ['Presente', 'Tardanza', 'Ausente']
 
-export function nextAttendanceStatus(current: EstadoAsistencia): EstadoAsistencia {
-  const idx = ATTENDANCE_CYCLE.indexOf(current)
-  return ATTENDANCE_CYCLE[(idx + 1) % ATTENDANCE_CYCLE.length]
+/**
+ * Ciclo de estados disponible para marcar una fecha. Después de las 9:00
+ * (hora Argentina) no se puede marcar Presente en una fecha de hoy -- solo
+ * quedan Tardanza y Ausente, porque a esa hora ya se considera tarde.
+ */
+export function attendanceCycleFor(allowPresente: boolean): EstadoAsistencia[] {
+  return allowPresente ? ATTENDANCE_CYCLE : ['Tardanza', 'Ausente']
+}
+
+export function nextAttendanceStatus(
+  current: EstadoAsistencia | null,
+  allowPresente: boolean,
+): EstadoAsistencia {
+  const cycle = attendanceCycleFor(allowPresente)
+  if (!current) return cycle[0]
+  const idx = cycle.indexOf(current)
+  if (idx === -1) return cycle[0]
+  return cycle[(idx + 1) % cycle.length]
 }
 
 export const RANKING_PUNTOS = {
   taller: 10,
   territorio: 15,
   presente: 10,
-  tardanza: 5,
+  tardanza: -5,
 }

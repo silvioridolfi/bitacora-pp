@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { WORK_ORDER_ETAPA_INFO, WORK_ORDER_ETAPAS } from '@/lib/types'
+import { isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
 import type {
   EstadoAsistencia,
   Grupo,
@@ -198,6 +199,21 @@ export async function setAttendance(
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
 
+  if (estado === 'Presente') {
+    const { data: session } = await supabase
+      .from('sessions')
+      .select('fecha')
+      .eq('id', sessionId)
+      .maybeSingle()
+
+    if (session?.fecha === todayInArgentina() && isPastNineAmArgentina()) {
+      return {
+        ok: false,
+        error: 'Ya pasaron las 9:00 -- solo se puede marcar Tardanza o Ausente.',
+      }
+    }
+  }
+
   const { error } = await supabase.from('attendance').upsert(
     {
       student_id: studentId,
@@ -215,11 +231,7 @@ export async function setAttendance(
   return { ok: true }
 }
 
-export async function createSession(
-  grupo: Grupo,
-  fecha: string,
-  horas: number,
-): Promise<ActionResult> {
+export async function createSession(grupo: Grupo, fecha: string): Promise<ActionResult> {
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
@@ -237,7 +249,7 @@ export async function createSession(
     grupo,
     fecha,
     sesion_n: nextSesionN,
-    horas,
+    horas: 4,
   })
 
   if (error) return { ok: false, error: error.message }
