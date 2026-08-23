@@ -49,7 +49,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           alt="Dirección de Tecnología Educativa — Dirección General de Cultura y Educación — Gobierno de la Provincia de Buenos Aires"
           width={1024}
           height={160}
-          className="h-[7.4rem] w-auto"
+          className="h-[3.7rem] w-auto"
           priority
         />
       </footer>
