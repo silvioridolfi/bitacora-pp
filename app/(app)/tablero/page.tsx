@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { WorkOrderCard } from '@/components/work-order-card'
-import { WORK_ORDER_ESTADO_ORDER, WORK_ORDER_STATUS_STYLE } from '@/lib/status'
-import type { WorkOrder } from '@/lib/types'
+import { TableroBoard } from '@/components/tablero-board'
+import type { Equipment, Profile, School, WorkOrder } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 export default async function TableroPage({
@@ -24,13 +23,14 @@ export default async function TableroPage({
     query = query.eq('tipo', tipo)
   }
 
-  const { data } = await query
+  const [{ data }, { data: equipment }, { data: profiles }, { data: schools }] =
+    await Promise.all([
+      query,
+      supabase.from('equipment').select('*').order('numero_serie'),
+      supabase.from('profiles').select('*').order('apellido_nombre'),
+      supabase.from('schools').select('*').order('nombre'),
+    ])
   const orders = (data ?? []) as unknown as WorkOrder[]
-
-  const columns = WORK_ORDER_ESTADO_ORDER.map((estado) => ({
-    estado,
-    items: orders.filter((o) => o.estado === estado),
-  }))
 
   return (
     <div className="flex flex-col gap-4">
@@ -63,37 +63,12 @@ export default async function TableroPage({
         </div>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        {columns.map((col) => {
-          const style = WORK_ORDER_STATUS_STYLE[col.estado]
-          return (
-            <div
-              key={col.estado}
-              className="flex w-72 shrink-0 flex-col gap-3 rounded-xl border border-border bg-card/50 p-3"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className={cn('flex items-center gap-1.5 text-sm font-semibold', style.text)}>
-                  <span className={cn('size-2 rounded-full', style.dot)} />
-                  {col.estado}
-                </span>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  {col.items.length}
-                </span>
-              </div>
-              <div className="flex flex-col gap-2">
-                {col.items.map((wo) => (
-                  <WorkOrderCard key={wo.id} workOrder={wo} />
-                ))}
-                {col.items.length === 0 && (
-                  <p className="py-6 text-center text-xs text-muted-foreground">
-                    Sin OT en este estado
-                  </p>
-                )}
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      <TableroBoard
+        orders={orders}
+        equipment={(equipment ?? []) as Equipment[]}
+        profiles={(profiles ?? []) as Profile[]}
+        schools={(schools ?? []) as School[]}
+      />
     </div>
   )
 }

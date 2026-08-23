@@ -1,15 +1,5 @@
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { Badge } from '@/components/ui/badge'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { formatDate } from '@/lib/format'
+import { EquiposTable } from '@/components/equipos-table'
 import type { Equipment } from '@/lib/types'
 
 export default async function EquiposPage() {
@@ -27,49 +17,7 @@ export default async function EquiposPage() {
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>N° de serie</TableHead>
-              <TableHead>Modelo</TableHead>
-              <TableHead>Generación</TableHead>
-              <TableHead>Ingreso</TableHead>
-              <TableHead>Estado actual</TableHead>
-              <TableHead>Grupo</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {equipment.map((eq) => (
-              <TableRow key={eq.id}>
-                <TableCell>
-                  <Link
-                    href={`/equipos/${eq.id}`}
-                    className="font-medium text-primary underline-offset-2 hover:underline"
-                  >
-                    {eq.numero_serie}
-                  </Link>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {eq.marca} {eq.modelo}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {eq.generacion ?? '—'}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDate(eq.fecha_ingreso)}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="secondary">{eq.estado_actual ?? '—'}</Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {eq.grupo ?? '—'}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <EquiposTable equipment={equipment} />
     </div>
   )
 }
