@@ -219,3 +219,24 @@ export type Attendance = {
   estado: EstadoAsistencia
   created_at: string
 }
+
+export const DAILY_ROLES = [
+  'Líder',
+  'Documentador',
+  'Técnico',
+  'Tester/Instalador',
+  'Control de Calidad',
+] as const
+export type DailyRoleName = (typeof DAILY_ROLES)[number]
+
+/** Roles de los que solo puede haber un titular por sesión. */
+export const EXCLUSIVE_DAILY_ROLES: DailyRoleName[] = ['Líder', 'Documentador']
+
+export type DailyRole = {
+  id: string
+  session_id: string
+  student_id: string
+  rol: DailyRoleName
+  created_at: string
+  student?: Profile | null
+}

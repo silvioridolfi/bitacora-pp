@@ -2,10 +2,11 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { WORK_ORDER_ETAPA_INFO, WORK_ORDER_ETAPAS, PROGRAMAS_NETBOOK } from '@/lib/types'
+import { WORK_ORDER_ETAPA_INFO, WORK_ORDER_ETAPAS, PROGRAMAS_NETBOOK, EXCLUSIVE_DAILY_ROLES } from '@/lib/types'
 import { isAttendanceLocked, isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
 import { getCurrentProfile } from '@/lib/data'
 import type {
+  DailyRoleName,
   EstadoAsistencia,
   Grupo,
   ProgramaNetbook,
@@ -354,5 +355,68 @@ export async function toggleWorkOrderAction(
   revalidatePath('/territorio')
   revalidatePath('/tablero')
   revalidatePath('/equipos')
+  return { ok: true }
+}
+
+/**
+ * Asigna un rol del día a un alumno para una sesión. Para roles exclusivos
+ * (Líder, Documentador) primero saca a quien lo tuviera antes, así queda
+ * un solo titular. Para el resto, simplemente lo tilda (puede haber varios
+ * alumnos con el mismo rol, y un alumno con varios roles).
+ */
+export async function assignDailyRole(
+  sessionId: string,
+  studentId: string,
+  rol: DailyRoleName,
+): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+
+  if (EXCLUSIVE_DAILY_ROLES.includes(rol)) {
+    const { error: delError } = await supabase
+      .from('daily_roles')
+      .delete()
+      .eq('session_id', sessionId)
+      .eq('rol', rol)
+    if (delError) return { ok: false, error: delError.message }
+  }
+
+  const { error } = await supabase.from('daily_roles').insert({
+    session_id: sessionId,
+    student_id: studentId,
+    rol,
+  })
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/asistencia')
+  revalidatePath('/tablero')
+  revalidatePath('/taller')
+  return { ok: true }
+}
+
+/** Saca un rol del día (sin reemplazarlo). */
+export async function removeDailyRole(
+  sessionId: string,
+  studentId: string,
+  rol: DailyRoleName,
+): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+
+  const { error } = await supabase
+    .from('daily_roles')
+    .delete()
+    .eq('session_id', sessionId)
+    .eq('student_id', studentId)
+    .eq('rol', rol)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/asistencia')
+  revalidatePath('/tablero')
+  revalidatePath('/taller')
   return { ok: true }
 }

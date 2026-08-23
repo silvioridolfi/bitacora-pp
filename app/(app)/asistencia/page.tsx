@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { AttendanceGrid } from '@/components/attendance-grid'
+import { DailyRolesPanel } from '@/components/daily-roles-panel'
 import { getCurrentProfile } from '@/lib/data'
 import { cn } from '@/lib/utils'
-import type { Attendance, Grupo, Profile, Session } from '@/lib/types'
+import type { Attendance, DailyRole, Grupo, Profile, Session } from '@/lib/types'
 
 export default async function AsistenciaPage({
   searchParams,
@@ -30,6 +31,23 @@ export default async function AsistenciaPage({
   for (const row of (attendanceRows ?? []) as Attendance[]) {
     attendanceMap[`${row.student_id}:${row.session_id}`] = row.estado
   }
+
+  const sessionsList = (sessions ?? []) as Session[]
+  const latestSession = sessionsList[sessionsList.length - 1] ?? null
+
+  const presentStudents = latestSession
+    ? ((students ?? []) as Profile[]).filter((s) => {
+        const estado = attendanceMap[`${s.id}:${latestSession.id}`]
+        return estado === 'Presente' || estado === 'Tardanza'
+      })
+    : []
+
+  const { data: dailyRolesRaw } = latestSession
+    ? await supabase
+        .from('daily_roles')
+        .select('*, student:student_id(*)')
+        .eq('session_id', latestSession.id)
+    : { data: [] }
 
   return (
     <div className="flex flex-col gap-4">
@@ -63,10 +81,23 @@ export default async function AsistenciaPage({
       <AttendanceGrid
         grupo={grupo}
         students={(students ?? []) as Profile[]}
-        sessions={(sessions ?? []) as Session[]}
+        sessions={sessionsList}
         attendance={attendanceMap}
         isAdmin={profile?.is_admin ?? false}
       />
+
+      {latestSession && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium text-foreground">
+            Roles de hoy -- sesión #{latestSession.sesion_n}
+          </p>
+          <DailyRolesPanel
+            sessionId={latestSession.id}
+            presentStudents={presentStudents}
+            roles={(dailyRolesRaw ?? []) as DailyRole[]}
+          />
+        </div>
+      )}
     </div>
   )
 }
