@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent } from '@/components/ui/card'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
@@ -57,37 +58,41 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {kpis.map((kpi) => (
-          <Card key={kpi.label}>
-            <CardContent className="flex flex-col gap-1 p-4">
-              <span className="text-xs text-muted-foreground">{kpi.label}</span>
-              <span className="font-heading text-2xl font-bold text-foreground">
-                {kpi.value}
-              </span>
-            </CardContent>
-          </Card>
+          <Link key={kpi.label} href="/tablero">
+            <Card className="transition-colors hover:border-primary/50 hover:bg-muted/40">
+              <CardContent className="flex flex-col gap-1 p-4">
+                <span className="text-xs text-muted-foreground">{kpi.label}</span>
+                <span className="font-heading text-2xl font-bold text-foreground">
+                  {kpi.value}
+                </span>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card>
-          <CardContent className="flex flex-col gap-4 p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-heading text-sm font-semibold text-foreground">
-                % de avance general
-              </h2>
-              <span className="font-heading text-xl font-bold text-primary">{avance}%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-primary"
-                style={{ width: `${avance}%` }}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Órdenes finalizadas o derivadas sobre el total de {total}.
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/tablero">
+          <Card className="h-full transition-colors hover:border-primary/50 hover:bg-muted/40">
+            <CardContent className="flex flex-col gap-4 p-5">
+              <div className="flex items-center justify-between">
+                <h2 className="font-heading text-sm font-semibold text-foreground">
+                  % de avance general
+                </h2>
+                <span className="font-heading text-xl font-bold text-primary">{avance}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: `${avance}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Órdenes finalizadas o derivadas sobre el total de {total}.
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
         <Card>
           <CardContent className="flex flex-col gap-4 p-5">
@@ -98,7 +103,11 @@ export default async function DashboardPage() {
               { label: 'Grupo 1', list: grupo1 },
               { label: 'Grupo 2', list: grupo2 },
             ].map((g) => (
-              <div key={g.label} className="flex flex-col gap-1.5">
+              <Link
+                key={g.label}
+                href={`/tablero?grupo=${encodeURIComponent(g.label)}`}
+                className="flex flex-col gap-1.5 rounded-md p-1 -m-1 transition-colors hover:bg-muted/40"
+              >
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-medium text-foreground">{g.label}</span>
                   <span className="text-muted-foreground">
@@ -111,7 +120,7 @@ export default async function DashboardPage() {
                     style={{ width: `${finalizadoRate(g.list)}%` }}
                   />
                 </div>
-              </div>
+              </Link>
             ))}
           </CardContent>
         </Card>
@@ -126,15 +135,20 @@ export default async function DashboardPage() {
             {estadoCounts.map(({ estado, count }) => {
               const style = WORK_ORDER_STATUS_STYLE[estado]
               return (
-                <div
+                <Link
                   key={estado}
-                  className={cn('flex flex-col gap-1 rounded-lg border p-3', style.bg, style.border)}
+                  href="/tablero"
+                  className={cn(
+                    'flex flex-col gap-1 rounded-lg border p-3 transition-opacity hover:opacity-80',
+                    style.bg,
+                    style.border,
+                  )}
                 >
                   <span className={cn('text-xs font-medium', style.text)}>{estado}</span>
                   <span className="font-heading text-lg font-bold text-foreground">
                     {count}
                   </span>
-                </div>
+                </Link>
               )
             })}
           </div>

@@ -7,9 +7,9 @@ import { cn } from '@/lib/utils'
 export default async function TableroPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tipo?: string }>
+  searchParams: Promise<{ tipo?: string; grupo?: string }>
 }) {
-  const { tipo } = await searchParams
+  const { tipo, grupo } = await searchParams
   const supabase = await createClient()
 
   let query = supabase
@@ -22,6 +22,9 @@ export default async function TableroPage({
 
   if (tipo === 'taller' || tipo === 'territorio') {
     query = query.eq('tipo', tipo)
+  }
+  if (grupo === 'Grupo 1' || grupo === 'Grupo 2') {
+    query = query.eq('grupo', grupo)
   }
 
   const [{ data }, { data: equipment }, { data: profiles }, { data: schools }, { profile }] =

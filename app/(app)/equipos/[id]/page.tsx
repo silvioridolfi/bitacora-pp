@@ -1,13 +1,15 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, HelpCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { WorkOrderCard } from '@/components/work-order-card'
+import { WorkOrderForm } from '@/components/work-order-form'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatDate } from '@/lib/format'
 import { getCurrentProfile } from '@/lib/data'
-import type { Equipment, WorkOrder } from '@/lib/types'
+import type { Equipment, Profile, School, WorkOrder } from '@/lib/types'
 
 export default async function EquipoPage({
   params,
@@ -17,7 +19,14 @@ export default async function EquipoPage({
   const { id } = await params
   const supabase = await createClient()
 
-  const [{ data: equipment }, { data: workOrders }, { profile }] = await Promise.all([
+  const [
+    { data: equipment },
+    { data: workOrders },
+    { profile },
+    { data: allEquipment },
+    { data: profiles },
+    { data: schools },
+  ] = await Promise.all([
     supabase.from('equipment').select('*').eq('id', id).maybeSingle(),
     supabase
       .from('work_orders')
@@ -27,6 +36,9 @@ export default async function EquipoPage({
       .eq('equipment_id', id)
       .order('fecha', { ascending: true }),
     getCurrentProfile(),
+    supabase.from('equipment').select('*').order('numero_serie'),
+    supabase.from('profiles').select('*').order('apellido_nombre'),
+    supabase.from('schools').select('*').order('nombre'),
   ])
 
   if (!equipment) notFound()
@@ -74,7 +86,19 @@ export default async function EquipoPage({
               <p className="text-sm font-medium">{eq.grupo ?? '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Formato</p>
+              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                Formato de software
+                <Tooltip>
+                  <TooltipTrigger>
+                    <HelpCircle className="size-3" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Indica si el equipo tiene instalado y verificado el sistema operativo /
+                    imagen de software correspondiente al programa. &quot;Con
+                    observación&quot; significa que hubo un problema con esa instalación.
+                  </TooltipContent>
+                </Tooltip>
+              </p>
               <p className="text-sm font-medium">
                 {eq.formato_ok === null ? '—' : eq.formato_ok ? 'OK' : 'Con observación'}
               </p>
@@ -110,9 +134,20 @@ export default async function EquipoPage({
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {orders.map((wo) => (
-              <WorkOrderCard
+              <WorkOrderForm
                 key={wo.id}
+                tipo={wo.tipo}
+                equipment={(allEquipment ?? []) as Equipment[]}
+                profiles={(profiles ?? []) as Profile[]}
+                schools={(schools ?? []) as School[]}
                 workOrder={wo}
+                trigger={
+                  <WorkOrderCard
+                    workOrder={wo}
+                    isAdmin={profile?.is_admin ?? false}
+                    currentProfileId={profile?.id ?? null}
+                  />
+                }
                 isAdmin={profile?.is_admin ?? false}
                 currentProfileId={profile?.id ?? null}
               />
