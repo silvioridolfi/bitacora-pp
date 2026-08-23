@@ -1,5 +1,6 @@
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { todayInArgentina } from '@/lib/timezone'
 import type { DailyRoleName, Profile } from '@/lib/types'
 
 /**
@@ -62,28 +63,26 @@ export async function getCurrentProfile(): Promise<{
 }
 
 /**
- * Roles del día asignados hoy, agrupados por alumno -- toma la sesión
- * más reciente de cada grupo (Grupo 1 y Grupo 2) y arma un mapa
- * profile_id -> lista de roles. Usado para mostrar el badge de rol en
- * las cards de OT (Tablero/Taller/Territorio), sin condicionar nada.
+ * Roles del día asignados hoy, agrupados por alumno -- busca, para cada
+ * grupo, la sesión cuya FECHA sea la de hoy (no simplemente "la más
+ * reciente por número"), para que una sesión de prueba cargada fuera de
+ * orden nunca termine contaminando el badge. Si un grupo no tiene sesión
+ * con fecha de hoy, no aparece nada para ese grupo. Usado para mostrar
+ * el badge de rol en las cards de OT (Tablero/Taller/Territorio), sin
+ * condicionar nada.
  */
 export async function getTodayRolesByProfile(): Promise<Record<string, DailyRoleName[]>> {
   const supabase = await createClient()
+  const today = todayInArgentina()
 
   const grupos = ['Grupo 1', 'Grupo 2'] as const
-  const latestSessions = await Promise.all(
+  const todaySessions = await Promise.all(
     grupos.map((g) =>
-      supabase
-        .from('sessions')
-        .select('id')
-        .eq('grupo', g)
-        .order('sesion_n', { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+      supabase.from('sessions').select('id').eq('grupo', g).eq('fecha', today).maybeSingle(),
     ),
   )
 
-  const sessionIds = latestSessions
+  const sessionIds = todaySessions
     .map((r) => r.data?.id)
     .filter((id): id is string => Boolean(id))
 

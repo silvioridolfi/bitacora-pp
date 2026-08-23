@@ -420,3 +420,44 @@ export async function removeDailyRole(
   revalidatePath('/taller')
   return { ok: true }
 }
+
+/**
+ * Borra una OT (solo admin). Saca primero sus etapas/acciones para no
+ * chocar con el FK, aunque ya tienen ON DELETE CASCADE -- explícito por
+ * claridad. No borra el equipo asociado, puede haber quedado con otras OT.
+ */
+export async function deleteWorkOrder(id: string): Promise<ActionResult> {
+  const { profile } = await getCurrentProfile()
+  if (!profile?.is_admin) return { ok: false, error: 'Solo el coordinador puede borrar una OT.' }
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('work_orders').delete().eq('id', id)
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/taller')
+  revalidatePath('/territorio')
+  revalidatePath('/tablero')
+  revalidatePath('/dashboard')
+  revalidatePath('/equipos')
+  return { ok: true }
+}
+
+/**
+ * Borra una fecha/sesión de asistencia (solo admin). Cascadea a
+ * attendance y daily_roles de esa sesión.
+ */
+export async function deleteSession(id: string): Promise<ActionResult> {
+  const { profile } = await getCurrentProfile()
+  if (!profile?.is_admin) return { ok: false, error: 'Solo el coordinador puede borrar una fecha.' }
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('sessions').delete().eq('id', id)
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/asistencia')
+  revalidatePath('/ranking')
+  revalidatePath('/dashboard')
+  revalidatePath('/tablero')
+  revalidatePath('/taller')
+  return { ok: true }
+}

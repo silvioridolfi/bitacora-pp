@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { AttendanceGrid } from '@/components/attendance-grid'
 import { DailyRolesPanel } from '@/components/daily-roles-panel'
 import { getCurrentProfile } from '@/lib/data'
+import { formatDate } from '@/lib/format'
+import { todayInArgentina } from '@/lib/timezone'
 import { cn } from '@/lib/utils'
 import type { Attendance, DailyRole, Grupo, Profile, Session } from '@/lib/types'
 
@@ -33,7 +35,10 @@ export default async function AsistenciaPage({
   }
 
   const sessionsList = (sessions ?? []) as Session[]
-  const latestSession = sessionsList[sessionsList.length - 1] ?? null
+  const today = todayInArgentina()
+  const latestSession =
+    sessionsList.find((s) => s.fecha === today) ?? sessionsList[sessionsList.length - 1] ?? null
+  const isActuallyToday = latestSession?.fecha === today
 
   const presentStudents = latestSession
     ? ((students ?? []) as Profile[]).filter((s) => {
@@ -89,7 +94,8 @@ export default async function AsistenciaPage({
       {latestSession && (
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium text-foreground">
-            Roles de hoy -- sesión #{latestSession.sesion_n}
+            Roles -- sesión #{latestSession.sesion_n}
+            {isActuallyToday ? ' (hoy)' : ` (${formatDate(latestSession.fecha)})`}
           </p>
           <DailyRolesPanel
             sessionId={latestSession.id}

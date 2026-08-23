@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { PlusIcon } from 'lucide-react'
+import { PlusIcon, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,7 +18,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { createWorkOrder, updateWorkOrder } from '@/lib/actions'
+import { createWorkOrder, updateWorkOrder, deleteWorkOrder } from '@/lib/actions'
 import { WORK_ORDER_ESTADOS } from '@/lib/types'
 import type { Profile, School, TipoOT, WorkOrder } from '@/lib/types'
 import { WorkOrderStageChecklist } from '@/components/work-order-stage-checklist'
@@ -72,6 +72,21 @@ export function WorkOrderForm({
 
       if (result.ok) {
         toast.success(workOrder ? 'OT actualizada' : 'OT creada correctamente')
+        setOpen(false)
+        router.refresh()
+      } else {
+        toast.error(result.error)
+      }
+    })
+  }
+
+  function handleDelete() {
+    if (!workOrder) return
+    if (!confirm(`¿Borrar la OT ${workOrder.codigo}? Esta acción no se puede deshacer.`)) return
+    startTransition(async () => {
+      const result = await deleteWorkOrder(workOrder.id)
+      if (result.ok) {
+        toast.success('OT borrada')
         setOpen(false)
         router.refresh()
       } else {
@@ -295,6 +310,18 @@ export function WorkOrderForm({
           </FieldGroup>
 
           <DialogFooter className="mt-4">
+            {workOrder && isAdmin && (
+              <Button
+                type="button"
+                variant="outline"
+                className="mr-auto text-destructive hover:text-destructive"
+                disabled={pending}
+                onClick={handleDelete}
+              >
+                <Trash2 data-icon="inline-start" />
+                Borrar OT
+              </Button>
+            )}
             <DialogClose render={<Button variant="outline" type="button" />}>
               Cancelar
             </DialogClose>

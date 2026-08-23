@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Lock, Plus } from 'lucide-react'
+import { Lock, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { setAttendance, createSession } from '@/lib/actions'
+import { setAttendance, createSession, deleteSession } from '@/lib/actions'
 import { formatDate } from '@/lib/format'
 import { isAttendanceLocked, isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
 import { ATTENDANCE_STATUS_STYLE, nextAttendanceStatus } from '@/lib/status'
@@ -81,6 +81,24 @@ export function AttendanceGrid({
     })
   }
 
+  function handleDeleteFecha(session: Session) {
+    if (
+      !confirm(
+        `¿Borrar la fecha #${session.sesion_n} (${formatDate(session.fecha)})? Se borra también la asistencia y los roles de ese día. No se puede deshacer.`,
+      )
+    )
+      return
+    startTransition(async () => {
+      const result = await deleteSession(session.id)
+      if (result.ok) {
+        toast.success('Fecha borrada')
+        router.refresh()
+      } else {
+        toast.error(result.error)
+      }
+    })
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-border p-3">
@@ -131,6 +149,16 @@ export function AttendanceGrid({
                       <span>#{s.sesion_n}</span>
                       {(locked || closedButEditable) && (
                         <Lock className="size-3 text-muted-foreground" />
+                      )}
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          title="Borrar esta fecha"
+                          onClick={() => handleDeleteFecha(s)}
+                          className="ml-auto text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="size-3" />
+                        </button>
                       )}
                     </div>
                     <div className="text-[11px] text-muted-foreground">
