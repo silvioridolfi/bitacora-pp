@@ -144,7 +144,7 @@ export function TableroBoard({
         onMouseUp={endDrag}
         onMouseLeave={endDrag}
         onClickCapture={handleClickCapture}
-        className="flex cursor-grab gap-3 overflow-x-auto pb-2 active:cursor-grabbing"
+        className="flex cursor-grab select-none gap-3 overflow-x-auto pb-2 active:cursor-grabbing"
       >
         {columns.map((col) => {
           const style = WORK_ORDER_STATUS_STYLE[col.estado]

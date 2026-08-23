@@ -24,6 +24,7 @@ import type { Profile, School, TipoOT, WorkOrder } from '@/lib/types'
 import { WorkOrderStageChecklist } from '@/components/work-order-stage-checklist'
 import { WorkOrderActionsChecklist } from '@/components/work-order-actions-checklist'
 import { EquipoIntakeFields } from '@/components/equipo-intake-fields'
+import { SchoolCombobox } from '@/components/school-combobox'
 import { todayInArgentina } from '@/lib/timezone'
 
 const nativeSelectClass =
@@ -126,21 +127,11 @@ export function WorkOrderForm({
 
             {tipo === 'territorio' && (
               <Field>
-                <FieldLabel htmlFor="school_id">Escuela</FieldLabel>
-                <select
-                  id="school_id"
-                  name="school_id"
-                  defaultValue={workOrder?.school_id ?? ''}
-                  className={nativeSelectClass}
-                  required
-                >
-                  <option value="">Seleccionar escuela…</option>
-                  {(schools ?? []).map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.nombre} {s.cue ? `(CUE ${s.cue})` : ''}
-                    </option>
-                  ))}
-                </select>
+                <FieldLabel>Escuela</FieldLabel>
+                <SchoolCombobox
+                  schools={schools ?? []}
+                  defaultSchool={workOrder?.school ?? null}
+                />
               </Field>
             )}
 

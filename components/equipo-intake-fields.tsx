@@ -19,29 +19,23 @@ const nativeSelectClass =
 export function EquipoIntakeFields() {
   const [tipoEquipo, setTipoEquipo] = useState<TipoEquipo>('netbook')
   const [programa, setPrograma] = useState<ProgramaNetbook | ''>('')
-  const [serie, setSerie] = useState('')
-  const [prevPrefix, setPrevPrefix] = useState('')
+  const [serieResto, setSerieResto] = useState('')
   const [sinDatos, setSinDatos] = useState(false)
 
-  function applyPrograma(next: ProgramaNetbook | '') {
-    setPrograma(next)
-    const newPrefix = next ? PROGRAMA_SERIE_PREFIX[next] : ''
-    setSerie((current) => {
-      if (!current || current === prevPrefix) return newPrefix
-      if (prevPrefix && current.startsWith(prevPrefix)) {
-        return newPrefix + current.slice(prevPrefix.length)
-      }
-      return current
-    })
-    setPrevPrefix(newPrefix)
-  }
+  const prefix = tipoEquipo === 'netbook' && programa ? PROGRAMA_SERIE_PREFIX[programa] : ''
+  const numeroSerieCompleto = sinDatos ? '' : prefix + serieResto
 
   function applyTipoEquipo(next: TipoEquipo) {
     setTipoEquipo(next)
     if (next !== 'netbook') {
       setPrograma('')
-      setPrevPrefix('')
+      setSerieResto('')
     }
+  }
+
+  function applyPrograma(next: ProgramaNetbook | '') {
+    setPrograma(next)
+    setSerieResto('')
   }
 
   return (
@@ -121,18 +115,33 @@ export function EquipoIntakeFields() {
       </div>
 
       <Field>
-        <FieldLabel htmlFor="numero_serie">N° de serie</FieldLabel>
-        <Input
-          id="numero_serie"
-          name="numero_serie"
-          value={serie}
-          onChange={(e) => setSerie(e.target.value)}
-          disabled={sinDatos}
-          placeholder={
-            tipoEquipo === 'netbook' ? 'Se autocompleta el prefijo según el programa' : ''
-          }
-          required={!sinDatos}
-        />
+        <FieldLabel htmlFor="numero_serie_resto">N° de serie</FieldLabel>
+        {prefix ? (
+          <div className="flex items-stretch overflow-hidden rounded-lg border border-input">
+            <span className="flex items-center bg-muted px-2.5 text-sm font-semibold text-muted-foreground select-none">
+              {prefix}
+            </span>
+            <input
+              id="numero_serie_resto"
+              value={serieResto}
+              onChange={(e) => setSerieResto(e.target.value)}
+              disabled={sinDatos}
+              placeholder="Resto del N° de serie"
+              required={!sinDatos}
+              className="h-9 flex-1 border-0 bg-transparent px-2.5 text-sm outline-none disabled:opacity-50"
+            />
+          </div>
+        ) : (
+          <Input
+            id="numero_serie_resto"
+            value={serieResto}
+            onChange={(e) => setSerieResto(e.target.value)}
+            disabled={sinDatos}
+            placeholder="N° de serie"
+            required={!sinDatos}
+          />
+        )}
+        <input type="hidden" name="numero_serie" value={numeroSerieCompleto} />
         <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <input
             type="checkbox"
