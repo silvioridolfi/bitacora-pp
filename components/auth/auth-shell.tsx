@@ -45,7 +45,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
         }}
       >
         <Image
-          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo_DTE_2026_v2-wgMruVkc7K6IGZMuuN8FLFxfGvpFgF.png"
+          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo_DTE_2026_v2-xxhHPy2btG6IR0PVoYAzc0QUngmBcO.png"
           alt="Dirección de Tecnología Educativa — Dirección General de Cultura y Educación — Gobierno de la Provincia de Buenos Aires"
           width={1024}
           height={160}
