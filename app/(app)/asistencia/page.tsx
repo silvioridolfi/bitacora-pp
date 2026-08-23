@@ -58,6 +58,7 @@ export default async function AsistenciaPage({
       </div>
 
       <AttendanceGrid
+        grupo={grupo}
         students={(students ?? []) as Profile[]}
         sessions={(sessions ?? []) as Session[]}
         attendance={attendanceMap}

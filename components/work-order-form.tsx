@@ -22,6 +22,7 @@ import { createWorkOrder, updateWorkOrder } from '@/lib/actions'
 import { WORK_ORDER_ESTADOS } from '@/lib/types'
 import type { Equipment, Profile, School, TipoOT, WorkOrder } from '@/lib/types'
 import { WorkOrderStageChecklist } from '@/components/work-order-stage-checklist'
+import { todayInArgentina } from '@/lib/timezone'
 
 const nativeSelectClass =
   'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
@@ -149,7 +150,7 @@ export function WorkOrderForm({
                   id="fecha"
                   name="fecha"
                   type="date"
-                  defaultValue={workOrder?.fecha ?? new Date().toISOString().slice(0, 10)}
+                  defaultValue={workOrder?.fecha ?? todayInArgentina()}
                 />
               </Field>
               <Field>
@@ -191,7 +192,11 @@ export function WorkOrderForm({
                 <WorkOrderStageChecklist
                   workOrderId={workOrder.id}
                   stages={workOrder.work_order_stages ?? []}
-                  profiles={profiles}
+                  profiles={
+                    workOrder.grupo
+                      ? profiles.filter((p) => p.grupo === workOrder.grupo || p.is_admin)
+                      : profiles
+                  }
                   isAdmin={isAdmin}
                   currentProfileId={currentProfileId}
                 />

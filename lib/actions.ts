@@ -3,7 +3,13 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { WORK_ORDER_ETAPA_INFO, WORK_ORDER_ETAPAS } from '@/lib/types'
-import type { EstadoAsistencia, TipoOT, WorkOrderEstado, WorkOrderEtapa } from '@/lib/types'
+import type {
+  EstadoAsistencia,
+  Grupo,
+  TipoOT,
+  WorkOrderEstado,
+  WorkOrderEtapa,
+} from '@/lib/types'
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -200,6 +206,39 @@ export async function setAttendance(
     },
     { onConflict: 'student_id,session_id' },
   )
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/asistencia')
+  revalidatePath('/ranking')
+  revalidatePath('/dashboard')
+  return { ok: true }
+}
+
+export async function createSession(
+  grupo: Grupo,
+  fecha: string,
+  horas: number,
+): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+
+  const { data: existing } = await supabase
+    .from('sessions')
+    .select('sesion_n')
+    .eq('grupo', grupo)
+    .order('sesion_n', { ascending: false })
+    .limit(1)
+
+  const nextSesionN = ((existing ?? [])[0]?.sesion_n ?? 0) + 1
+
+  const { error } = await supabase.from('sessions').insert({
+    grupo,
+    fecha,
+    sesion_n: nextSesionN,
+    horas,
+  })
 
   if (error) return { ok: false, error: error.message }
 

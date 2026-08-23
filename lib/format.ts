@@ -1,19 +1,22 @@
+/**
+ * Formatea una columna `date` de Postgres (YYYY-MM-DD, sin hora ni timezone)
+ * a DD/MM/AAAA. Se parsea el string directamente, sin pasar por el objeto
+ * Date del runtime, para que el resultado no dependa de en qué timezone
+ * esté corriendo el servidor (Vercel corre en UTC por defecto).
+ */
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
-  const d = new Date(value.length <= 10 ? `${value}T00:00:00` : value)
-  if (Number.isNaN(d.getTime())) return '—'
-  const dd = String(d.getDate()).padStart(2, '0')
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const yyyy = d.getFullYear()
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value)
+  if (!match) return '—'
+  const [, yyyy, mm, dd] = match
   return `${dd}/${mm}/${yyyy}`
 }
 
 export function formatDateShort(value: string | null | undefined): string {
   if (!value) return '—'
-  const d = new Date(value.length <= 10 ? `${value}T00:00:00` : value)
-  if (Number.isNaN(d.getTime())) return '—'
-  const dd = String(d.getDate()).padStart(2, '0')
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value)
+  if (!match) return '—'
+  const [, , mm, dd] = match
   return `${dd}/${mm}`
 }
 
