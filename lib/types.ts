@@ -50,6 +50,26 @@ export const PROGRAMA_SERIE_PREFIX: Record<ProgramaNetbook, string> = {
 
 export const GENERACIONES_NETBOOK = Array.from({ length: 10 }, (_, i) => `G${i + 1}`)
 
+export const MARCAS_NETBOOK = [
+  'EXO',
+  'BGH',
+  'Banghó',
+  'Noblex',
+  'Novatech',
+  'Depot',
+  'Edunec',
+  'Samsung',
+  'Lenovo',
+  'Coradir',
+  'CX',
+  'Haier',
+  'Ken Brown',
+  'NBX',
+  'SUA',
+  'PCBox',
+  'PULSArE',
+] as const
+
 export type Equipment = {
   id: string
   numero_serie: string

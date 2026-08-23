@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Plus } from 'lucide-react'
+import { Lock, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { setAttendance, createSession } from '@/lib/actions'
 import { formatDate } from '@/lib/format'
-import { isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
+import { isAttendanceLocked, isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
 import { ATTENDANCE_STATUS_STYLE, nextAttendanceStatus } from '@/lib/status'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,6 +38,7 @@ export function AttendanceGrid({
   }
 
   function handleClick(studentId: string, session: Session) {
+    if (isAttendanceLocked(session.fecha)) return
     const allowPresente = !(session.fecha === today && pastNine)
     const current = optimisticAttendance[key(studentId, session.id)] ?? null
     const next = nextAttendanceStatus(current, allowPresente)
@@ -119,37 +120,52 @@ export function AttendanceGrid({
           <tbody>
             {sessions.map((s) => {
               const allowPresente = !(s.fecha === today && pastNine)
+              const locked = isAttendanceLocked(s.fecha)
               return (
                 <tr key={s.id} className="border-b border-border last:border-0">
                   <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-foreground">
-                    <div>#{s.sesion_n}</div>
+                    <div className="flex items-center gap-1">
+                      <span>#{s.sesion_n}</span>
+                      {locked && <Lock className="size-3 text-muted-foreground" />}
+                    </div>
                     <div className="text-[11px] text-muted-foreground">
                       {formatDate(s.fecha)}
                     </div>
-                    {!allowPresente && (
+                    {!locked && !allowPresente && (
                       <div className="text-[10px] text-status-tardanza">
                         Después de las 9:00
                       </div>
+                    )}
+                    {locked && (
+                      <div className="text-[10px] text-muted-foreground">Cerrada</div>
                     )}
                   </td>
                   {students.map((student) => {
                     const estado = optimisticAttendance[key(student.id, s.id)] ?? null
                     const style = estado ? ATTENDANCE_STATUS_STYLE[estado] : null
                     return (
-                      <td key={student.id} className="p-1 text-center">
-                        <button
-                          type="button"
-                          onClick={() => handleClick(student.id, s)}
-                          title={estado ?? 'Sin registrar (click para marcar)'}
-                          className={cn(
-                            'flex size-8 items-center justify-center rounded-md border text-[10px] font-semibold transition-colors',
-                            style
-                              ? cn(style.bg, style.border, style.text)
-                              : 'border-border bg-transparent text-muted-foreground hover:bg-muted',
-                          )}
-                        >
-                          {estado ? estado.slice(0, 1) : '—'}
-                        </button>
+                      <td key={student.id} className="p-1">
+                        <div className="flex justify-center">
+                          <button
+                            type="button"
+                            onClick={() => handleClick(student.id, s)}
+                            disabled={locked}
+                            title={
+                              locked
+                                ? 'Fecha cerrada -- no se puede modificar'
+                                : (estado ?? 'Sin registrar (click para marcar)')
+                            }
+                            className={cn(
+                              'flex size-8 items-center justify-center rounded-md border text-[10px] font-semibold transition-colors',
+                              locked && 'cursor-not-allowed opacity-60',
+                              style
+                                ? cn(style.bg, style.border, style.text)
+                                : 'border-border bg-transparent text-muted-foreground hover:bg-muted',
+                            )}
+                          >
+                            {estado ? estado.slice(0, 1) : '—'}
+                          </button>
+                        </div>
                       </td>
                     )
                   })}

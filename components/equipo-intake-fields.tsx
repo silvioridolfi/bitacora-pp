@@ -5,6 +5,7 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
   GENERACIONES_NETBOOK,
+  MARCAS_NETBOOK,
   PROGRAMAS_NETBOOK,
   PROGRAMA_SERIE_PREFIX,
   TIPOS_EQUIPO,
@@ -100,7 +101,18 @@ export function EquipoIntakeFields() {
       <div className="grid grid-cols-2 gap-3">
         <Field>
           <FieldLabel htmlFor="equipo_marca">Marca</FieldLabel>
-          <Input id="equipo_marca" name="equipo_marca" placeholder="Ej. Exo, Positivo…" />
+          {tipoEquipo === 'netbook' ? (
+            <select id="equipo_marca" name="equipo_marca" className={nativeSelectClass} defaultValue="">
+              <option value="">Seleccionar…</option>
+              {MARCAS_NETBOOK.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <Input id="equipo_marca" name="equipo_marca" placeholder="Ej. HP, Dell…" />
+          )}
         </Field>
         <Field>
           <FieldLabel htmlFor="equipo_modelo">Modelo</FieldLabel>

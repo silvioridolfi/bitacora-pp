@@ -29,3 +29,31 @@ export function isPastNineAmArgentina(): boolean {
   )
   return hour >= 9
 }
+
+/**
+ * true si ya son las 12:00 o más, hora de Argentina. Usado para bloquear
+ * por completo la edición de asistencia de la fecha de hoy pasado el
+ * mediodía, y así evitar que se modifiquen (a propósito o sin querer)
+ * asistencias ya cerradas.
+ */
+export function isPastNoonArgentina(): boolean {
+  const hour = Number(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: APP_TIMEZONE,
+      hour: 'numeric',
+      hour12: false,
+    }).format(new Date()),
+  )
+  return hour >= 12
+}
+
+/**
+ * true si la fecha de una sesión de asistencia ya no se puede editar:
+ * cualquier fecha anterior a hoy, o la de hoy pasado el mediodía.
+ */
+export function isAttendanceLocked(fecha: string): boolean {
+  const today = todayInArgentina()
+  if (fecha < today) return true
+  if (fecha === today && isPastNoonArgentina()) return true
+  return false
+}

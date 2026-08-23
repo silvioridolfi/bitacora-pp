@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { WORK_ORDER_ETAPA_INFO, WORK_ORDER_ETAPAS, PROGRAMAS_NETBOOK } from '@/lib/types'
-import { isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
+import { isAttendanceLocked, isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
 import type {
   EstadoAsistencia,
   Grupo,
@@ -240,13 +240,20 @@ export async function setAttendance(
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
 
-  if (estado === 'Presente') {
-    const { data: session } = await supabase
-      .from('sessions')
-      .select('fecha')
-      .eq('id', sessionId)
-      .maybeSingle()
+  const { data: session } = await supabase
+    .from('sessions')
+    .select('fecha')
+    .eq('id', sessionId)
+    .maybeSingle()
 
+  if (session?.fecha && isAttendanceLocked(session.fecha)) {
+    return {
+      ok: false,
+      error: 'Esta fecha ya está cerrada (pasado el mediodía) y no se puede modificar.',
+    }
+  }
+
+  if (estado === 'Presente') {
     if (session?.fecha === todayInArgentina() && isPastNineAmArgentina()) {
       return {
         ok: false,
