@@ -48,6 +48,58 @@ export const WORK_ORDER_ESTADOS = [
 
 export type WorkOrderEstado = (typeof WORK_ORDER_ESTADOS)[number]
 
+export const WORK_ORDER_ETAPAS = [
+  'desarme',
+  'desbloqueo',
+  'armado',
+  'prueba_encendido',
+  'instalacion_so',
+] as const
+
+export type WorkOrderEtapa = (typeof WORK_ORDER_ETAPAS)[number]
+
+export const WORK_ORDER_ETAPA_INFO: Record<
+  WorkOrderEtapa,
+  { label: string; rol: string; resultingEstado: WorkOrderEstado; reservada?: boolean }
+> = {
+  desarme: {
+    label: 'Desarme',
+    rol: 'Técnico',
+    resultingEstado: 'Diagnosticando',
+  },
+  desbloqueo: {
+    label: 'Desbloqueo',
+    rol: 'Coordinador (rol reservado)',
+    resultingEstado: 'Desbloqueada',
+    reservada: true,
+  },
+  armado: {
+    label: 'Armado y cambio de pila',
+    rol: 'Técnico',
+    resultingEstado: 'Probando',
+  },
+  prueba_encendido: {
+    label: 'Prueba de encendido',
+    rol: 'Alumno',
+    resultingEstado: 'Instalando SO',
+  },
+  instalacion_so: {
+    label: 'Instalación de SO',
+    rol: 'Alumno',
+    resultingEstado: 'Finalizada OK',
+  },
+}
+
+export type WorkOrderStage = {
+  id: string
+  work_order_id: string
+  etapa: WorkOrderEtapa
+  profile_id: string | null
+  completed_at: string
+  created_at: string
+  profile?: Profile | null
+}
+
 export type WorkOrder = {
   id: string
   codigo: string
@@ -70,6 +122,7 @@ export type WorkOrder = {
   school?: School | null
   equipment?: Equipment | null
   work_order_actions?: WorkOrderAction[]
+  work_order_stages?: WorkOrderStage[]
 }
 
 export const WORK_ORDER_ACCIONES = [

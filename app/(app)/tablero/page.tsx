@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { TableroBoard } from '@/components/tablero-board'
+import { getCurrentProfile } from '@/lib/data'
 import type { Equipment, Profile, School, WorkOrder } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -14,7 +15,7 @@ export default async function TableroPage({
   let query = supabase
     .from('work_orders')
     .select(
-      '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*)',
+      '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_stages(*, profile:profile_id(*))',
     )
     .order('fecha', { ascending: false })
     .limit(300)
@@ -23,12 +24,13 @@ export default async function TableroPage({
     query = query.eq('tipo', tipo)
   }
 
-  const [{ data }, { data: equipment }, { data: profiles }, { data: schools }] =
+  const [{ data }, { data: equipment }, { data: profiles }, { data: schools }, { profile }] =
     await Promise.all([
       query,
       supabase.from('equipment').select('*').order('numero_serie'),
       supabase.from('profiles').select('*').order('apellido_nombre'),
       supabase.from('schools').select('*').order('nombre'),
+      getCurrentProfile(),
     ])
   const orders = (data ?? []) as unknown as WorkOrder[]
 
@@ -68,6 +70,8 @@ export default async function TableroPage({
         equipment={(equipment ?? []) as Equipment[]}
         profiles={(profiles ?? []) as Profile[]}
         schools={(schools ?? []) as School[]}
+        isAdmin={profile?.is_admin ?? false}
+        currentProfileId={profile?.id ?? null}
       />
     </div>
   )

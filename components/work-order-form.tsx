@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { PlusIcon } from 'lucide-react'
 import { toast } from 'sonner'
@@ -21,6 +21,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { createWorkOrder, updateWorkOrder } from '@/lib/actions'
 import { WORK_ORDER_ESTADOS } from '@/lib/types'
 import type { Equipment, Profile, School, TipoOT, WorkOrder } from '@/lib/types'
+import { WorkOrderStageChecklist } from '@/components/work-order-stage-checklist'
 
 const nativeSelectClass =
   'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
@@ -32,6 +33,8 @@ export function WorkOrderForm({
   schools,
   workOrder,
   trigger,
+  isAdmin = false,
+  currentProfileId = null,
 }: {
   tipo: TipoOT
   equipment: Equipment[]
@@ -39,12 +42,18 @@ export function WorkOrderForm({
   schools?: School[]
   workOrder?: WorkOrder
   trigger?: React.ReactElement
+  isAdmin?: boolean
+  currentProfileId?: string | null
 }) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const [grupo, setGrupo] = useState(workOrder?.grupo ?? '')
   const [estado, setEstado] = useState(workOrder?.estado ?? 'Pendiente')
   const router = useRouter()
+
+  useEffect(() => {
+    if (workOrder?.estado) setEstado(workOrder.estado)
+  }, [workOrder?.estado])
 
   const responsables = useMemo(() => {
     if (!grupo) return profiles.filter((p) => p.is_admin)
@@ -176,22 +185,52 @@ export function WorkOrderForm({
               </select>
             </Field>
 
-            <Field>
-              <FieldLabel htmlFor="estado">Estado</FieldLabel>
-              <select
-                id="estado"
-                name="estado"
-                className={nativeSelectClass}
-                value={estado}
-                onChange={(e) => setEstado(e.target.value as typeof estado)}
-              >
-                {WORK_ORDER_ESTADOS.map((e) => (
-                  <option key={e} value={e}>
-                    {e}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            {tipo === 'taller' && workOrder ? (
+              <Field>
+                <FieldLabel>Estado ({workOrder.estado})</FieldLabel>
+                <WorkOrderStageChecklist
+                  workOrderId={workOrder.id}
+                  stages={workOrder.work_order_stages ?? []}
+                  profiles={profiles}
+                  isAdmin={isAdmin}
+                  currentProfileId={currentProfileId}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  El estado avanza solo a medida que se completan las etapas. Para casos que
+                  no siguen el flujo normal (ej. derivar el equipo), usá el selector manual.
+                </p>
+                <select
+                  id="estado"
+                  name="estado"
+                  className={nativeSelectClass}
+                  value={estado}
+                  onChange={(e) => setEstado(e.target.value as typeof estado)}
+                >
+                  {WORK_ORDER_ESTADOS.map((e) => (
+                    <option key={e} value={e}>
+                      {e}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            ) : (
+              <Field>
+                <FieldLabel htmlFor="estado">Estado</FieldLabel>
+                <select
+                  id="estado"
+                  name="estado"
+                  className={nativeSelectClass}
+                  value={estado}
+                  onChange={(e) => setEstado(e.target.value as typeof estado)}
+                >
+                  {WORK_ORDER_ESTADOS.map((e) => (
+                    <option key={e} value={e}>
+                      {e}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            )}
 
             <Field>
               <FieldLabel htmlFor="diagnostico">Diagnóstico</FieldLabel>
