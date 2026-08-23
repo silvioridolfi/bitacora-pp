@@ -71,9 +71,9 @@ export const WORK_ORDER_ESTADO_ORDER: WorkOrderEstado[] = [
   'Pendiente',
   'Diagnosticando',
   'Desbloqueada',
+  'Probando',
   'Instalando SO',
   'Configurando',
-  'Probando',
   'Finalizada OK',
   'Derivada',
 ]

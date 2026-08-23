@@ -14,11 +14,15 @@ export function TableroBoard({
   equipment,
   profiles,
   schools,
+  isAdmin,
+  currentProfileId,
 }: {
   orders: WorkOrder[]
   equipment: Equipment[]
   profiles: Profile[]
   schools: School[]
+  isAdmin: boolean
+  currentProfileId: string | null
 }) {
   const [query, setQuery] = useState('')
 
@@ -81,6 +85,8 @@ export function TableroBoard({
                     schools={schools}
                     workOrder={wo}
                     trigger={<WorkOrderCard workOrder={wo} />}
+                    isAdmin={isAdmin}
+                    currentProfileId={currentProfileId}
                   />
                 ))}
                 {col.items.length === 0 && (

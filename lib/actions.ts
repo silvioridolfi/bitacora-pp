@@ -2,7 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import type { EstadoAsistencia, TipoOT, WorkOrderEstado } from '@/lib/types'
+import { WORK_ORDER_ETAPA_INFO, WORK_ORDER_ETAPAS } from '@/lib/types'
+import type { EstadoAsistencia, TipoOT, WorkOrderEstado, WorkOrderEtapa } from '@/lib/types'
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
@@ -103,6 +104,79 @@ export async function updateWorkOrder(
 
   revalidatePath('/taller')
   revalidatePath('/territorio')
+  revalidatePath('/tablero')
+  revalidatePath('/dashboard')
+  revalidatePath('/equipos')
+  return { ok: true }
+}
+
+export async function completeWorkOrderStage(
+  workOrderId: string,
+  etapa: WorkOrderEtapa,
+  profileId: string | null,
+): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+
+  const { error: stageError } = await supabase.from('work_order_stages').insert({
+    work_order_id: workOrderId,
+    etapa,
+    profile_id: profileId,
+  })
+
+  if (stageError) return { ok: false, error: stageError.message }
+
+  const resultingEstado = WORK_ORDER_ETAPA_INFO[etapa].resultingEstado
+  const { error: estadoError } = await supabase
+    .from('work_orders')
+    .update({ estado: resultingEstado })
+    .eq('id', workOrderId)
+
+  if (estadoError) return { ok: false, error: estadoError.message }
+
+  revalidatePath('/taller')
+  revalidatePath('/tablero')
+  revalidatePath('/dashboard')
+  revalidatePath('/equipos')
+  return { ok: true }
+}
+
+export async function undoWorkOrderStage(
+  workOrderId: string,
+  etapa: WorkOrderEtapa,
+): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+
+  const { error: deleteError } = await supabase
+    .from('work_order_stages')
+    .delete()
+    .eq('work_order_id', workOrderId)
+    .eq('etapa', etapa)
+
+  if (deleteError) return { ok: false, error: deleteError.message }
+
+  const { data: remaining } = await supabase
+    .from('work_order_stages')
+    .select('etapa')
+    .eq('work_order_id', workOrderId)
+
+  const completed = new Set((remaining ?? []).map((r) => r.etapa as WorkOrderEtapa))
+  let estado: WorkOrderEstado = 'Pendiente'
+  for (const e of WORK_ORDER_ETAPAS) {
+    if (completed.has(e)) estado = WORK_ORDER_ETAPA_INFO[e].resultingEstado
+  }
+
+  const { error: estadoError } = await supabase
+    .from('work_orders')
+    .update({ estado })
+    .eq('id', workOrderId)
+
+  if (estadoError) return { ok: false, error: estadoError.message }
+
+  revalidatePath('/taller')
   revalidatePath('/tablero')
   revalidatePath('/dashboard')
   revalidatePath('/equipos')
