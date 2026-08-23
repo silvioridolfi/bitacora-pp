@@ -3,12 +3,13 @@ import { WorkOrderForm } from '@/components/work-order-form'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { MapPin } from 'lucide-react'
-import type { Equipment, Profile, School, WorkOrder } from '@/lib/types'
+import { getCurrentProfile } from '@/lib/data'
+import type { Profile, School, WorkOrder } from '@/lib/types'
 
 export default async function TerritorioPage() {
   const supabase = await createClient()
 
-  const [{ data: workOrders }, { data: equipment }, { data: profiles }, { data: schools }] =
+  const [{ data: workOrders }, { data: profiles }, { data: schools }, { profile }] =
     await Promise.all([
       supabase
         .from('work_orders')
@@ -18,12 +19,14 @@ export default async function TerritorioPage() {
         .eq('tipo', 'territorio')
         .order('fecha', { ascending: false })
         .limit(60),
-      supabase.from('equipment').select('*').order('numero_serie'),
       supabase.from('profiles').select('*').order('apellido_nombre'),
       supabase.from('schools').select('*').order('nombre'),
+      getCurrentProfile(),
     ])
 
   const orders = (workOrders ?? []) as unknown as WorkOrder[]
+  const isAdmin = profile?.is_admin ?? false
+  const currentProfileId = profile?.id ?? null
 
   return (
     <div className="flex flex-col gap-4">
@@ -36,9 +39,10 @@ export default async function TerritorioPage() {
         </div>
         <WorkOrderForm
           tipo="territorio"
-          equipment={(equipment ?? []) as Equipment[]}
           profiles={(profiles ?? []) as Profile[]}
           schools={(schools ?? []) as School[]}
+          isAdmin={isAdmin}
+          currentProfileId={currentProfileId}
         />
       </div>
 
@@ -58,11 +62,18 @@ export default async function TerritorioPage() {
             <WorkOrderForm
               key={wo.id}
               tipo="territorio"
-              equipment={(equipment ?? []) as Equipment[]}
               profiles={(profiles ?? []) as Profile[]}
               schools={(schools ?? []) as School[]}
               workOrder={wo}
-              trigger={<WorkOrderCard workOrder={wo} />}
+              trigger={
+                <WorkOrderCard
+                  workOrder={wo}
+                  isAdmin={isAdmin}
+                  currentProfileId={currentProfileId}
+                />
+              }
+              isAdmin={isAdmin}
+              currentProfileId={currentProfileId}
             />
           ))}
         </div>

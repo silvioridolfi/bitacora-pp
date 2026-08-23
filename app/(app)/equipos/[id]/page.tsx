@@ -19,27 +19,20 @@ export default async function EquipoPage({
   const { id } = await params
   const supabase = await createClient()
 
-  const [
-    { data: equipment },
-    { data: workOrders },
-    { profile },
-    { data: allEquipment },
-    { data: profiles },
-    { data: schools },
-  ] = await Promise.all([
-    supabase.from('equipment').select('*').eq('id', id).maybeSingle(),
-    supabase
-      .from('work_orders')
-      .select(
-        '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_stages(*, profile:profile_id(*))',
-      )
-      .eq('equipment_id', id)
-      .order('fecha', { ascending: true }),
-    getCurrentProfile(),
-    supabase.from('equipment').select('*').order('numero_serie'),
-    supabase.from('profiles').select('*').order('apellido_nombre'),
-    supabase.from('schools').select('*').order('nombre'),
-  ])
+  const [{ data: equipment }, { data: workOrders }, { profile }, { data: profiles }, { data: schools }] =
+    await Promise.all([
+      supabase.from('equipment').select('*').eq('id', id).maybeSingle(),
+      supabase
+        .from('work_orders')
+        .select(
+          '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_stages(*, profile:profile_id(*))',
+        )
+        .eq('equipment_id', id)
+        .order('fecha', { ascending: true }),
+      getCurrentProfile(),
+      supabase.from('profiles').select('*').order('apellido_nombre'),
+      supabase.from('schools').select('*').order('nombre'),
+    ])
 
   if (!equipment) notFound()
 
@@ -137,7 +130,6 @@ export default async function EquipoPage({
               <WorkOrderForm
                 key={wo.id}
                 tipo={wo.tipo}
-                equipment={(allEquipment ?? []) as Equipment[]}
                 profiles={(profiles ?? []) as Profile[]}
                 schools={(schools ?? []) as School[]}
                 workOrder={wo}

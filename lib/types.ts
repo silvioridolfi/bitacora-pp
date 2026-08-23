@@ -17,6 +17,39 @@ export type School = {
   nombre_completo: string | null
 }
 
+export const TIPOS_EQUIPO = ['netbook', 'tablet', 'notebook', 'pc', 'otro'] as const
+export type TipoEquipo = (typeof TIPOS_EQUIPO)[number]
+
+export const TIPO_EQUIPO_LABEL: Record<TipoEquipo, string> = {
+  netbook: 'Netbook',
+  tablet: 'Tablet',
+  notebook: 'Notebook',
+  pc: 'PC',
+  otro: 'Otro',
+}
+
+export const PROGRAMAS_NETBOOK = [
+  'Conectar Igualdad',
+  'Primaria Digital',
+  'PAD',
+  'Aprender Conectados',
+  'Juana Manso',
+  'Conectar Igualdad 2023',
+] as const
+export type ProgramaNetbook = (typeof PROGRAMAS_NETBOOK)[number]
+
+/** Prefijo esperado del N° de serie según el programa de la netbook. */
+export const PROGRAMA_SERIE_PREFIX: Record<ProgramaNetbook, string> = {
+  'Conectar Igualdad': 'AA',
+  'Primaria Digital': 'EDU',
+  PAD: 'SZSES10IS',
+  'Aprender Conectados': 'AA',
+  'Juana Manso': 'AA',
+  'Conectar Igualdad 2023': 'AA',
+}
+
+export const GENERACIONES_NETBOOK = Array.from({ length: 10 }, (_, i) => `G${i + 1}`)
+
 export type Equipment = {
   id: string
   numero_serie: string
@@ -30,6 +63,8 @@ export type Equipment = {
   grupo: string | null
   observaciones_tecnicas: string | null
   historial_legado: string | null
+  tipo_equipo: TipoEquipo
+  programa: ProgramaNetbook | null
   created_at: string
 }
 

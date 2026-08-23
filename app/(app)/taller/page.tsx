@@ -4,25 +4,23 @@ import { WorkOrderCard } from '@/components/work-order-card'
 import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Wrench } from 'lucide-react'
 import { getCurrentProfile } from '@/lib/data'
-import type { Equipment, Profile, WorkOrder } from '@/lib/types'
+import type { Profile, WorkOrder } from '@/lib/types'
 
 export default async function TallerPage() {
   const supabase = await createClient()
 
-  const [{ data: workOrders }, { data: equipment }, { data: profiles }, { profile }] =
-    await Promise.all([
-      supabase
-        .from('work_orders')
-        .select(
-          '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_stages(*, profile:profile_id(*))',
-        )
-        .eq('tipo', 'taller')
-        .order('fecha', { ascending: false })
-        .limit(60),
-      supabase.from('equipment').select('*').order('numero_serie'),
-      supabase.from('profiles').select('*').order('apellido_nombre'),
-      getCurrentProfile(),
-    ])
+  const [{ data: workOrders }, { data: profiles }, { profile }] = await Promise.all([
+    supabase
+      .from('work_orders')
+      .select(
+        '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_stages(*, profile:profile_id(*))',
+      )
+      .eq('tipo', 'taller')
+      .order('fecha', { ascending: false })
+      .limit(60),
+    supabase.from('profiles').select('*').order('apellido_nombre'),
+    getCurrentProfile(),
+  ])
 
   const orders = (workOrders ?? []) as unknown as WorkOrder[]
   const isAdmin = profile?.is_admin ?? false
@@ -39,7 +37,6 @@ export default async function TallerPage() {
         </div>
         <WorkOrderForm
           tipo="taller"
-          equipment={(equipment ?? []) as Equipment[]}
           profiles={(profiles ?? []) as Profile[]}
           isAdmin={isAdmin}
           currentProfileId={currentProfileId}
@@ -62,7 +59,6 @@ export default async function TallerPage() {
             <WorkOrderForm
               key={wo.id}
               tipo="taller"
-              equipment={(equipment ?? []) as Equipment[]}
               profiles={(profiles ?? []) as Profile[]}
               workOrder={wo}
               trigger={

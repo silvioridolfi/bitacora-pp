@@ -2,11 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { WORK_ORDER_ETAPA_INFO, WORK_ORDER_ETAPAS } from '@/lib/types'
+import { WORK_ORDER_ETAPA_INFO, WORK_ORDER_ETAPAS, PROGRAMAS_NETBOOK } from '@/lib/types'
 import { isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
 import type {
   EstadoAsistencia,
   Grupo,
+  ProgramaNetbook,
+  TipoEquipo,
   TipoOT,
   WorkOrderEstado,
   WorkOrderEtapa,
@@ -20,7 +22,6 @@ export async function createWorkOrder(formData: FormData): Promise<ActionResult>
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
 
   const tipo = formData.get('tipo') as TipoOT
-  const equipment_id = (formData.get('equipment_id') as string) || null
   const grupo = (formData.get('grupo') as string) || null
   const responsable_id = (formData.get('responsable_id') as string) || null
   const school_id = (formData.get('school_id') as string) || null
@@ -36,14 +37,55 @@ export async function createWorkOrder(formData: FormData): Promise<ActionResult>
     : null
   const observaciones = (formData.get('observaciones') as string) || null
 
-  if (!equipment_id) return { ok: false, error: 'Debe seleccionar un equipo.' }
   if (tipo === 'territorio' && !school_id) {
     return { ok: false, error: 'Debe seleccionar una escuela para OT de territorio.' }
   }
 
+  // -- Carga manual del equipo nuevo que ingresa con esta OT --
+  const tipo_equipo = (formData.get('tipo_equipo') as TipoEquipo) || 'netbook'
+  const programaRaw = (formData.get('programa') as string) || ''
+  const programa: ProgramaNetbook | null =
+    tipo_equipo === 'netbook' && PROGRAMAS_NETBOOK.includes(programaRaw as ProgramaNetbook)
+      ? (programaRaw as ProgramaNetbook)
+      : null
+  const generacion = tipo_equipo === 'netbook' ? (formData.get('generacion') as string) || null : null
+  const marca = (formData.get('equipo_marca') as string) || null
+  const modelo = (formData.get('equipo_modelo') as string) || null
+  const sinDatos = formData.get('sin_datos') === 'on'
+  let numero_serie = ((formData.get('numero_serie') as string) || '').trim()
+
+  if (sinDatos) {
+    numero_serie = `S/D-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+  }
+  if (!numero_serie) {
+    return { ok: false, error: 'El N° de serie es obligatorio (usá S/D si es ilegible).' }
+  }
+
+  const { data: newEquipment, error: equipmentError } = await supabase
+    .from('equipment')
+    .insert({
+      numero_serie,
+      tipo_equipo,
+      programa,
+      generacion,
+      marca,
+      modelo,
+      grupo,
+      fecha_ingreso: fecha ?? todayInArgentina(),
+    })
+    .select('id')
+    .single()
+
+  if (equipmentError) {
+    if (equipmentError.code === '23505') {
+      return { ok: false, error: `Ya existe un equipo cargado con el N° de serie ${numero_serie}.` }
+    }
+    return { ok: false, error: equipmentError.message }
+  }
+
   const { error } = await supabase.from('work_orders').insert({
     tipo,
-    equipment_id,
+    equipment_id: newEquipment.id,
     grupo,
     responsable_id,
     school_id: tipo === 'territorio' ? school_id : null,
@@ -74,7 +116,6 @@ export async function updateWorkOrder(
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
 
-  const equipment_id = (formData.get('equipment_id') as string) || null
   const grupo = (formData.get('grupo') as string) || null
   const responsable_id = (formData.get('responsable_id') as string) || null
   const school_id = (formData.get('school_id') as string) || null
@@ -93,7 +134,6 @@ export async function updateWorkOrder(
   const { error } = await supabase
     .from('work_orders')
     .update({
-      equipment_id,
       grupo,
       responsable_id,
       school_id,

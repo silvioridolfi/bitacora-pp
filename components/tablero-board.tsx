@@ -6,19 +6,17 @@ import { Input } from '@/components/ui/input'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { WORK_ORDER_ESTADO_ORDER, WORK_ORDER_STATUS_STYLE } from '@/lib/status'
-import type { Equipment, Profile, School, WorkOrder } from '@/lib/types'
+import type { Profile, School, WorkOrder } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 export function TableroBoard({
   orders,
-  equipment,
   profiles,
   schools,
   isAdmin,
   currentProfileId,
 }: {
   orders: WorkOrder[]
-  equipment: Equipment[]
   profiles: Profile[]
   schools: School[]
   isAdmin: boolean
@@ -80,7 +78,6 @@ export function TableroBoard({
                   <WorkOrderForm
                     key={wo.id}
                     tipo={wo.tipo}
-                    equipment={equipment}
                     profiles={profiles}
                     schools={schools}
                     workOrder={wo}

@@ -20,8 +20,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { createWorkOrder, updateWorkOrder } from '@/lib/actions'
 import { WORK_ORDER_ESTADOS } from '@/lib/types'
-import type { Equipment, Profile, School, TipoOT, WorkOrder } from '@/lib/types'
+import type { Profile, School, TipoOT, WorkOrder } from '@/lib/types'
 import { WorkOrderStageChecklist } from '@/components/work-order-stage-checklist'
+import { EquipoIntakeFields } from '@/components/equipo-intake-fields'
 import { todayInArgentina } from '@/lib/timezone'
 
 const nativeSelectClass =
@@ -29,7 +30,6 @@ const nativeSelectClass =
 
 export function WorkOrderForm({
   tipo,
-  equipment,
   profiles,
   schools,
   workOrder,
@@ -38,7 +38,6 @@ export function WorkOrderForm({
   currentProfileId = null,
 }: {
   tipo: TipoOT
-  equipment: Equipment[]
   profiles: Profile[]
   schools?: School[]
   workOrder?: WorkOrder
@@ -105,23 +104,24 @@ export function WorkOrderForm({
         <form action={handleSubmit}>
           <input type="hidden" name="tipo" value={tipo} />
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="equipment_id">Equipo (N° de serie)</FieldLabel>
-              <select
-                id="equipment_id"
-                name="equipment_id"
-                defaultValue={workOrder?.equipment_id ?? ''}
-                className={nativeSelectClass}
-                required
-              >
-                <option value="">Seleccionar equipo…</option>
-                {equipment.map((eq) => (
-                  <option key={eq.id} value={eq.id}>
-                    {eq.numero_serie} {eq.modelo ? `— ${eq.modelo}` : ''}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            {workOrder ? (
+              <Field>
+                <FieldLabel>Equipo</FieldLabel>
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
+                  <p className="font-medium text-foreground">
+                    {workOrder.equipment?.numero_serie ?? '—'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {[workOrder.equipment?.marca, workOrder.equipment?.modelo]
+                      .filter(Boolean)
+                      .join(' ') || 'Sin marca/modelo'}
+                    {workOrder.equipment?.generacion ? ` · ${workOrder.equipment.generacion}` : ''}
+                  </p>
+                </div>
+              </Field>
+            ) : (
+              <EquipoIntakeFields />
+            )}
 
             {tipo === 'territorio' && (
               <Field>
