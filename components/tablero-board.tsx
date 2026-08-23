@@ -2,13 +2,16 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { WORK_ORDER_ESTADO_ORDER, WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import type { Profile, School, WorkOrder, WorkOrderEstado } from '@/lib/types'
 import { cn } from '@/lib/utils'
+
+const COLUMN_SCROLL_STEP = 304 // ancho de columna (288px) + gap (16px)
 
 export function TableroBoard({
   orders,
@@ -27,6 +30,50 @@ export function TableroBoard({
   const searchParams = useSearchParams()
   const targetEstado = searchParams.get('estado') as WorkOrderEstado | null
   const columnRefs = useRef<Partial<Record<WorkOrderEstado, HTMLDivElement | null>>>({})
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  // -- Drag-to-scroll: arrastrar el fondo del tablero para desplazarlo,
+  // sin romper el click normal sobre una card (que abre el modal). --
+  const dragState = useRef({ isDown: false, moved: false, startX: 0, startScrollLeft: 0 })
+
+  function handleMouseDown(e: React.MouseEvent) {
+    const el = scrollRef.current
+    if (!el) return
+    dragState.current = {
+      isDown: true,
+      moved: false,
+      startX: e.pageX - el.offsetLeft,
+      startScrollLeft: el.scrollLeft,
+    }
+  }
+
+  function handleMouseMove(e: React.MouseEvent) {
+    const el = scrollRef.current
+    if (!el || !dragState.current.isDown) return
+    const x = e.pageX - el.offsetLeft
+    const walk = x - dragState.current.startX
+    if (Math.abs(walk) > 5) dragState.current.moved = true
+    if (dragState.current.moved) {
+      el.scrollLeft = dragState.current.startScrollLeft - walk
+    }
+  }
+
+  function endDrag() {
+    dragState.current.isDown = false
+  }
+
+  function handleClickCapture(e: React.MouseEvent) {
+    // Si hubo arrastre real, cancelamos el click que dispararía el modal.
+    if (dragState.current.moved) {
+      e.preventDefault()
+      e.stopPropagation()
+      dragState.current.moved = false
+    }
+  }
+
+  function scrollByStep(direction: 1 | -1) {
+    scrollRef.current?.scrollBy({ left: direction * COLUMN_SCROLL_STEP, behavior: 'smooth' })
+  }
 
   useEffect(() => {
     if (targetEstado && columnRefs.current[targetEstado]) {
@@ -58,17 +105,47 @@ export function TableroBoard({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar por código, N° de serie, responsable o escuela…"
-          className="pl-8"
-        />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="relative max-w-sm flex-1">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar por código, N° de serie, responsable o escuela…"
+            className="pl-8"
+          />
+        </div>
+        <div className="flex gap-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => scrollByStep(-1)}
+            title="Desplazar hacia la izquierda"
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => scrollByStep(1)}
+            title="Desplazar hacia la derecha"
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-2">
+      <div
+        ref={scrollRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={endDrag}
+        onMouseLeave={endDrag}
+        onClickCapture={handleClickCapture}
+        className="flex cursor-grab gap-3 overflow-x-auto pb-2 active:cursor-grabbing"
+      >
         {columns.map((col) => {
           const style = WORK_ORDER_STATUS_STYLE[col.estado]
           const highlighted = targetEstado === col.estado
