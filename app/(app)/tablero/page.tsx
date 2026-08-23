@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { WorkOrderCard } from '@/components/work-order-card'
+import { WorkOrderForm } from '@/components/work-order-form'
 import { WORK_ORDER_ESTADO_ORDER, WORK_ORDER_STATUS_STYLE } from '@/lib/status'
-import type { WorkOrder } from '@/lib/types'
+import type { Equipment, Profile, WorkOrder } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 export default async function TableroPage({
@@ -24,7 +25,11 @@ export default async function TableroPage({
     query = query.eq('tipo', tipo)
   }
 
-  const { data } = await query
+  const [{ data }, { data: equipment }, { data: profiles }] = await Promise.all([
+    query,
+    supabase.from('equipment').select('*').order('numero_serie'),
+    supabase.from('profiles').select('*').order('apellido_nombre'),
+  ])
   const orders = (data ?? []) as unknown as WorkOrder[]
 
   const columns = WORK_ORDER_ESTADO_ORDER.map((estado) => ({
@@ -82,7 +87,14 @@ export default async function TableroPage({
               </div>
               <div className="flex flex-col gap-2">
                 {col.items.map((wo) => (
-                  <WorkOrderCard key={wo.id} workOrder={wo} />
+                  <WorkOrderForm
+                    key={wo.id}
+                    tipo={wo.tipo}
+                    equipment={(equipment ?? []) as Equipment[]}
+                    profiles={(profiles ?? []) as Profile[]}
+                    workOrder={wo}
+                    trigger={<WorkOrderCard workOrder={wo} />}
+                  />
                 ))}
                 {col.items.length === 0 && (
                   <p className="py-6 text-center text-xs text-muted-foreground">
