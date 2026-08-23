@@ -3,24 +3,26 @@ import { WorkOrderForm } from '@/components/work-order-form'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Wrench } from 'lucide-react'
-import { getCurrentProfile } from '@/lib/data'
+import { getCurrentProfile, getTodayRolesByProfile } from '@/lib/data'
 import type { Profile, WorkOrder } from '@/lib/types'
 
 export default async function TallerPage() {
   const supabase = await createClient()
 
-  const [{ data: workOrders }, { data: profiles }, { profile }] = await Promise.all([
-    supabase
-      .from('work_orders')
-      .select(
-        '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_stages(*, profile:profile_id(*)), work_order_actions(*)',
-      )
-      .eq('tipo', 'taller')
-      .order('fecha', { ascending: false })
-      .limit(60),
-    supabase.from('profiles').select('*').order('apellido_nombre'),
-    getCurrentProfile(),
-  ])
+  const [{ data: workOrders }, { data: profiles }, { profile }, rolesByProfile] =
+    await Promise.all([
+      supabase
+        .from('work_orders')
+        .select(
+          '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_stages(*, profile:profile_id(*)), work_order_actions(*)',
+        )
+        .eq('tipo', 'taller')
+        .order('fecha', { ascending: false })
+        .limit(60),
+      supabase.from('profiles').select('*').order('apellido_nombre'),
+      getCurrentProfile(),
+      getTodayRolesByProfile(),
+    ])
 
   const orders = (workOrders ?? []) as unknown as WorkOrder[]
   const isAdmin = profile?.is_admin ?? false
@@ -66,6 +68,9 @@ export default async function TallerPage() {
                   workOrder={wo}
                   isAdmin={isAdmin}
                   currentProfileId={currentProfileId}
+                  responsableRoles={
+                    wo.responsable_id ? (rolesByProfile[wo.responsable_id] ?? []) : []
+                  }
                 />
               }
               isAdmin={isAdmin}

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { WORK_ORDER_ESTADO_ORDER, WORK_ORDER_STATUS_STYLE } from '@/lib/status'
-import type { Profile, School, WorkOrder, WorkOrderEstado } from '@/lib/types'
+import type { DailyRoleName, Profile, School, WorkOrder, WorkOrderEstado } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const COLUMN_SCROLL_STEP = 304 // ancho de columna (288px) + gap (16px)
@@ -19,12 +19,14 @@ export function TableroBoard({
   schools,
   isAdmin,
   currentProfileId,
+  rolesByProfile = {},
 }: {
   orders: WorkOrder[]
   profiles: Profile[]
   schools: School[]
   isAdmin: boolean
   currentProfileId: string | null
+  rolesByProfile?: Record<string, DailyRoleName[]>
 }) {
   const [query, setQuery] = useState('')
   const searchParams = useSearchParams()
@@ -184,6 +186,9 @@ export function TableroBoard({
                         workOrder={wo}
                         isAdmin={isAdmin}
                         currentProfileId={currentProfileId}
+                        responsableRoles={
+                          wo.responsable_id ? (rolesByProfile[wo.responsable_id] ?? []) : []
+                        }
                       />
                     }
                     isAdmin={isAdmin}

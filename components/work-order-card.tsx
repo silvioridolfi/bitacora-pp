@@ -9,19 +9,29 @@ import { formatDate } from '@/lib/format'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import { completeWorkOrderStage } from '@/lib/actions'
 import { WORK_ORDER_ETAPAS, WORK_ORDER_ETAPA_INFO } from '@/lib/types'
-import type { WorkOrder } from '@/lib/types'
+import type { DailyRoleName, WorkOrder } from '@/lib/types'
 import { cn } from '@/lib/utils'
+
+const DAILY_ROLE_SHORT: Record<DailyRoleName, string> = {
+  Líder: 'Líder',
+  Documentador: 'Doc.',
+  Técnico: 'Técnico',
+  'Tester/Instalador': 'Tester',
+  'Control de Calidad': 'Calidad',
+}
 
 export function WorkOrderCard({
   workOrder,
   onClick,
   isAdmin = false,
   currentProfileId = null,
+  responsableRoles = [],
 }: {
   workOrder: WorkOrder
   onClick?: () => void
   isAdmin?: boolean
   currentProfileId?: string | null
+  responsableRoles?: DailyRoleName[]
 }) {
   const style = WORK_ORDER_STATUS_STYLE[workOrder.estado]
   const [pending, startTransition] = useTransition()
@@ -93,9 +103,17 @@ export function WorkOrderCard({
         </div>
       )}
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <User className="size-3.5" />
+        <span className="flex flex-wrap items-center gap-1">
+          <User className="size-3.5 shrink-0" />
           {workOrder.responsable?.apellido_nombre ?? 'Sin asignar'}
+          {responsableRoles.map((rol) => (
+            <span
+              key={rol}
+              className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground"
+            >
+              {DAILY_ROLE_SHORT[rol]}
+            </span>
+          ))}
         </span>
         <span>{formatDate(workOrder.fecha)}</span>
       </div>

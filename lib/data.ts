@@ -1,6 +1,6 @@
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
-import type { Profile } from '@/lib/types'
+import type { DailyRoleName, Profile } from '@/lib/types'
 
 /**
  * Perfil de negocio (public.profiles) del usuario autenticado actual.
@@ -59,4 +59,46 @@ export async function getCurrentProfile(): Promise<{
     .maybeSingle()
 
   return { profile: (profile as Profile) ?? null, email: user.email ?? null }
+}
+
+/**
+ * Roles del día asignados hoy, agrupados por alumno -- toma la sesión
+ * más reciente de cada grupo (Grupo 1 y Grupo 2) y arma un mapa
+ * profile_id -> lista de roles. Usado para mostrar el badge de rol en
+ * las cards de OT (Tablero/Taller/Territorio), sin condicionar nada.
+ */
+export async function getTodayRolesByProfile(): Promise<Record<string, DailyRoleName[]>> {
+  const supabase = await createClient()
+
+  const grupos = ['Grupo 1', 'Grupo 2'] as const
+  const latestSessions = await Promise.all(
+    grupos.map((g) =>
+      supabase
+        .from('sessions')
+        .select('id')
+        .eq('grupo', g)
+        .order('sesion_n', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ),
+  )
+
+  const sessionIds = latestSessions
+    .map((r) => r.data?.id)
+    .filter((id): id is string => Boolean(id))
+
+  if (sessionIds.length === 0) return {}
+
+  const { data } = await supabase
+    .from('daily_roles')
+    .select('student_id, rol')
+    .in('session_id', sessionIds)
+
+  const map: Record<string, DailyRoleName[]> = {}
+  for (const row of data ?? []) {
+    const list = map[row.student_id] ?? []
+    list.push(row.rol as DailyRoleName)
+    map[row.student_id] = list
+  }
+  return map
 }

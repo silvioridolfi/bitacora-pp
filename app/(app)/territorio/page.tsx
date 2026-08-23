@@ -3,13 +3,13 @@ import { WorkOrderForm } from '@/components/work-order-form'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { MapPin } from 'lucide-react'
-import { getCurrentProfile } from '@/lib/data'
+import { getCurrentProfile, getTodayRolesByProfile } from '@/lib/data'
 import type { Profile, School, WorkOrder } from '@/lib/types'
 
 export default async function TerritorioPage() {
   const supabase = await createClient()
 
-  const [{ data: workOrders }, { data: profiles }, { data: schools }, { profile }] =
+  const [{ data: workOrders }, { data: profiles }, { data: schools }, { profile }, rolesByProfile] =
     await Promise.all([
       supabase
         .from('work_orders')
@@ -22,6 +22,7 @@ export default async function TerritorioPage() {
       supabase.from('profiles').select('*').order('apellido_nombre'),
       supabase.from('schools').select('*').order('nombre'),
       getCurrentProfile(),
+      getTodayRolesByProfile(),
     ])
 
   const orders = (workOrders ?? []) as unknown as WorkOrder[]
@@ -70,6 +71,9 @@ export default async function TerritorioPage() {
                   workOrder={wo}
                   isAdmin={isAdmin}
                   currentProfileId={currentProfileId}
+                  responsableRoles={
+                    wo.responsable_id ? (rolesByProfile[wo.responsable_id] ?? []) : []
+                  }
                 />
               }
               isAdmin={isAdmin}
