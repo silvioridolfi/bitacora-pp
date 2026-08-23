@@ -2,14 +2,21 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent } from '@/components/ui/card'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
+import { Laptop, Trophy, Users } from 'lucide-react'
 import type { WorkOrderEstado } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { formatDate } from '@/lib/format'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
 
-  const { data } = await supabase.from('work_orders').select('tipo, estado, grupo')
+  const [{ data }, { count: equiposCount }, { data: sessions }] = await Promise.all([
+    supabase.from('work_orders').select('tipo, estado, grupo'),
+    supabase.from('equipment').select('*', { count: 'exact', head: true }),
+    supabase.from('sessions').select('id, fecha').order('fecha', { ascending: false }).limit(1),
+  ])
   const orders = (data ?? []) as { tipo: string; estado: WorkOrderEstado; grupo: string | null }[]
+  const ultimaFecha = sessions?.[0]?.fecha ?? null
 
   const total = orders.length
   const recibidos = total
@@ -126,6 +133,46 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Link href="/equipos">
+          <Card className="h-full transition-colors hover:border-primary/50 hover:bg-muted/40">
+            <CardContent className="flex items-center gap-3 p-4">
+              <Laptop className="size-8 text-primary" />
+              <div>
+                <p className="font-heading text-xl font-bold text-foreground">
+                  {equiposCount ?? 0}
+                </p>
+                <p className="text-xs text-muted-foreground">Equipos cargados</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/asistencia">
+          <Card className="h-full transition-colors hover:border-primary/50 hover:bg-muted/40">
+            <CardContent className="flex items-center gap-3 p-4">
+              <Users className="size-8 text-primary" />
+              <div>
+                <p className="font-heading text-sm font-bold text-foreground">
+                  {ultimaFecha ? formatDate(ultimaFecha) : 'Sin fechas'}
+                </p>
+                <p className="text-xs text-muted-foreground">Última asistencia cargada</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/ranking">
+          <Card className="h-full transition-colors hover:border-primary/50 hover:bg-muted/40">
+            <CardContent className="flex items-center gap-3 p-4">
+              <Trophy className="size-8 text-primary" />
+              <div>
+                <p className="font-heading text-sm font-bold text-foreground">Ver ranking</p>
+                <p className="text-xs text-muted-foreground">Puntos por grupo</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
       <Card>
         <CardContent className="flex flex-col gap-3 p-5">
           <h2 className="font-heading text-sm font-semibold text-foreground">
@@ -137,7 +184,7 @@ export default async function DashboardPage() {
               return (
                 <Link
                   key={estado}
-                  href="/tablero"
+                  href={`/tablero?estado=${encodeURIComponent(estado)}`}
                   className={cn(
                     'flex flex-col gap-1 rounded-lg border p-3 transition-opacity hover:opacity-80',
                     style.bg,

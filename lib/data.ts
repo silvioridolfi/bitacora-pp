@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import type { Profile } from '@/lib/types'
 
@@ -24,6 +25,26 @@ export async function getCurrentProfile(): Promise<{
         created_at: new Date().toISOString(),
       },
     }
+  }
+
+  // El middleware ya validó la sesión (auth.getUser()) y consultó el
+  // perfil para esta misma request -- si esos headers están presentes,
+  // los reusamos en vez de repetir esas dos idas y vueltas a Supabase.
+  const headerList = await headers()
+  const headerUserId = headerList.get('x-user-id')
+  const headerEmail = headerList.get('x-user-email')
+  const headerProfileJson = headerList.get('x-profile-json')
+
+  if (headerUserId) {
+    let profile: Profile | null = null
+    if (headerProfileJson) {
+      try {
+        profile = JSON.parse(decodeURIComponent(headerProfileJson)) as Profile
+      } catch {
+        profile = null
+      }
+    }
+    return { profile, email: headerEmail || null }
   }
 
   const supabase = await createClient()

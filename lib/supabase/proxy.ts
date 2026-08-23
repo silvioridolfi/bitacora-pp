@@ -9,6 +9,14 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next({ request })
   }
 
+  // Los headers x-user-id / x-user-email / x-profile-json solo deben
+  // poder ser seteados por este middleware, nunca por el cliente -- si
+  // alguien los manda directo en el request, se descartan acá antes de
+  // cualquier otra cosa.
+  request.headers.delete('x-user-id')
+  request.headers.delete('x-user-email')
+  request.headers.delete('x-profile-json')
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -81,7 +89,7 @@ export async function updateSession(request: NextRequest) {
   if (user && !pathname.startsWith('/auth/change-password-required')) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('password_change_required')
+      .select('*')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -90,6 +98,19 @@ export async function updateSession(request: NextRequest) {
       url.pathname = '/auth/change-password-required'
       return NextResponse.redirect(url)
     }
+
+    // Evita que cada página server-side tenga que volver a llamar a
+    // auth.getUser() + consultar profiles: el middleware ya hizo esa
+    // validación, así que se la pasamos lista via headers del REQUEST
+    // (no de la respuesta -- si no, el Server Component nunca los ve).
+    request.headers.set('x-user-id', user.id)
+    request.headers.set('x-user-email', user.email ?? '')
+    if (profile) {
+      request.headers.set('x-profile-json', encodeURIComponent(JSON.stringify(profile)))
+    }
+    const responseWithHeaders = NextResponse.next({ request })
+    supabaseResponse.cookies.getAll().forEach((c) => responseWithHeaders.cookies.set(c))
+    supabaseResponse = responseWithHeaders
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

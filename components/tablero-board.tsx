@@ -1,12 +1,13 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { WORK_ORDER_ESTADO_ORDER, WORK_ORDER_STATUS_STYLE } from '@/lib/status'
-import type { Profile, School, WorkOrder } from '@/lib/types'
+import type { Profile, School, WorkOrder, WorkOrderEstado } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 export function TableroBoard({
@@ -23,6 +24,19 @@ export function TableroBoard({
   currentProfileId: string | null
 }) {
   const [query, setQuery] = useState('')
+  const searchParams = useSearchParams()
+  const targetEstado = searchParams.get('estado') as WorkOrderEstado | null
+  const columnRefs = useRef<Partial<Record<WorkOrderEstado, HTMLDivElement | null>>>({})
+
+  useEffect(() => {
+    if (targetEstado && columnRefs.current[targetEstado]) {
+      columnRefs.current[targetEstado]?.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'start',
+        block: 'nearest',
+      })
+    }
+  }, [targetEstado])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -43,7 +57,7 @@ export function TableroBoard({
   }))
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4">
       <div className="relative max-w-sm">
         <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -57,10 +71,17 @@ export function TableroBoard({
       <div className="flex gap-3 overflow-x-auto pb-2">
         {columns.map((col) => {
           const style = WORK_ORDER_STATUS_STYLE[col.estado]
+          const highlighted = targetEstado === col.estado
           return (
             <div
               key={col.estado}
-              className="flex w-72 shrink-0 flex-col gap-3 rounded-xl border border-border bg-card/50 p-3"
+              ref={(el) => {
+                columnRefs.current[col.estado] = el
+              }}
+              className={cn(
+                'flex w-72 shrink-0 flex-col gap-3 rounded-xl border bg-card/50 p-3 transition-colors',
+                highlighted ? 'border-primary ring-2 ring-primary/40' : 'border-border',
+              )}
             >
               <div className="flex items-center justify-between gap-2">
                 <span
