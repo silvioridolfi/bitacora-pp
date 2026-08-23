@@ -214,17 +214,25 @@ export async function undoWorkOrderStage(
     .eq('work_order_id', workOrderId)
 
   const completed = new Set((remaining ?? []).map((r) => r.etapa as WorkOrderEtapa))
-  let estado: WorkOrderEstado = 'Pendiente'
+
+  // Si no queda ninguna etapa completada, no podemos saber con certeza a
+  // qué estado corresponde volver (la OT puede tener un estado cargado a
+  // mano, sin historial de etapas -- como pasaba con las OT migradas).
+  // En ese caso dejamos el estado como está, en vez de forzarlo a
+  // "Pendiente" y perder esa información.
+  let estado: WorkOrderEstado | null = null
   for (const e of WORK_ORDER_ETAPAS) {
     if (completed.has(e)) estado = WORK_ORDER_ETAPA_INFO[e].resultingEstado
   }
 
-  const { error: estadoError } = await supabase
-    .from('work_orders')
-    .update({ estado })
-    .eq('id', workOrderId)
+  if (estado) {
+    const { error: estadoError } = await supabase
+      .from('work_orders')
+      .update({ estado })
+      .eq('id', workOrderId)
 
-  if (estadoError) return { ok: false, error: estadoError.message }
+    if (estadoError) return { ok: false, error: estadoError.message }
+  }
 
   revalidatePath('/taller')
   revalidatePath('/tablero')
