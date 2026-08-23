@@ -1,25 +1,64 @@
+'use client'
+
 import Link from 'next/link'
-import { Laptop, MapPin, School, User, Wrench } from 'lucide-react'
+import { useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { Laptop, MapPin, School, User, Wrench, ChevronRight } from 'lucide-react'
+import { toast } from 'sonner'
 import { formatDate } from '@/lib/format'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
+import { completeWorkOrderStage } from '@/lib/actions'
+import { WORK_ORDER_ETAPAS, WORK_ORDER_ETAPA_INFO } from '@/lib/types'
 import type { WorkOrder } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 export function WorkOrderCard({
   workOrder,
   onClick,
+  isAdmin = false,
+  currentProfileId = null,
 }: {
   workOrder: WorkOrder
   onClick?: () => void
+  isAdmin?: boolean
+  currentProfileId?: string | null
 }) {
   const style = WORK_ORDER_STATUS_STYLE[workOrder.estado]
+  const [pending, startTransition] = useTransition()
+  const router = useRouter()
+
+  const doneEtapas = new Set((workOrder.work_order_stages ?? []).map((s) => s.etapa))
+  const nextEtapa =
+    workOrder.tipo === 'taller' && workOrder.estado !== 'Finalizada OK' && workOrder.estado !== 'Derivada'
+      ? WORK_ORDER_ETAPAS.find((e) => !doneEtapas.has(e))
+      : undefined
+  const nextInfo = nextEtapa ? WORK_ORDER_ETAPA_INFO[nextEtapa] : undefined
+  const nextLocked = nextInfo?.reservada && !isAdmin
+
+  function handleQuickAction(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!nextEtapa || nextLocked) return
+    startTransition(async () => {
+      const result = await completeWorkOrderStage(workOrder.id, nextEtapa, currentProfileId)
+      if (result.ok) {
+        toast.success(`${WORK_ORDER_ETAPA_INFO[nextEtapa].label} completada`)
+        router.refresh()
+      } else {
+        toast.error(result.error)
+      }
+    })
+  }
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') onClick?.()
+      }}
       className={cn(
-        'flex w-full flex-col gap-2 rounded-lg border p-3 text-left transition-colors hover:shadow-sm',
+        'flex w-full flex-col gap-2 rounded-lg border p-3 text-left transition-colors hover:shadow-sm cursor-pointer',
         style.bg,
         style.border,
       )}
@@ -60,7 +99,26 @@ export function WorkOrderCard({
         </span>
         <span>{formatDate(workOrder.fecha)}</span>
       </div>
-    </button>
+
+      {nextInfo && (
+        <button
+          type="button"
+          disabled={pending || nextLocked}
+          onClick={handleQuickAction}
+          className={cn(
+            'mt-1 flex items-center justify-between gap-1.5 rounded-md border border-dashed px-2 py-1.5 text-[11px] font-medium transition-colors',
+            nextLocked
+              ? 'cursor-not-allowed border-border text-muted-foreground'
+              : 'border-primary/40 text-primary hover:bg-primary/10',
+          )}
+        >
+          <span className="truncate">
+            {nextLocked ? `Falta: ${nextInfo.label} (coordinador)` : `Marcar: ${nextInfo.label}`}
+          </span>
+          {!nextLocked && <ChevronRight className="size-3.5 shrink-0" />}
+        </button>
+      )}
+    </div>
   )
 }
 
