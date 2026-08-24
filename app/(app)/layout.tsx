@@ -27,6 +27,9 @@ export default async function AppLayout({
           <div className="absolute left-4 flex items-center gap-2">
             <SidebarTrigger />
             <Separator orientation="vertical" className="h-4" />
+            <span className="hidden font-heading text-sm font-semibold text-foreground sm:inline">
+              DTE · Región 1
+            </span>
           </div>
           <div className="mx-auto">
             <Image
@@ -34,7 +37,7 @@ export default async function AppLayout({
               alt="Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE)"
               width={1920}
               height={176}
-              className="h-8 w-auto"
+              className="h-10 w-auto"
               priority
             />
           </div>

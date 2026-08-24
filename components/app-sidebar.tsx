@@ -32,7 +32,7 @@ const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/equipos', label: 'Equipos', icon: Laptop },
   { href: '/ranking', label: 'Ranking', icon: Trophy },
-  { href: '/tablero', label: 'Tablero', icon: KanbanSquare },
+  { href: '/tablero', label: 'Kanban', icon: KanbanSquare },
   { href: '/taller', label: 'Taller', icon: Wrench },
   { href: '/territorio', label: 'Territorio', icon: MapPin },
 ]

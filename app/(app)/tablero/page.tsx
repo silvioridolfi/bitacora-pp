@@ -41,7 +41,7 @@ export default async function TableroPage({
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">Tablero</h1>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Kanban</h1>
           <p className="text-sm text-muted-foreground">
             Vista kanban de todas las órdenes de trabajo por estado.
           </p>
