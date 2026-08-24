@@ -24,10 +24,11 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
   const [query, setQuery] = useState('')
   const [estado, setEstado] = useState('')
   const [grupo, setGrupo] = useState('')
-  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
 
   function scrollByStep(direction: 1 | -1) {
-    scrollRef.current?.scrollBy({ left: direction * 240, behavior: 'smooth' })
+    const scrollable = containerRef.current?.querySelector('[data-slot="table-container"]')
+    scrollable?.scrollBy({ left: direction * 240, behavior: 'smooth' })
   }
 
   const estados = useMemo(
@@ -120,7 +121,7 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
         </div>
       </div>
 
-      <div ref={scrollRef} className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div ref={containerRef} className="rounded-xl border border-border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
