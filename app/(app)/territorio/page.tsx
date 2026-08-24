@@ -14,7 +14,7 @@ export default async function TerritorioPage() {
       supabase
         .from('work_orders')
         .select(
-          '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_events(*, profile:profile_id(*))',
+          '*, equipment:equipment_id(*), responsable:responsable_id(*), responsable_original:responsable_original_id(*), school:school_id(*), work_order_events(*, profile:profile_id(*))',
         )
         .eq('tipo', 'territorio')
         .order('fecha', { ascending: false })

@@ -116,6 +116,8 @@ export async function createWorkOrder(formData: FormData): Promise<ActionResult>
     equipment_id: newEquipment.id,
     grupo,
     responsable_id,
+    grupo_creador: grupo,
+    responsable_original_id: responsable_id,
     school_id: tipo === 'territorio' ? school_id : null,
     fecha,
     estado,

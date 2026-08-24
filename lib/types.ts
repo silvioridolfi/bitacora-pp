@@ -205,9 +205,14 @@ export type WorkOrder = {
   horas_reales: number | null
   observaciones: string | null
   historial_legado: string | null
+  /** Fijo desde la creación -- nunca se pisa aunque se reasigne la OT a otro grupo. */
+  grupo_creador: string | null
+  /** Fijo desde la creación -- nunca se pisa aunque se reasigne el responsable. */
+  responsable_original_id: string | null
   created_at: string
   // Joined
   responsable?: Profile | null
+  responsable_original?: Profile | null
   school?: School | null
   equipment?: Equipment | null
   work_order_events?: WorkOrderEvent[]

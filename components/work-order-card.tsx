@@ -79,8 +79,15 @@ export function WorkOrderCard({
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="font-heading text-xs font-bold tracking-tight text-foreground">
-          {workOrder.codigo}
+        <span className="flex items-center gap-1.5">
+          <span className="font-heading text-xs font-bold tracking-tight text-foreground">
+            {workOrder.codigo}
+          </span>
+          {workOrder.grupo_creador && (
+            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+              {workOrder.grupo_creador}
+            </span>
+          )}
         </span>
         <span
           className={cn(
@@ -122,6 +129,12 @@ export function WorkOrderCard({
         </span>
         <span>{formatDate(workOrder.fecha)}</span>
       </div>
+      {workOrder.responsable_original_id &&
+        workOrder.responsable_original_id !== workOrder.responsable_id && (
+          <p className="text-[10px] text-muted-foreground">
+            Creada por {workOrder.responsable_original?.apellido_nombre ?? '—'}
+          </p>
+        )}
 
       {nextInfo && (
         <button
