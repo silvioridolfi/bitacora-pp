@@ -57,3 +57,21 @@ export function isAttendanceLocked(fecha: string): boolean {
   if (fecha === today && isPastNoonArgentina()) return true
   return false
 }
+
+/**
+ * true si la hora actual (Argentina) está dentro del horario del taller
+ * (8:00 a 13:00). Fuera de esa ventana, los alumnos no pueden crear ni
+ * editar OT -- pensado para evitar que alguien entre de noche o el fin
+ * de semana a tocar OT de cualquier grupo sin supervisión. El admin no
+ * tiene esta restricción.
+ */
+export function isWithinWorkOrderEditHours(): boolean {
+  const hour = Number(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: APP_TIMEZONE,
+      hour: 'numeric',
+      hour12: false,
+    }).format(new Date()),
+  )
+  return hour >= 8 && hour < 13
+}

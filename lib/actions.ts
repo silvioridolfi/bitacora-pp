@@ -8,7 +8,7 @@ import {
   PROGRAMAS_NETBOOK,
   EXCLUSIVE_DAILY_ROLES,
 } from '@/lib/types'
-import { isAttendanceLocked, isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
+import { isAttendanceLocked, isPastNineAmArgentina, isWithinWorkOrderEditHours, todayInArgentina } from '@/lib/timezone'
 import { getCurrentProfile } from '@/lib/data'
 import type {
   DailyRoleName,
@@ -23,10 +23,29 @@ import type {
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
 
+/**
+ * Corta cualquier creación/edición de OT fuera del horario del taller
+ * (8:00-13:00), salvo para el admin. Reutilizado en todas las acciones
+ * que tocan work_orders/work_order_events.
+ */
+async function assertWithinWorkOrderEditHours(): Promise<ActionResult | null> {
+  const { profile } = await getCurrentProfile()
+  if (profile?.is_admin) return null
+  if (!isWithinWorkOrderEditHours()) {
+    return {
+      ok: false,
+      error: 'Las OT solo se pueden crear o editar en el horario del taller (8:00 a 13:00).',
+    }
+  }
+  return null
+}
+
 export async function createWorkOrder(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+  const hoursError = await assertWithinWorkOrderEditHours()
+  if (hoursError) return hoursError
 
   const tipo = formData.get('tipo') as TipoOT
   const grupo = (formData.get('grupo') as string) || null
@@ -124,6 +143,8 @@ export async function updateWorkOrder(
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+  const hoursError = await assertWithinWorkOrderEditHours()
+  if (hoursError) return hoursError
 
   const grupo = (formData.get('grupo') as string) || null
   const responsable_id = (formData.get('responsable_id') as string) || null
@@ -181,6 +202,8 @@ export async function toggleWorkOrderEvent(
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+  const hoursError = await assertWithinWorkOrderEditHours()
+  if (hoursError) return hoursError
 
   const { error: insertError } = await supabase.from('work_order_events').insert({
     work_order_id: workOrderId,
@@ -223,6 +246,8 @@ export async function removeWorkOrderEvent(
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+  const hoursError = await assertWithinWorkOrderEditHours()
+  if (hoursError) return hoursError
 
   const { error: deleteError } = await supabase
     .from('work_order_events')
@@ -268,6 +293,8 @@ export async function removeWorkOrderEventById(id: string): Promise<ActionResult
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+  const hoursError = await assertWithinWorkOrderEditHours()
+  if (hoursError) return hoursError
 
   const { error } = await supabase.from('work_order_events').delete().eq('id', id)
   if (error) return { ok: false, error: error.message }
