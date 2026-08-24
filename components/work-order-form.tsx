@@ -149,7 +149,7 @@ export function WorkOrderForm({
               </Field>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="fecha">Fecha</FieldLabel>
                 <Input
@@ -267,7 +267,7 @@ export function WorkOrderForm({
               </Field>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="horas_estimadas">Minutos estimados</FieldLabel>
                 <Input

@@ -19,6 +19,14 @@ export function AuthShell({ children }: { children: ReactNode }) {
         height={457}
         className="pointer-events-none absolute -top-6 -right-6 hidden w-28 opacity-90 sm:block md:w-36"
       />
+      <Image
+        src="/images/vineta-practicas-profesionalizantes-dte.png"
+        alt=""
+        aria-hidden
+        width={951}
+        height={500}
+        className="pointer-events-none absolute -bottom-4 -left-4 hidden w-32 opacity-70 sm:block md:w-44"
+      />
 
       <div className="relative flex flex-1 items-center justify-center p-6 md:p-10">
         <div className="flex w-full max-w-lg flex-col items-center">

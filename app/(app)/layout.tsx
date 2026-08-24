@@ -22,13 +22,18 @@ export default async function AppLayout({
         isAdmin={profile?.is_admin ?? false}
       />
       <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-card px-4">
-          <SidebarTrigger />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <div className="flex flex-col leading-tight">
-            <span className="font-heading text-sm font-semibold text-foreground">
-              DTE · Región 1
-            </span>
+        <header
+          className="relative flex h-14 shrink-0 items-center gap-2 overflow-hidden border-b border-border bg-card bg-[url('/images/bk-2-practicas-profesionalizantes-dte.png')] bg-cover bg-right px-4"
+        >
+          <div className="absolute inset-0 bg-card/85" />
+          <div className="relative flex items-center gap-2">
+            <SidebarTrigger />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <div className="flex flex-col leading-tight">
+              <span className="font-heading text-sm font-semibold text-foreground">
+                DTE · Región 1
+              </span>
+            </div>
           </div>
         </header>
         <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 md:p-6">{children}</div>

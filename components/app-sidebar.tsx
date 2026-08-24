@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   CalendarCheck,
@@ -57,8 +58,14 @@ export function AppSidebar({
     <Sidebar collapsible="icon">
       <SidebarHeader className="gap-3 border-b border-sidebar-border px-3 py-4 group-data-[collapsible=icon]:px-2">
         <div className="flex items-center gap-2">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary font-heading text-sm font-bold text-sidebar-primary-foreground">
-            RT
+          <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-sidebar-primary">
+            <Image
+              src="/images/logo-icono-dte.png"
+              alt=""
+              width={36}
+              height={36}
+              className="size-full object-cover"
+            />
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="font-heading text-sm font-bold tracking-tight">

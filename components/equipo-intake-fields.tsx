@@ -61,7 +61,7 @@ export function EquipoIntakeFields() {
       </Field>
 
       {tipoEquipo === 'netbook' && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field>
             <FieldLabel htmlFor="programa">Programa</FieldLabel>
             <select
@@ -93,7 +93,7 @@ export function EquipoIntakeFields() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field>
           <FieldLabel htmlFor="equipo_marca">Marca</FieldLabel>
           {tipoEquipo === 'netbook' ? (
