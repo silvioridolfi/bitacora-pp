@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { useRealtimeWorkOrders } from '@/hooks/use-realtime-work-orders'
-import type { DailyRoleName, Profile, School, TipoOT, WorkOrder } from '@/lib/types'
+import type { DailyRoleName, Profile, School, WorkOrder } from '@/lib/types'
 
 function codigoNumero(codigo: string): number {
   const match = /(\d+)$/.exec(codigo)
@@ -14,7 +14,6 @@ function codigoNumero(codigo: string): number {
 }
 
 export function WorkOrderGrid({
-  tipo,
   orders,
   profiles,
   schools,
@@ -22,7 +21,6 @@ export function WorkOrderGrid({
   currentProfileId,
   rolesByProfile,
 }: {
-  tipo: TipoOT
   orders: WorkOrder[]
   profiles: Profile[]
   schools?: School[]
@@ -68,7 +66,7 @@ export function WorkOrderGrid({
           {filtered.map((wo) => (
             <WorkOrderForm
               key={wo.id}
-              tipo={tipo}
+              tipo={wo.tipo}
               profiles={profiles}
               schools={schools}
               workOrder={wo}

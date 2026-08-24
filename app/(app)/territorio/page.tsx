@@ -59,7 +59,6 @@ export default async function TerritorioPage() {
         </Empty>
       ) : (
         <WorkOrderGrid
-          tipo="territorio"
           orders={orders}
           profiles={(profiles ?? []) as Profile[]}
           schools={(schools ?? []) as School[]}

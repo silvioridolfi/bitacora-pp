@@ -57,7 +57,6 @@ export default async function TallerPage() {
         </Empty>
       ) : (
         <WorkOrderGrid
-          tipo="taller"
           orders={orders}
           profiles={(profiles ?? []) as Profile[]}
           isAdmin={isAdmin}

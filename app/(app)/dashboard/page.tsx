@@ -41,12 +41,30 @@ export default async function DashboardPage() {
       : 0
 
   const kpis = [
-    { label: 'Recibidos', value: recibidos },
-    { label: 'Diagnosticados', value: diagnosticados },
-    { label: 'Desbloqueados', value: desbloqueados },
-    { label: 'Con SO instalado', value: conSO },
-    { label: 'Finalizados OK', value: finalizados },
-    { label: 'Derivados', value: derivados },
+    { label: 'Recibidos', value: recibidos, href: '/tablero' },
+    {
+      label: 'Diagnosticados',
+      value: diagnosticados,
+      href: `/tablero?estados=${encodeURIComponent(
+        'Diagnosticando,Desbloqueada,Instalando SO,Configurando,Probando,Finalizada OK,Derivada',
+      )}`,
+    },
+    {
+      label: 'Desbloqueados',
+      value: desbloqueados,
+      href: `/tablero?estados=${encodeURIComponent(
+        'Desbloqueada,Instalando SO,Configurando,Probando,Finalizada OK',
+      )}`,
+    },
+    {
+      label: 'Con SO instalado',
+      value: conSO,
+      href: `/tablero?estados=${encodeURIComponent(
+        'Instalando SO,Configurando,Probando,Finalizada OK',
+      )}`,
+    },
+    { label: 'Finalizados OK', value: finalizados, href: '/tablero?estado=Finalizada OK' },
+    { label: 'Derivados', value: derivados, href: '/tablero?estado=Derivada' },
   ]
 
   const estadoCounts = Object.keys(WORK_ORDER_STATUS_STYLE).map((estado) => ({
@@ -65,7 +83,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {kpis.map((kpi) => (
-          <Link key={kpi.label} href="/tablero">
+          <Link key={kpi.label} href={kpi.href}>
             <Card className="transition-colors hover:border-primary/50 hover:bg-muted/40">
               <CardContent className="flex flex-col gap-1 p-4">
                 <span className="text-xs text-muted-foreground">{kpi.label}</span>
@@ -79,7 +97,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Link href="/tablero">
+        <Link href={`/tablero?estados=${encodeURIComponent('Finalizada OK,Derivada')}`}>
           <Card className="h-full transition-colors hover:border-primary/50 hover:bg-muted/40">
             <CardContent className="flex flex-col gap-4 p-5">
               <div className="flex items-center justify-between">
