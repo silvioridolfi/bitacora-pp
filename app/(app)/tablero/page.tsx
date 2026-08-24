@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { TableroBoard } from '@/components/tablero-board'
 import { WorkOrderGrid } from '@/components/work-order-grid'
@@ -68,12 +69,21 @@ export default async function TableroPage({
               {orders.length} OT en {estadosFiltro.length === 1 ? 'este estado' : 'estos estados'}.
             </p>
           </div>
-          <Link
-            href="/tablero"
-            className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
-          >
-            Ver kanban completo
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+            >
+              <ArrowLeft className="size-4" />
+              Dashboard
+            </Link>
+            <Link
+              href="/tablero"
+              className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted"
+            >
+              Ver kanban completo
+            </Link>
+          </div>
         </div>
 
         <WorkOrderGrid
