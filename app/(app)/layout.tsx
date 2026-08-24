@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
@@ -22,18 +23,20 @@ export default async function AppLayout({
         isAdmin={profile?.is_admin ?? false}
       />
       <SidebarInset>
-        <header
-          className="relative flex h-14 shrink-0 items-center gap-2 overflow-hidden border-b border-border bg-card bg-[url('/images/bk-2-practicas-profesionalizantes-dte.png')] bg-cover bg-right px-4"
-        >
-          <div className="absolute inset-0 bg-card/85" />
-          <div className="relative flex items-center gap-2">
+        <header className="relative flex h-14 shrink-0 items-center border-b border-border bg-card px-4">
+          <div className="absolute left-4 flex items-center gap-2">
             <SidebarTrigger />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <div className="flex flex-col leading-tight">
-              <span className="font-heading text-sm font-semibold text-foreground">
-                DTE · Región 1
-              </span>
-            </div>
+            <Separator orientation="vertical" className="h-4" />
+          </div>
+          <div className="mx-auto">
+            <Image
+              src="/images/logo-practicas-profesionalizantes-dte.png"
+              alt="Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE)"
+              width={1920}
+              height={176}
+              className="h-8 w-auto"
+              priority
+            />
           </div>
         </header>
         <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 md:p-6">{children}</div>

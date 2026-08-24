@@ -99,6 +99,15 @@ export function AppSidebar({
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        <div className="mt-auto flex items-center justify-center px-4 py-4 group-data-[collapsible=icon]:hidden">
+          <Image
+            src="/images/logo-dte-2026-v3.png"
+            alt="Dirección de Tecnología Educativa (DTE)"
+            width={994}
+            height={605}
+            className="h-auto w-24 opacity-90"
+          />
+        </div>
       </SidebarContent>
       <SidebarFooter className="gap-2 border-t border-sidebar-border px-3 py-3 group-data-[collapsible=icon]:px-2">
         <div className="flex items-center justify-between gap-2 group-data-[collapsible=icon]:hidden">

@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent } from '@/components/ui/card'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
@@ -57,27 +56,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="relative overflow-hidden rounded-2xl border border-border bg-card">
-        <Image
-          src="/images/bk-3-practicas-profesionalizantes-dte.png"
-          alt=""
-          aria-hidden
-          fill
-          className="pointer-events-none object-cover object-right opacity-15"
-        />
-        <div className="relative p-5">
-          <Image
-            src="/images/banner-practicas-profesionalizantes-dte.png"
-            alt="Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE)"
-            width={1920}
-            height={1080}
-            className="h-auto w-full max-w-md"
-            priority
-          />
-          <p className="mt-2 text-sm text-muted-foreground">
-            Indicadores recalculados en vivo a partir de las {total} órdenes de trabajo.
-          </p>
-        </div>
+      <div>
+        <h1 className="font-heading text-2xl font-bold text-foreground">Dashboard</h1>
+        <p className="text-sm text-muted-foreground">
+          Indicadores recalculados en vivo a partir de las {total} órdenes de trabajo.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
