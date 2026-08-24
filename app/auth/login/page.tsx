@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -80,8 +81,16 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </Field>
-              <Field>
+              <div className="flex items-center justify-between">
                 <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </div>
+              <Field>
                 <Input
                   id="password"
                   type="password"

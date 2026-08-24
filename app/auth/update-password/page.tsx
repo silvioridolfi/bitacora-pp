@@ -7,39 +7,33 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { createClient } from '@/lib/supabase/client'
 import { Spinner } from '@/components/ui/spinner'
+import { createClient } from '@/lib/supabase/client'
+import { PASSWORD_REQUIREMENTS } from '@/lib/password-requirements'
 
-import { PASSWORD_REQUIREMENTS as requirements } from '@/lib/password-requirements'
-
-export default function ChangePasswordRequiredPage() {
+export default function UpdatePasswordPage() {
   const router = useRouter()
-  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const checks = useMemo(
-    () => requirements.map((requirement) => requirement.test(newPassword)),
+    () => PASSWORD_REQUIREMENTS.map((requirement) => requirement.test(newPassword)),
     [newPassword],
   )
   const isStrong = checks.every(Boolean)
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     setError(null)
 
     if (!isStrong) {
-      setError('La nueva contraseña no cumple todos los requisitos.')
+      setError('La contraseña no cumple todos los requisitos.')
       return
     }
     if (newPassword !== confirmation) {
-      setError('Las contraseñas nuevas no coinciden.')
-      return
-    }
-    if (newPassword === currentPassword) {
-      setError('La nueva contraseña debe ser diferente de la contraseña inicial.')
+      setError('Las contraseñas no coinciden.')
       return
     }
 
@@ -47,19 +41,12 @@ export default function ChangePasswordRequiredPage() {
 
     try {
       const supabase = createClient()
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-      if (userError || !user?.email) {
-        setError('Tu sesión expiró. Volvé a iniciar sesión.')
-        return
-      }
-
-      const { error: verifyError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword,
-      })
-      if (verifyError) {
-        setError('La contraseña inicial no es correcta.')
+      if (!user) {
+        setError('El enlace expiró o ya se usó. Pedí uno nuevo desde "Olvidé mi contraseña".')
         return
       }
 
@@ -69,15 +56,8 @@ export default function ChangePasswordRequiredPage() {
         return
       }
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ password_change_required: false })
-        .eq('id', user.id)
-
-      if (profileError) {
-        setError('La contraseña cambió, pero no pudimos completar tu perfil. Contactá al administrador.')
-        return
-      }
+      // Si todavía tenía pendiente el cambio de la clave inicial, esto ya lo cumple.
+      await supabase.from('profiles').update({ password_change_required: false }).eq('id', user.id)
 
       router.replace('/dashboard')
       router.refresh()
@@ -92,25 +72,12 @@ export default function ChangePasswordRequiredPage() {
     <AuthShell>
       <Card>
         <CardHeader>
-          <CardTitle className="font-heading text-xl">Creá tu nueva contraseña</CardTitle>
-          <CardDescription>
-            Por seguridad, reemplazá tu DNI antes de continuar.
-          </CardDescription>
+          <CardTitle className="font-heading text-xl">Elegí tu nueva contraseña</CardTitle>
+          <CardDescription>Tiene que cumplir todos los requisitos de seguridad.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="current-password">DNI original</FieldLabel>
-                <Input
-                  id="current-password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={currentPassword}
-                  onChange={(event) => setCurrentPassword(event.target.value)}
-                  required
-                />
-              </Field>
               <Field>
                 <FieldLabel htmlFor="new-password">Nueva contraseña</FieldLabel>
                 <Input
@@ -123,9 +90,10 @@ export default function ChangePasswordRequiredPage() {
                 />
               </Field>
               <ul className="grid gap-1 text-xs text-muted-foreground" aria-label="Requisitos de contraseña">
-                {requirements.map((requirement, index) => (
+                {PASSWORD_REQUIREMENTS.map((requirement, index) => (
                   <li key={requirement.label} className={checks[index] ? 'text-emerald-600' : ''}>
-                    {checks[index] ? 'Cumple: ' : 'Falta: '}{requirement.label}
+                    {checks[index] ? 'Cumple: ' : 'Falta: '}
+                    {requirement.label}
                   </li>
                 ))}
               </ul>
@@ -140,10 +108,9 @@ export default function ChangePasswordRequiredPage() {
                   required
                 />
               </Field>
-              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+              {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading && <Spinner data-icon="inline-start" />}
-                {isLoading ? 'Actualizando...' : 'Cambiar contraseña'}
+                {isLoading ? <Spinner className="size-4" /> : 'Guardar contraseña'}
               </Button>
             </FieldGroup>
           </form>
@@ -152,6 +119,3 @@ export default function ChangePasswordRequiredPage() {
     </AuthShell>
   )
 }
-
-export const dynamic = 'force-dynamic'
-
