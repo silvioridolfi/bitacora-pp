@@ -5,7 +5,7 @@ import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Laptop, MapPin, School, User, Wrench, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
-import { formatDate } from '@/lib/format'
+import { formatDate, formatHoraArgentina } from '@/lib/format'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import { toggleWorkOrderEvent } from '@/lib/actions'
 import { WORK_ORDER_PASOS_BLOQUEANTES, WORK_ORDER_PASO_INFO } from '@/lib/types'
@@ -127,7 +127,9 @@ export function WorkOrderCard({
             </span>
           ))}
         </span>
-        <span>{formatDate(workOrder.fecha)}</span>
+        <span title={`Creada a las ${formatHoraArgentina(workOrder.created_at)}`}>
+          {formatDate(workOrder.fecha)} · {formatHoraArgentina(workOrder.created_at)}
+        </span>
       </div>
       {workOrder.responsable_original_id &&
         workOrder.responsable_original_id !== workOrder.responsable_id && (

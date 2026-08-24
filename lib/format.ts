@@ -20,6 +20,17 @@ export function formatDateShort(value: string | null | undefined): string {
   return `${dd}/${mm}`
 }
 
+export function formatHoraArgentina(value: string | null | undefined): string {
+  if (!value) return '—'
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return '—'
+  return new Intl.DateTimeFormat('es-AR', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(d)
+}
+
 export function formatMinutos(value: number | null | undefined): string {
   if (value === null || value === undefined) return '—'
   return `${value} min`

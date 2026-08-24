@@ -18,6 +18,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { formatDate, formatHoraArgentina } from '@/lib/format'
 import { createWorkOrder, updateWorkOrder, deleteWorkOrder } from '@/lib/actions'
 import { WORK_ORDER_ESTADOS } from '@/lib/types'
 import type { Profile, School, TipoOT, WorkOrder } from '@/lib/types'
@@ -112,9 +113,11 @@ export function WorkOrderForm({
             {workOrder ? `Editar ${workOrder.codigo}` : `Nueva OT de ${tipo}`}
           </DialogTitle>
           <DialogDescription>
-            {tipo === 'taller'
-              ? 'Registrá una intervención sobre un equipo en el taller.'
-              : 'Registrá una intervención en territorio (escuela).'}
+            {workOrder
+              ? `Creada el ${formatDate(workOrder.fecha)} a las ${formatHoraArgentina(workOrder.created_at)}.`
+              : tipo === 'taller'
+                ? 'Registrá una intervención sobre un equipo en el taller.'
+                : 'Registrá una intervención en territorio (escuela).'}
           </DialogDescription>
         </DialogHeader>
         <form action={handleSubmit}>
