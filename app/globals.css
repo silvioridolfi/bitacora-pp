@@ -11,6 +11,7 @@
   --color-status-diagnosticando: var(--status-diagnosticando);
   --color-status-desbloqueada: var(--status-desbloqueada);
   --color-status-instalando-so: var(--status-instalando-so);
+  --color-status-pendiente-so: var(--status-pendiente-so);
   --color-status-configurando: var(--status-configurando);
   --color-status-probando: var(--status-probando);
   --color-status-finalizada: var(--status-finalizada);
@@ -107,6 +108,7 @@
   --status-diagnosticando: var(--purple);
   --status-desbloqueada: var(--light-blue);
   --status-instalando-so: var(--teal);
+  --status-pendiente-so: var(--pink);
   --status-configurando: var(--teal);
   --status-probando: var(--purple);
   --status-finalizada: #1f9d5a;

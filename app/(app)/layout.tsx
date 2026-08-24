@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
 import { AppSidebar } from '@/components/app-sidebar'
+import { SessionGuard } from '@/components/session-guard'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { getCurrentProfile } from '@/lib/data'
@@ -18,6 +19,7 @@ export default async function AppLayout({
 
   return (
     <SidebarProvider>
+      <SessionGuard isAdmin={profile?.is_admin ?? false} />
       <AppSidebar
         apellidoNombre={profile?.apellido_nombre ?? email}
         isAdmin={profile?.is_admin ?? false}

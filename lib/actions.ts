@@ -176,6 +176,8 @@ export async function updateWorkOrder(
       horas_estimadas,
       horas_reales,
       observaciones,
+      last_edited_by: userData.user.id,
+      last_edited_at: new Date().toISOString(),
     })
     .eq('id', id)
 

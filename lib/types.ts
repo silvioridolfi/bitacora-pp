@@ -106,6 +106,7 @@ export const WORK_ORDER_ESTADOS = [
   'Diagnosticando',
   'Desbloqueada',
   'Instalando SO',
+  'Pendiente de Instalación de SO',
   'Configurando',
   'Probando',
   'Finalizada OK',
@@ -209,10 +210,14 @@ export type WorkOrder = {
   grupo_creador: string | null
   /** Fijo desde la creación -- nunca se pisa aunque se reasigne el responsable. */
   responsable_original_id: string | null
+  /** Quién hizo la última edición del encabezado de la OT, y cuándo. */
+  last_edited_by: string | null
+  last_edited_at: string | null
   created_at: string
   // Joined
   responsable?: Profile | null
   responsable_original?: Profile | null
+  last_edited_by_profile?: Profile | null
   school?: School | null
   equipment?: Equipment | null
   work_order_events?: WorkOrderEvent[]

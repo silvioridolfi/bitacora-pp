@@ -30,6 +30,7 @@ export function TableroBoard({
   rolesByProfile?: Record<string, DailyRoleName[]>
 }) {
   const [query, setQuery] = useState('')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   useRealtimeWorkOrders()
   const searchParams = useSearchParams()
   const targetEstado = searchParams.get('estado') as WorkOrderEstado | null
@@ -37,12 +38,16 @@ export function TableroBoard({
   const scrollRef = useRef<HTMLDivElement | null>(null)
 
   // -- Drag-to-scroll: arrastrar el fondo del tablero para desplazarlo,
-  // sin romper el click normal sobre una card (que abre el modal). --
+  // sin romper el click normal sobre una card (que abre el modal) ni
+  // interferir con selección de texto dentro del modal abierto (el
+  // modal se renderiza vía Portal en otro lugar del DOM, pero React
+  // igual burbujea sus eventos por el árbol de componentes -- por eso
+  // chequeamos contra el DOM real, no confiamos en el bubbling de React).
   const dragState = useRef({ isDown: false, moved: false, startX: 0, startScrollLeft: 0 })
 
   function handleMouseDown(e: React.MouseEvent) {
     const el = scrollRef.current
-    if (!el) return
+    if (!el || !el.contains(e.target as Node)) return
     dragState.current = {
       isDown: true,
       moved: false,
@@ -106,6 +111,14 @@ export function TableroBoard({
     estado,
     items: filtered.filter((o) => o.estado === estado),
   }))
+
+  // El modal se busca por id en `orders` (no en `filtered`, que puede
+  // haber cambiado si tipearon en el buscador) -- así, cuando la OT
+  // seleccionada cambia de estado/columna, el modal sigue mostrando
+  // los datos frescos sin cerrarse (ya no vive dentro del loop de
+  // columnas, así que no se "reparenta" ni pierde su estado al mover
+  // la card de lugar).
+  const selectedOrder = selectedId ? (orders.find((o) => o.id === selectedId) ?? null) : null
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
@@ -177,24 +190,15 @@ export function TableroBoard({
               </div>
               <div className="flex flex-col gap-2">
                 {col.items.map((wo) => (
-                  <WorkOrderForm
+                  <WorkOrderCard
                     key={wo.id}
-                    tipo={wo.tipo}
-                    profiles={profiles}
-                    schools={schools}
                     workOrder={wo}
-                    trigger={
-                      <WorkOrderCard
-                        workOrder={wo}
-                        isAdmin={isAdmin}
-                        currentProfileId={currentProfileId}
-                        responsableRoles={
-                          wo.responsable_id ? (rolesByProfile[wo.responsable_id] ?? []) : []
-                        }
-                      />
-                    }
                     isAdmin={isAdmin}
                     currentProfileId={currentProfileId}
+                    onClick={() => setSelectedId(wo.id)}
+                    responsableRoles={
+                      wo.responsable_id ? (rolesByProfile[wo.responsable_id] ?? []) : []
+                    }
                   />
                 ))}
                 {col.items.length === 0 && (
@@ -207,6 +211,19 @@ export function TableroBoard({
           )
         })}
       </div>
+
+      {selectedOrder && (
+        <WorkOrderForm
+          tipo={selectedOrder.tipo}
+          profiles={profiles}
+          schools={schools}
+          workOrder={selectedOrder}
+          isAdmin={isAdmin}
+          currentProfileId={currentProfileId}
+          open={!!selectedOrder}
+          onOpenChange={(v) => setSelectedId(v ? selectedOrder.id : null)}
+        />
+      )}
     </div>
   )
 }

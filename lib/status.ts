@@ -37,6 +37,13 @@ export const WORK_ORDER_STATUS_STYLE: Record<WorkOrderEstado, StatusStyle> = {
     text: 'text-status-instalando-so',
     dot: 'bg-status-instalando-so',
   },
+  'Pendiente de Instalación de SO': {
+    label: 'Pend. Instalación SO',
+    bg: 'bg-status-pendiente-so/10',
+    border: 'border-status-pendiente-so/40',
+    text: 'text-status-pendiente-so',
+    dot: 'bg-status-pendiente-so',
+  },
   Configurando: {
     label: 'Configurando',
     bg: 'bg-status-configurando/10',
@@ -73,6 +80,7 @@ export const WORK_ORDER_ESTADO_ORDER: WorkOrderEstado[] = [
   'Desbloqueada',
   'Probando',
   'Instalando SO',
+  'Pendiente de Instalación de SO',
   'Configurando',
   'Finalizada OK',
   'Derivada',

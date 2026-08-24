@@ -38,6 +38,8 @@ export function WorkOrderForm({
   trigger,
   isAdmin = false,
   currentProfileId = null,
+  open: openProp,
+  onOpenChange: onOpenChangeProp,
 }: {
   tipo: TipoOT
   profiles: Profile[]
@@ -46,8 +48,13 @@ export function WorkOrderForm({
   trigger?: React.ReactElement
   isAdmin?: boolean
   currentProfileId?: string | null
+  /** Si se pasan, el modal queda controlado desde afuera (ver TableroBoard). */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }) {
-  const [open, setOpen] = useState(false)
+  const [openState, setOpenState] = useState(false)
+  const open = openProp ?? openState
+  const setOpen = onOpenChangeProp ?? setOpenState
   const [pending, startTransition] = useTransition()
   const [grupo, setGrupo] = useState(workOrder?.grupo ?? '')
   const [estado, setEstado] = useState(workOrder?.estado ?? 'Pendiente')
@@ -97,16 +104,18 @@ export function WorkOrderForm({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          trigger ?? (
-            <Button>
-              <PlusIcon data-icon="inline-start" />
-              Nueva OT
-            </Button>
-          )
-        }
-      />
+      {openProp === undefined && (
+        <DialogTrigger
+          render={
+            trigger ?? (
+              <Button>
+                <PlusIcon data-icon="inline-start" />
+                Nueva OT
+              </Button>
+            )
+          }
+        />
+      )}
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-heading">
@@ -121,6 +130,12 @@ export function WorkOrderForm({
                 ? 'Registrá una intervención sobre un equipo en el taller.'
                 : 'Registrá una intervención en territorio (escuela).'}
           </DialogDescription>
+          {isAdmin && workOrder?.last_edited_by_profile && workOrder.last_edited_at && (
+            <p className="text-[11px] text-muted-foreground">
+              Última edición: {workOrder.last_edited_by_profile.apellido_nombre} ·{' '}
+              {formatDate(workOrder.last_edited_at)} {formatHoraArgentina(workOrder.last_edited_at)}
+            </p>
+          )}
         </DialogHeader>
         <form action={handleSubmit}>
           <input type="hidden" name="tipo" value={tipo} />
