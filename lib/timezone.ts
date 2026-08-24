@@ -1,6 +1,21 @@
 export const APP_TIMEZONE = 'America/Argentina/Buenos_Aires'
 
 /**
+ * Las OT migradas desde la planilla vieja (dos tandas: 16/08 y 23/08)
+ * quedaron con un created_at artificial -- el momento exacto en que se
+ * corrió el script de migración, no la hora real en que se cargaron en
+ * su momento (la planilla nunca guardó esa hora). Cualquier OT anterior
+ * a este corte no tiene una hora de creación confiable; a partir de acá,
+ * toda OT se crea en tiempo real desde la app y sí es un dato real.
+ */
+export const WORK_ORDER_CREATED_AT_RELIABLE_SINCE = '2026-08-24T11:30:00.000Z'
+
+export function hasReliableCreatedAt(createdAt: string | null | undefined): boolean {
+  if (!createdAt) return false
+  return createdAt >= WORK_ORDER_CREATED_AT_RELIABLE_SINCE
+}
+
+/**
  * Fecha de "hoy" en horario de Argentina, como string YYYY-MM-DD
  * (formato que usan los <input type="date"> y las columnas `date` de Postgres).
  * Usar esto en vez de `new Date().toISOString().slice(0, 10)`, que toma la

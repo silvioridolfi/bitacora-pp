@@ -25,7 +25,7 @@ import type { Profile, School, TipoOT, WorkOrder } from '@/lib/types'
 import { WorkOrderTimeline } from '@/components/work-order-timeline'
 import { EquipoIntakeFields } from '@/components/equipo-intake-fields'
 import { SchoolCombobox } from '@/components/school-combobox'
-import { todayInArgentina } from '@/lib/timezone'
+import { todayInArgentina, hasReliableCreatedAt } from '@/lib/timezone'
 
 const nativeSelectClass =
   'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
@@ -114,7 +114,9 @@ export function WorkOrderForm({
           </DialogTitle>
           <DialogDescription>
             {workOrder
-              ? `Creada el ${formatDate(workOrder.fecha)} a las ${formatHoraArgentina(workOrder.created_at)}.`
+              ? hasReliableCreatedAt(workOrder.created_at)
+                ? `Creada el ${formatDate(workOrder.fecha)} a las ${formatHoraArgentina(workOrder.created_at)}.`
+                : `Creada el ${formatDate(workOrder.fecha)}.`
               : tipo === 'taller'
                 ? 'Registrá una intervención sobre un equipo en el taller.'
                 : 'Registrá una intervención en territorio (escuela).'}

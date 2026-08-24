@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Laptop, MapPin, School, User, Wrench, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate, formatHoraArgentina } from '@/lib/format'
+import { hasReliableCreatedAt } from '@/lib/timezone'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import { toggleWorkOrderEvent } from '@/lib/actions'
 import { WORK_ORDER_PASOS_BLOQUEANTES, WORK_ORDER_PASO_INFO } from '@/lib/types'
@@ -138,9 +139,15 @@ export function WorkOrderCard({
         </span>
         <span
           className="whitespace-nowrap"
-          title={`Creada a las ${formatHoraArgentina(workOrder.created_at)}`}
+          title={
+            hasReliableCreatedAt(workOrder.created_at)
+              ? `Creada a las ${formatHoraArgentina(workOrder.created_at)}`
+              : undefined
+          }
         >
-          {formatDate(workOrder.fecha)} · {formatHoraArgentina(workOrder.created_at)}
+          {formatDate(workOrder.fecha)}
+          {hasReliableCreatedAt(workOrder.created_at) &&
+            ` · ${formatHoraArgentina(workOrder.created_at)}`}
         </span>
       </div>
       {workOrder.responsable_original_id &&
