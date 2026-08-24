@@ -37,7 +37,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
                 alt="Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE)"
                 width={1920}
                 height={176}
-                className="h-auto w-full max-w-[512px]"
+                className="h-auto w-full max-w-[512px] object-contain"
                 priority
               />
             </div>
@@ -55,9 +55,9 @@ export function AuthShell({ children }: { children: ReactNode }) {
         <Image
           src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo_DTE_2026_v2-xxhHPy2btG6IR0PVoYAzc0QUngmBcO.png"
           alt="Dirección de Tecnología Educativa — Dirección General de Cultura y Educación — Gobierno de la Provincia de Buenos Aires"
-          width={1024}
-          height={160}
-          className="h-[5.5rem] w-auto"
+          width={1030}
+          height={142}
+          className="h-auto max-h-16 w-auto max-w-[92vw] object-contain sm:max-h-[5.5rem]"
           priority
         />
       </footer>

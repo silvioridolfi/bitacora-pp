@@ -31,13 +31,13 @@ export default async function AppLayout({
               DTE · Región 1
             </span>
           </div>
-          <div className="mx-auto">
+          <div className="mx-auto max-w-[60vw] sm:max-w-none">
             <Image
               src="/images/logo-practicas-profesionalizantes-dte.png"
               alt="Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE)"
               width={1920}
               height={176}
-              className="h-10 w-auto"
+              className="h-auto max-h-10 w-auto object-contain"
               priority
             />
           </div>

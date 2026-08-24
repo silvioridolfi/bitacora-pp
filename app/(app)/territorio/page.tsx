@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { WorkOrderForm } from '@/components/work-order-form'
-import { WorkOrderCard } from '@/components/work-order-card'
+import { WorkOrderGrid } from '@/components/work-order-grid'
 import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { MapPin } from 'lucide-react'
 import { getCurrentProfile, getTodayRolesByProfile } from '@/lib/data'
@@ -58,29 +58,15 @@ export default async function TerritorioPage() {
           </EmptyDescription>
         </Empty>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {orders.map((wo) => (
-            <WorkOrderForm
-              key={wo.id}
-              tipo="territorio"
-              profiles={(profiles ?? []) as Profile[]}
-              schools={(schools ?? []) as School[]}
-              workOrder={wo}
-              trigger={
-                <WorkOrderCard
-                  workOrder={wo}
-                  isAdmin={isAdmin}
-                  currentProfileId={currentProfileId}
-                  responsableRoles={
-                    wo.responsable_id ? (rolesByProfile[wo.responsable_id] ?? []) : []
-                  }
-                />
-              }
-              isAdmin={isAdmin}
-              currentProfileId={currentProfileId}
-            />
-          ))}
-        </div>
+        <WorkOrderGrid
+          tipo="territorio"
+          orders={orders}
+          profiles={(profiles ?? []) as Profile[]}
+          schools={(schools ?? []) as School[]}
+          isAdmin={isAdmin}
+          currentProfileId={currentProfileId}
+          rolesByProfile={rolesByProfile}
+        />
       )}
     </div>
   )
