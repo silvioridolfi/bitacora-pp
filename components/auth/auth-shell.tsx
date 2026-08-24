@@ -45,11 +45,11 @@ export function AuthShell({ children }: { children: ReactNode }) {
         }}
       >
         <Image
-          src="/images/logo-dte-2026.png"
-          alt="Dirección de Tecnología Educativa — Gobierno de la Provincia de Buenos Aires"
-          width={864}
-          height={152}
-          className="h-16 w-auto"
+          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Logo_DTE_2026_v2-xxhHPy2btG6IR0PVoYAzc0QUngmBcO.png"
+          alt="Dirección de Tecnología Educativa — Dirección General de Cultura y Educación — Gobierno de la Provincia de Buenos Aires"
+          width={1024}
+          height={160}
+          className="h-[5.5rem] w-auto"
           priority
         />
       </footer>
