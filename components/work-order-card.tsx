@@ -78,24 +78,24 @@ export function WorkOrderCard({
         style.border,
       )}
     >
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <span className="flex items-center gap-1.5">
-          <span className="font-heading text-xs font-bold tracking-tight text-foreground">
+          <span className="whitespace-nowrap font-heading text-xs font-bold tracking-tight text-foreground">
             {workOrder.codigo}
           </span>
           {workOrder.grupo_creador && (
-            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+            <span className="whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
               {workOrder.grupo_creador}
             </span>
           )}
         </span>
         <span
           className={cn(
-            'flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium',
+            'flex items-center gap-1.5 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium',
             style.text,
           )}
         >
-          <span className={cn('size-1.5 rounded-full', style.dot)} />
+          <span className={cn('size-1.5 shrink-0 rounded-full', style.dot)} />
           {style.label}
         </span>
       </div>
@@ -114,20 +114,23 @@ export function WorkOrderCard({
           <span className="truncate">{workOrder.school.nombre}</span>
         </div>
       )}
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs text-muted-foreground">
         <span className="flex flex-wrap items-center gap-1">
           <User className="size-3.5 shrink-0" />
-          {workOrder.responsable?.apellido_nombre ?? 'Sin asignar'}
+          <span className="truncate">{workOrder.responsable?.apellido_nombre ?? 'Sin asignar'}</span>
           {responsableRoles.map((rol) => (
             <span
               key={rol}
-              className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground"
+              className="whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground"
             >
               {DAILY_ROLE_SHORT[rol]}
             </span>
           ))}
         </span>
-        <span title={`Creada a las ${formatHoraArgentina(workOrder.created_at)}`}>
+        <span
+          className="whitespace-nowrap"
+          title={`Creada a las ${formatHoraArgentina(workOrder.created_at)}`}
+        >
           {formatDate(workOrder.fecha)} · {formatHoraArgentina(workOrder.created_at)}
         </span>
       </div>

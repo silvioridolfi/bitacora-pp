@@ -28,6 +28,7 @@ export function formatHoraArgentina(value: string | null | undefined): string {
     timeZone: 'America/Argentina/Buenos_Aires',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   }).format(d)
 }
 
