@@ -1,9 +1,10 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Table,
@@ -23,6 +24,11 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
   const [query, setQuery] = useState('')
   const [estado, setEstado] = useState('')
   const [grupo, setGrupo] = useState('')
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  function scrollByStep(direction: 1 | -1) {
+    scrollRef.current?.scrollBy({ left: direction * 240, behavior: 'smooth' })
+  }
 
   const estados = useMemo(
     () =>
@@ -86,11 +92,35 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
         </select>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        {filtered.length} de {equipment.length} equipos.
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">
+          {filtered.length} de {equipment.length} equipos.
+        </p>
+        <div className="flex gap-1 sm:hidden">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-7"
+            onClick={() => scrollByStep(-1)}
+            title="Desplazar hacia la izquierda"
+          >
+            <ChevronLeft className="size-3.5" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-7"
+            onClick={() => scrollByStep(1)}
+            title="Desplazar hacia la derecha"
+          >
+            <ChevronRight className="size-3.5" />
+          </Button>
+        </div>
+      </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div ref={scrollRef} className="overflow-x-auto rounded-xl border border-border bg-card">
         <Table>
           <TableHeader>
             <TableRow>

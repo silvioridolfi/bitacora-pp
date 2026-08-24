@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Lock, Plus, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Lock, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { setAttendance, createSession, deleteSession } from '@/lib/actions'
 import { formatDate } from '@/lib/format'
@@ -34,6 +34,11 @@ export function AttendanceGrid({
   const router = useRouter()
   const today = todayInArgentina()
   const pastNine = isPastNineAmArgentina()
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  function scrollByStep(direction: 1 | -1) {
+    scrollRef.current?.scrollBy({ left: direction * 240, behavior: 'smooth' })
+  }
 
   function key(studentId: string, sessionId: string) {
     return `${studentId}:${sessionId}`
@@ -118,9 +123,31 @@ export function AttendanceGrid({
           <Plus className="size-4" data-icon="inline-start" />
           Agregar fecha
         </Button>
+        <div className="ml-auto flex gap-1 sm:hidden">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-7"
+            onClick={() => scrollByStep(-1)}
+            title="Desplazar hacia la izquierda"
+          >
+            <ChevronLeft className="size-3.5" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-7"
+            onClick={() => scrollByStep(1)}
+            title="Desplazar hacia la derecha"
+          >
+            <ChevronRight className="size-3.5" />
+          </Button>
+        </div>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div ref={scrollRef} className="overflow-x-auto rounded-xl border border-border bg-card">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-border">
