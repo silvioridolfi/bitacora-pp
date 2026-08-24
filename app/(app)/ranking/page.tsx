@@ -117,25 +117,37 @@ export default async function RankingPage() {
         <h1 className="font-heading text-2xl font-bold text-foreground">Ranking</h1>
         <p className="text-sm text-muted-foreground">
           Cómo se calcula: +{RANKING_PUNTOS.taller}pts por cada OT de taller finalizada, +
-          {RANKING_PUNTOS.territorio}pts por cada OT de territorio finalizada, +
-          {RANKING_PUNTOS.presente}pts por cada asistencia presente, y{' '}
+          {RANKING_PUNTOS.territorio}pts por cada OT de territorio finalizada.
+          <br />
+          +{RANKING_PUNTOS.presente}pts por cada asistencia presente, y{' '}
           {RANKING_PUNTOS.tardanza}pts por cada tardanza. Hay un ranking por grupo.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {grupos.map((g) => (
-          <div key={g} className="flex flex-col gap-2">
-            <h2 className="font-heading text-sm font-semibold text-foreground">{g}</h2>
-            <RankingList
-              ranking={buildRanking(
-                profiles.filter((p) => p.grupo === g),
-                orders,
-                attendance,
-              )}
-            />
-          </div>
-        ))}
+        {grupos.map((g) => {
+          const ranking = buildRanking(
+            profiles.filter((p) => p.grupo === g),
+            orders,
+            attendance,
+          )
+          const totalGrupo = ranking.reduce((acc, r) => acc + r.total, 0)
+
+          return (
+            <div key={g} className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <h2 className="font-heading text-sm font-semibold text-foreground">{g}</h2>
+                <div className="flex items-baseline gap-1.5 rounded-lg bg-primary/10 px-3 py-1">
+                  <span className="font-heading text-lg font-bold text-primary">
+                    {totalGrupo}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">pts del grupo</span>
+                </div>
+              </div>
+              <RankingList ranking={ranking} />
+            </div>
+          )
+        })}
       </div>
     </div>
   )
