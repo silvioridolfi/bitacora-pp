@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { WORK_ORDER_ESTADO_ORDER, WORK_ORDER_STATUS_STYLE } from '@/lib/status'
+import { useRealtimeWorkOrders } from '@/hooks/use-realtime-work-orders'
 import type { DailyRoleName, Profile, School, WorkOrder, WorkOrderEstado } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -29,6 +30,7 @@ export function TableroBoard({
   rolesByProfile?: Record<string, DailyRoleName[]>
 }) {
   const [query, setQuery] = useState('')
+  useRealtimeWorkOrders()
   const searchParams = useSearchParams()
   const targetEstado = searchParams.get('estado') as WorkOrderEstado | null
   const columnRefs = useRef<Partial<Record<WorkOrderEstado, HTMLDivElement | null>>>({})
