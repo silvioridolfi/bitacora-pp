@@ -96,6 +96,37 @@ export default async function DashboardPage() {
         ))}
       </div>
 
+      <div className="border-t border-border pt-6">
+        <Card>
+          <CardContent className="flex flex-col gap-3 p-5">
+            <h2 className="font-heading text-sm font-semibold text-foreground">
+              Distribución por estado
+            </h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+              {estadoCounts.map(({ estado, count }) => {
+                const style = WORK_ORDER_STATUS_STYLE[estado]
+                return (
+                  <Link
+                    key={estado}
+                    href={`/tablero?estado=${encodeURIComponent(estado)}`}
+                    className={cn(
+                      'flex flex-col gap-1 rounded-lg border p-3 transition-opacity hover:opacity-80',
+                      style.bg,
+                      style.border,
+                    )}
+                  >
+                    <span className={cn('text-xs font-medium', style.text)}>{estado}</span>
+                    <span className="font-heading text-lg font-bold text-foreground">
+                      {count}
+                    </span>
+                  </Link>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Link href={`/tablero?estados=${encodeURIComponent('Finalizada OK,Derivada')}`}>
           <Card className="h-full transition-colors hover:border-primary/50 hover:bg-muted/40">
@@ -190,35 +221,6 @@ export default async function DashboardPage() {
           </Card>
         </Link>
       </div>
-
-      <Card>
-        <CardContent className="flex flex-col gap-3 p-5">
-          <h2 className="font-heading text-sm font-semibold text-foreground">
-            Distribución por estado
-          </h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-            {estadoCounts.map(({ estado, count }) => {
-              const style = WORK_ORDER_STATUS_STYLE[estado]
-              return (
-                <Link
-                  key={estado}
-                  href={`/tablero?estado=${encodeURIComponent(estado)}`}
-                  className={cn(
-                    'flex flex-col gap-1 rounded-lg border p-3 transition-opacity hover:opacity-80',
-                    style.bg,
-                    style.border,
-                  )}
-                >
-                  <span className={cn('text-xs font-medium', style.text)}>{estado}</span>
-                  <span className="font-heading text-lg font-bold text-foreground">
-                    {count}
-                  </span>
-                </Link>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
