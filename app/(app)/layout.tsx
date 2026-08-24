@@ -43,6 +43,10 @@ export default async function AppLayout({
           </div>
         </header>
         <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 md:p-6">{children}</div>
+        <footer className="border-t border-border px-4 py-3 text-center text-[11px] text-muted-foreground md:px-6">
+          © {new Date().getFullYear()} Dirección de Tecnología Educativa (DTE), Región 1 ·
+          Desarrollado por Silvio Ridolfi, Facilitador de Educación Digital
+        </footer>
       </SidebarInset>
     </SidebarProvider>
   )
