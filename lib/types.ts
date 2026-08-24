@@ -70,6 +70,16 @@ export const MARCAS_NETBOOK = [
   'PULSArE',
 ] as const
 
+export const ESTADOS_INICIALES_EQUIPO = [
+  'No enciende',
+  'Bloqueada',
+  'Enciende sin bloqueo',
+  'Enciende con fallas',
+  'Pantalla rota',
+  'Rota físicamente',
+] as const
+export type EstadoInicialEquipo = (typeof ESTADOS_INICIALES_EQUIPO)[number]
+
 export type Equipment = {
   id: string
   numero_serie: string
@@ -79,6 +89,7 @@ export type Equipment = {
   marca: string | null
   fecha_ingreso: string | null
   estado_inicial: string | null
+  /** Se calcula solo (trigger) a partir de la OT más reciente -- no editable a mano. */
   estado_actual: string | null
   grupo: string | null
   observaciones_tecnicas: string | null
@@ -103,55 +114,78 @@ export const WORK_ORDER_ESTADOS = [
 
 export type WorkOrderEstado = (typeof WORK_ORDER_ESTADOS)[number]
 
-export const WORK_ORDER_ETAPAS = [
+/**
+ * Línea de tiempo única por OT: cada paso puede mover el estado del
+ * pipeline (bloqueante) o ser solo un detalle técnico opcional que se
+ * documenta sin afectar el estado (no bloqueante). Reemplaza los dos
+ * sistemas paralelos que había antes (etapas + checklist de acciones),
+ * que se solapaban conceptualmente (ej. 'Desbloqueo' existía en ambos).
+ */
+export const WORK_ORDER_PASOS = [
   'desarme',
   'desbloqueo',
   'armado',
   'prueba_encendido',
   'instalacion_so',
+  'cambio_pila',
+  'otro',
 ] as const
 
-export type WorkOrderEtapa = (typeof WORK_ORDER_ETAPAS)[number]
+export type WorkOrderPaso = (typeof WORK_ORDER_PASOS)[number]
 
-export const WORK_ORDER_ETAPA_INFO: Record<
-  WorkOrderEtapa,
-  { label: string; rol: string; resultingEstado: WorkOrderEstado; reservada?: boolean }
+export const WORK_ORDER_PASO_INFO: Record<
+  WorkOrderPaso,
+  {
+    label: string
+    rol: string
+    resultingEstado: WorkOrderEstado | null
+    reservada?: boolean
+    permiteDescripcion?: boolean
+  }
 > = {
-  desarme: {
-    label: 'Desarme',
-    rol: 'Técnico',
-    resultingEstado: 'Diagnosticando',
-  },
+  desarme: { label: 'Desarme', rol: 'Técnico', resultingEstado: 'Diagnosticando' },
   desbloqueo: {
     label: 'Desbloqueo',
     rol: 'Coordinador (rol reservado)',
     resultingEstado: 'Desbloqueada',
     reservada: true,
   },
-  armado: {
-    label: 'Armado y cambio de pila',
-    rol: 'Técnico',
-    resultingEstado: 'Probando',
-  },
+  armado: { label: 'Armado', rol: 'Técnico', resultingEstado: 'Probando' },
   prueba_encendido: {
     label: 'Prueba de encendido',
     rol: 'Alumno',
     resultingEstado: 'Instalando SO',
   },
-  instalacion_so: {
-    label: 'Instalación de SO',
-    rol: 'Alumno',
-    resultingEstado: 'Finalizada OK',
+  instalacion_so: { label: 'Instalación de SO', rol: 'Alumno', resultingEstado: 'Finalizada OK' },
+  cambio_pila: {
+    label: 'Cambio de pila',
+    rol: 'Técnico',
+    resultingEstado: null,
+  },
+  otro: {
+    label: 'Otro',
+    rol: '',
+    resultingEstado: null,
+    permiteDescripcion: true,
   },
 }
 
-export type WorkOrderStage = {
+/** Pasos que forman parte de la secuencia obligatoria del pipeline (mueven el estado). */
+export const WORK_ORDER_PASOS_BLOQUEANTES: WorkOrderPaso[] = [
+  'desarme',
+  'desbloqueo',
+  'armado',
+  'prueba_encendido',
+  'instalacion_so',
+]
+
+export type WorkOrderEvent = {
   id: string
   work_order_id: string
-  etapa: WorkOrderEtapa
+  clave: WorkOrderPaso
+  descripcion: string | null
   profile_id: string | null
   completed_at: string
-  created_at: string
   profile?: Profile | null
 }
 
@@ -176,27 +210,7 @@ export type WorkOrder = {
   responsable?: Profile | null
   school?: School | null
   equipment?: Equipment | null
-  work_order_actions?: WorkOrderAction[]
-  work_order_stages?: WorkOrderStage[]
-}
-
-export const WORK_ORDER_ACCIONES = [
-  'Desbloqueo',
-  'Cambio de Pila',
-  'Actualización de SO',
-  'Diagnóstico',
-  'Otro',
-] as const
-
-export type WorkOrderAccion = (typeof WORK_ORDER_ACCIONES)[number]
-
-export type WorkOrderAction = {
-  id: string
-  work_order_id: string
-  accion: WorkOrderAccion
-  fecha: string | null
-  descripcion: string | null
-  created_at: string
+  work_order_events?: WorkOrderEvent[]
 }
 
 export type Session = {

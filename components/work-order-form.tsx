@@ -21,8 +21,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { createWorkOrder, updateWorkOrder, deleteWorkOrder } from '@/lib/actions'
 import { WORK_ORDER_ESTADOS } from '@/lib/types'
 import type { Profile, School, TipoOT, WorkOrder } from '@/lib/types'
-import { WorkOrderStageChecklist } from '@/components/work-order-stage-checklist'
-import { WorkOrderActionsChecklist } from '@/components/work-order-actions-checklist'
+import { WorkOrderTimeline } from '@/components/work-order-timeline'
 import { EquipoIntakeFields } from '@/components/equipo-intake-fields'
 import { SchoolCombobox } from '@/components/school-combobox'
 import { todayInArgentina } from '@/lib/timezone'
@@ -196,9 +195,9 @@ export function WorkOrderForm({
             {tipo === 'taller' && workOrder ? (
               <Field>
                 <FieldLabel>Estado ({workOrder.estado})</FieldLabel>
-                <WorkOrderStageChecklist
+                <WorkOrderTimeline
                   workOrderId={workOrder.id}
-                  stages={workOrder.work_order_stages ?? []}
+                  events={workOrder.work_order_events ?? []}
                   profiles={
                     workOrder.grupo
                       ? profiles.filter((p) => p.grupo === workOrder.grupo || p.is_admin)
@@ -206,10 +205,12 @@ export function WorkOrderForm({
                   }
                   isAdmin={isAdmin}
                   currentProfileId={currentProfileId}
+                  saltarDesbloqueo={workOrder.equipment?.estado_inicial === 'Enciende sin bloqueo'}
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  El estado avanza solo a medida que se completan las etapas. Para casos que
-                  no siguen el flujo normal (ej. derivar el equipo), usá el selector manual.
+                  El estado avanza solo a medida que se completan los pasos del pipeline. Para
+                  casos que no siguen el flujo normal (ej. derivar el equipo), usá el selector
+                  manual.
                 </p>
                 <select
                   id="estado"
@@ -244,13 +245,6 @@ export function WorkOrderForm({
               </Field>
             )}
 
-            {workOrder && (
-              <WorkOrderActionsChecklist
-                workOrderId={workOrder.id}
-                actions={workOrder.work_order_actions ?? []}
-              />
-            )}
-
             <Field>
               <FieldLabel htmlFor="diagnostico">Diagnóstico</FieldLabel>
               <Textarea
@@ -275,23 +269,23 @@ export function WorkOrderForm({
 
             <div className="grid grid-cols-2 gap-3">
               <Field>
-                <FieldLabel htmlFor="horas_estimadas">Horas estimadas</FieldLabel>
+                <FieldLabel htmlFor="horas_estimadas">Minutos estimados</FieldLabel>
                 <Input
                   id="horas_estimadas"
                   name="horas_estimadas"
                   type="number"
-                  step="0.5"
+                  step="5"
                   min="0"
                   defaultValue={workOrder?.horas_estimadas ?? ''}
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="horas_reales">Horas reales</FieldLabel>
+                <FieldLabel htmlFor="horas_reales">Minutos reales</FieldLabel>
                 <Input
                   id="horas_reales"
                   name="horas_reales"
                   type="number"
-                  step="0.5"
+                  step="5"
                   min="0"
                   defaultValue={workOrder?.horas_reales ?? ''}
                 />

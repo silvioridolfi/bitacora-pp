@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
+  ESTADOS_INICIALES_EQUIPO,
   GENERACIONES_NETBOOK,
   MARCAS_NETBOOK,
   PROGRAMAS_NETBOOK,
@@ -113,6 +114,18 @@ export function EquipoIntakeFields() {
           <Input id="equipo_modelo" name="equipo_modelo" placeholder="Opcional" />
         </Field>
       </div>
+
+      <Field>
+        <FieldLabel htmlFor="estado_inicial">Estado inicial (con qué llegó)</FieldLabel>
+        <select id="estado_inicial" name="estado_inicial" className={nativeSelectClass} defaultValue="">
+          <option value="">Seleccionar…</option>
+          {ESTADOS_INICIALES_EQUIPO.map((e) => (
+            <option key={e} value={e}>
+              {e}
+            </option>
+          ))}
+        </select>
+      </Field>
 
       <Field>
         <FieldLabel htmlFor="numero_serie_resto">N° de serie</FieldLabel>

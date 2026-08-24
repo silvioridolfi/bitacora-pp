@@ -25,7 +25,7 @@ export default async function EquipoPage({
       supabase
         .from('work_orders')
         .select(
-          '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_stages(*, profile:profile_id(*)), work_order_actions(*)',
+          '*, equipment:equipment_id(*), responsable:responsable_id(*), school:school_id(*), work_order_events(*, profile:profile_id(*))',
         )
         .eq('equipment_id', id)
         .order('fecha', { ascending: true }),
@@ -60,7 +60,7 @@ export default async function EquipoPage({
                 {eq.marca} {eq.modelo} {eq.generacion ? `· ${eq.generacion}` : ''}
               </p>
             </div>
-            <Badge variant="secondary" className="text-sm">
+            <Badge variant="secondary" className="text-sm" title="Se calcula solo, según la OT más reciente de este equipo">
               {eq.estado_actual ?? 'Sin estado'}
             </Badge>
           </div>

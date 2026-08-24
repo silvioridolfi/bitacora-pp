@@ -20,7 +20,7 @@ export function formatDateShort(value: string | null | undefined): string {
   return `${dd}/${mm}`
 }
 
-export function formatHoras(value: number | null | undefined): string {
+export function formatMinutos(value: number | null | undefined): string {
   if (value === null || value === undefined) return '—'
-  return `${value}h`
+  return `${value} min`
 }

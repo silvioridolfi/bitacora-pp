@@ -7,8 +7,8 @@ import { Laptop, MapPin, School, User, Wrench, ChevronRight } from 'lucide-react
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/format'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
-import { completeWorkOrderStage } from '@/lib/actions'
-import { WORK_ORDER_ETAPAS, WORK_ORDER_ETAPA_INFO } from '@/lib/types'
+import { toggleWorkOrderEvent } from '@/lib/actions'
+import { WORK_ORDER_PASOS_BLOQUEANTES, WORK_ORDER_PASO_INFO } from '@/lib/types'
 import type { DailyRoleName, WorkOrder } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -37,21 +37,26 @@ export function WorkOrderCard({
   const [pending, startTransition] = useTransition()
   const router = useRouter()
 
-  const doneEtapas = new Set((workOrder.work_order_stages ?? []).map((s) => s.etapa))
-  const nextEtapa =
+  const doneClaves = new Set((workOrder.work_order_events ?? []).map((e) => e.clave))
+  // El equipo ya vino "Enciende sin bloqueo" -- esa etapa no aplica, se
+  // libera directo y nunca vuelve a bloquearse.
+  const pasosAplicables = WORK_ORDER_PASOS_BLOQUEANTES.filter(
+    (p) => !(p === 'desbloqueo' && workOrder.equipment?.estado_inicial === 'Enciende sin bloqueo'),
+  )
+  const nextPaso =
     workOrder.tipo === 'taller' && workOrder.estado !== 'Finalizada OK' && workOrder.estado !== 'Derivada'
-      ? WORK_ORDER_ETAPAS.find((e) => !doneEtapas.has(e))
+      ? pasosAplicables.find((p) => !doneClaves.has(p))
       : undefined
-  const nextInfo = nextEtapa ? WORK_ORDER_ETAPA_INFO[nextEtapa] : undefined
+  const nextInfo = nextPaso ? WORK_ORDER_PASO_INFO[nextPaso] : undefined
   const nextLocked = nextInfo?.reservada && !isAdmin
 
   function handleQuickAction(e: React.MouseEvent) {
     e.stopPropagation()
-    if (!nextEtapa || nextLocked) return
+    if (!nextPaso || nextLocked) return
     startTransition(async () => {
-      const result = await completeWorkOrderStage(workOrder.id, nextEtapa, currentProfileId)
+      const result = await toggleWorkOrderEvent(workOrder.id, nextPaso, currentProfileId)
       if (result.ok) {
-        toast.success(`${WORK_ORDER_ETAPA_INFO[nextEtapa].label} completada`)
+        toast.success(`${WORK_ORDER_PASO_INFO[nextPaso].label} completado`)
         router.refresh()
       } else {
         toast.error(result.error)

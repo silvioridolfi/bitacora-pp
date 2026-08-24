@@ -2,7 +2,12 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { WORK_ORDER_ETAPA_INFO, WORK_ORDER_ETAPAS, PROGRAMAS_NETBOOK, EXCLUSIVE_DAILY_ROLES } from '@/lib/types'
+import {
+  WORK_ORDER_PASO_INFO,
+  WORK_ORDER_PASOS_BLOQUEANTES,
+  PROGRAMAS_NETBOOK,
+  EXCLUSIVE_DAILY_ROLES,
+} from '@/lib/types'
 import { isAttendanceLocked, isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
 import { getCurrentProfile } from '@/lib/data'
 import type {
@@ -12,9 +17,8 @@ import type {
   ProgramaNetbook,
   TipoEquipo,
   TipoOT,
-  WorkOrderAccion,
   WorkOrderEstado,
-  WorkOrderEtapa,
+  WorkOrderPaso,
 } from '@/lib/types'
 
 export type ActionResult = { ok: true } | { ok: false; error: string }
@@ -54,6 +58,7 @@ export async function createWorkOrder(formData: FormData): Promise<ActionResult>
   const generacion = tipo_equipo === 'netbook' ? (formData.get('generacion') as string) || null : null
   const marca = (formData.get('equipo_marca') as string) || null
   const modelo = (formData.get('equipo_modelo') as string) || null
+  const estado_inicial = (formData.get('estado_inicial') as string) || null
   const sinDatos = formData.get('sin_datos') === 'on'
   let numero_serie = ((formData.get('numero_serie') as string) || '').trim()
 
@@ -73,6 +78,7 @@ export async function createWorkOrder(formData: FormData): Promise<ActionResult>
       generacion,
       marca,
       modelo,
+      estado_inicial,
       grupo,
       fecha_ingreso: fecha ?? todayInArgentina(),
     })
@@ -160,84 +166,115 @@ export async function updateWorkOrder(
   return { ok: true }
 }
 
-export async function completeWorkOrderStage(
+/**
+ * Tilda un paso de la línea de tiempo de la OT (bloqueante o no). Si el
+ * paso es bloqueante (forma parte del pipeline), además avanza el estado
+ * de la OT al que corresponde. 'Otro' puede repetirse con descripciones
+ * distintas; el resto de los pasos son de una sola vez por OT.
+ */
+export async function toggleWorkOrderEvent(
   workOrderId: string,
-  etapa: WorkOrderEtapa,
+  clave: WorkOrderPaso,
   profileId: string | null,
+  descripcion: string | null = null,
 ): Promise<ActionResult> {
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
 
-  const { error: stageError } = await supabase.from('work_order_stages').insert({
+  const { error: insertError } = await supabase.from('work_order_events').insert({
     work_order_id: workOrderId,
-    etapa,
+    clave,
     profile_id: profileId,
+    descripcion,
   })
 
-  if (stageError) return { ok: false, error: stageError.message }
+  if (insertError) return { ok: false, error: insertError.message }
 
-  const resultingEstado = WORK_ORDER_ETAPA_INFO[etapa].resultingEstado
-  const { error: estadoError } = await supabase
-    .from('work_orders')
-    .update({ estado: resultingEstado })
-    .eq('id', workOrderId)
-
-  if (estadoError) return { ok: false, error: estadoError.message }
-
-  revalidatePath('/taller')
-  revalidatePath('/tablero')
-  revalidatePath('/dashboard')
-  revalidatePath('/equipos')
-  return { ok: true }
-}
-
-export async function undoWorkOrderStage(
-  workOrderId: string,
-  etapa: WorkOrderEtapa,
-): Promise<ActionResult> {
-  const supabase = await createClient()
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
-
-  const { error: deleteError } = await supabase
-    .from('work_order_stages')
-    .delete()
-    .eq('work_order_id', workOrderId)
-    .eq('etapa', etapa)
-
-  if (deleteError) return { ok: false, error: deleteError.message }
-
-  const { data: remaining } = await supabase
-    .from('work_order_stages')
-    .select('etapa')
-    .eq('work_order_id', workOrderId)
-
-  const completed = new Set((remaining ?? []).map((r) => r.etapa as WorkOrderEtapa))
-
-  // Si no queda ninguna etapa completada, no podemos saber con certeza a
-  // qué estado corresponde volver (la OT puede tener un estado cargado a
-  // mano, sin historial de etapas -- como pasaba con las OT migradas).
-  // En ese caso dejamos el estado como está, en vez de forzarlo a
-  // "Pendiente" y perder esa información.
-  let estado: WorkOrderEstado | null = null
-  for (const e of WORK_ORDER_ETAPAS) {
-    if (completed.has(e)) estado = WORK_ORDER_ETAPA_INFO[e].resultingEstado
-  }
-
-  if (estado) {
+  const resultingEstado = WORK_ORDER_PASO_INFO[clave].resultingEstado
+  if (resultingEstado) {
     const { error: estadoError } = await supabase
       .from('work_orders')
-      .update({ estado })
+      .update({ estado: resultingEstado })
       .eq('id', workOrderId)
 
     if (estadoError) return { ok: false, error: estadoError.message }
   }
 
   revalidatePath('/taller')
+  revalidatePath('/territorio')
   revalidatePath('/tablero')
   revalidatePath('/dashboard')
   revalidatePath('/equipos')
+  return { ok: true }
+}
+
+/**
+ * Saca un paso ya tildado (excepto 'otro', que puede tener varias filas --
+ * ver removeWorkOrderEventById para ese caso). Si era un paso bloqueante,
+ * recalcula el estado a partir de los pasos bloqueantes que queden. Si no
+ * queda ninguno, no toca el estado (podría ser un valor cargado a mano,
+ * sin historial -- más seguro no tocar que pisarlo con un valor incorrecto).
+ */
+export async function removeWorkOrderEvent(
+  workOrderId: string,
+  clave: WorkOrderPaso,
+): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+
+  const { error: deleteError } = await supabase
+    .from('work_order_events')
+    .delete()
+    .eq('work_order_id', workOrderId)
+    .eq('clave', clave)
+
+  if (deleteError) return { ok: false, error: deleteError.message }
+
+  if (WORK_ORDER_PASOS_BLOQUEANTES.includes(clave)) {
+    const { data: remaining } = await supabase
+      .from('work_order_events')
+      .select('clave')
+      .eq('work_order_id', workOrderId)
+
+    const completed = new Set((remaining ?? []).map((r) => r.clave as WorkOrderPaso))
+
+    let estado: WorkOrderEstado | null = null
+    for (const p of WORK_ORDER_PASOS_BLOQUEANTES) {
+      if (completed.has(p)) estado = WORK_ORDER_PASO_INFO[p].resultingEstado
+    }
+
+    if (estado) {
+      const { error: estadoError } = await supabase
+        .from('work_orders')
+        .update({ estado })
+        .eq('id', workOrderId)
+
+      if (estadoError) return { ok: false, error: estadoError.message }
+    }
+  }
+
+  revalidatePath('/taller')
+  revalidatePath('/territorio')
+  revalidatePath('/tablero')
+  revalidatePath('/dashboard')
+  revalidatePath('/equipos')
+  return { ok: true }
+}
+
+/** Borra una fila puntual de 'Otro' (puede haber varias por OT). */
+export async function removeWorkOrderEventById(id: string): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+
+  const { error } = await supabase.from('work_order_events').delete().eq('id', id)
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/taller')
+  revalidatePath('/territorio')
+  revalidatePath('/tablero')
   return { ok: true }
 }
 
@@ -318,51 +355,6 @@ export async function createSession(grupo: Grupo, fecha: string): Promise<Action
   revalidatePath('/asistencia')
   revalidatePath('/ranking')
   revalidatePath('/dashboard')
-  return { ok: true }
-}
-
-/**
- * Tilda/destilda una acción del checklist "qué se hizo" de una OT.
- * A diferencia de las etapas del pipeline, estas no son secuenciales ni
- * excluyentes entre sí -- documentan intervenciones puntuales sobre el
- * equipo (cambio de pila, actualización de SO, etc.) para el historial.
- */
-export async function toggleWorkOrderAction(
-  workOrderId: string,
-  accion: WorkOrderAccion,
-  descripcion: string | null,
-): Promise<ActionResult> {
-  const supabase = await createClient()
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
-
-  const { data: existing } = await supabase
-    .from('work_order_actions')
-    .select('id')
-    .eq('work_order_id', workOrderId)
-    .eq('accion', accion)
-    .maybeSingle()
-
-  if (existing) {
-    const { error } = await supabase
-      .from('work_order_actions')
-      .delete()
-      .eq('id', existing.id)
-    if (error) return { ok: false, error: error.message }
-  } else {
-    const { error } = await supabase.from('work_order_actions').insert({
-      work_order_id: workOrderId,
-      accion,
-      fecha: todayInArgentina(),
-      descripcion,
-    })
-    if (error) return { ok: false, error: error.message }
-  }
-
-  revalidatePath('/taller')
-  revalidatePath('/territorio')
-  revalidatePath('/tablero')
-  revalidatePath('/equipos')
   return { ok: true }
 }
 
