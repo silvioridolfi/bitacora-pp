@@ -84,7 +84,16 @@ export function WorkOrderCard({
             {workOrder.codigo}
           </span>
           {workOrder.grupo_creador && (
-            <span className="whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+            <span
+              className={cn(
+                'whitespace-nowrap rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+                workOrder.grupo_creador === 'Grupo 1'
+                  ? 'bg-violet-100 text-violet-700'
+                  : workOrder.grupo_creador === 'Grupo 2'
+                    ? 'bg-teal-100 text-teal-700'
+                    : 'bg-muted text-muted-foreground',
+              )}
+            >
               {workOrder.grupo_creador}
             </span>
           )}
