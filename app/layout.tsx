@@ -17,9 +17,9 @@ const roboto = Roboto({
 })
 
 export const metadata: Metadata = {
-  title: 'Bitácora PP | Prácticas Profesionalizantes DTE',
+  title: 'Prácticas Profesionalizantes DTE',
   description:
-    'Sistema de gestión de Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE) - EEST N°3, Región 1.',
+    'Sistema de gestión de Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE), Región 1.',
   generator: 'v0.app',
   icons: {
     icon: [

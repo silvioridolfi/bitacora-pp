@@ -428,7 +428,7 @@ export async function removeDailyRole(
  */
 export async function deleteWorkOrder(id: string): Promise<ActionResult> {
   const { profile } = await getCurrentProfile()
-  if (!profile?.is_admin) return { ok: false, error: 'Solo el coordinador puede borrar una OT.' }
+  if (!profile?.is_admin) return { ok: false, error: 'Solo el FED puede borrar una OT.' }
 
   const supabase = await createClient()
   const { error } = await supabase.from('work_orders').delete().eq('id', id)
@@ -448,7 +448,7 @@ export async function deleteWorkOrder(id: string): Promise<ActionResult> {
  */
 export async function deleteSession(id: string): Promise<ActionResult> {
   const { profile } = await getCurrentProfile()
-  if (!profile?.is_admin) return { ok: false, error: 'Solo el coordinador puede borrar una fecha.' }
+  if (!profile?.is_admin) return { ok: false, error: 'Solo el FED puede borrar una fecha.' }
 
   const supabase = await createClient()
   const { error } = await supabase.from('sessions').delete().eq('id', id)

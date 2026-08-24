@@ -29,9 +29,6 @@ export default async function AppLayout({
             <span className="font-heading text-sm font-semibold text-foreground">
               DTE · Región 1
             </span>
-            <span className="text-xs text-muted-foreground">
-              EEST N° 3 &quot;Fray Luis Beltrán&quot;
-            </span>
           </div>
         </header>
         <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 md:p-6">{children}</div>

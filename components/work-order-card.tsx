@@ -136,7 +136,7 @@ export function WorkOrderCard({
           )}
         >
           <span className="truncate">
-            {nextLocked ? `Falta: ${nextInfo.label} (coordinador)` : `Marcar: ${nextInfo.label}`}
+            {nextLocked ? `Falta: ${nextInfo.label} (FED)` : `Marcar: ${nextInfo.label}`}
           </span>
           {!nextLocked && <ChevronRight className="size-3.5 shrink-0" />}
         </button>

@@ -146,7 +146,7 @@ export const WORK_ORDER_PASO_INFO: Record<
   desarme: { label: 'Desarme', rol: 'Técnico', resultingEstado: 'Diagnosticando' },
   desbloqueo: {
     label: 'Desbloqueo',
-    rol: 'Coordinador (rol reservado)',
+    rol: 'FED (rol reservado)',
     resultingEstado: 'Desbloqueada',
     reservada: true,
   },

@@ -58,11 +58,11 @@ export function AppSidebar({
       <SidebarHeader className="gap-3 border-b border-sidebar-border px-3 py-4 group-data-[collapsible=icon]:px-2">
         <div className="flex items-center gap-2">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary font-heading text-sm font-bold text-sidebar-primary-foreground">
-            PP
+            RT
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="font-heading text-sm font-bold tracking-tight">
-              Bitácora PP
+              Registro Técnico
             </span>
             <span className="text-[11px] text-sidebar-foreground/70">
               DTE · Región 1
@@ -100,7 +100,7 @@ export function AppSidebar({
               {apellidoNombre ?? 'Sin perfil'}
             </span>
             <span className="text-[11px] text-sidebar-foreground/70">
-              {isAdmin ? 'Coordinador FED' : 'Estudiante'}
+              {isAdmin ? 'FED' : 'Estudiante'}
             </span>
           </div>
         </div>

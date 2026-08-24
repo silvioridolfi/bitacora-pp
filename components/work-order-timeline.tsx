@@ -149,7 +149,7 @@ export function WorkOrderTimeline({
                 Deshacer
               </Button>
             ) : locked ? (
-              <span className="text-[11px] text-muted-foreground">Solo coordinador</span>
+              <span className="text-[11px] text-muted-foreground">Solo FED</span>
             ) : (
               <div className="flex items-center gap-1.5">
                 <select
