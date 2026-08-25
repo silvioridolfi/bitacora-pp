@@ -153,16 +153,16 @@ export function AttendanceGrid({
       </div>
 
       <div ref={scrollRef} className="overflow-x-auto rounded-xl border border-border bg-card">
-        <table className="w-full border-separate border-spacing-0 text-sm">
+        <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="sticky left-0 top-0 z-30 bg-card px-3 py-2 text-left font-medium text-muted-foreground shadow-sm">
+              <th className="sticky left-0 z-10 bg-card px-3 py-2 text-left font-medium text-muted-foreground">
                 Fecha
               </th>
               {students.map((student) => (
                 <th
                   key={student.id}
-                  className="sticky top-0 z-20 min-w-20 bg-card px-1 py-2 text-center text-xs font-medium text-muted-foreground shadow-sm"
+                  className="min-w-20 px-1 py-2 text-center text-xs font-medium text-muted-foreground"
                 >
                   {student.apellido_nombre}
                 </th>
@@ -175,8 +175,8 @@ export function AttendanceGrid({
               const locked = !isAdmin && isAttendanceLocked(s.fecha)
               const closedButEditable = isAdmin && isAttendanceLocked(s.fecha)
               return (
-                <tr key={s.id}>
-                  <td className="sticky left-0 z-10 border-b border-border bg-card px-3 py-2 font-medium text-foreground">
+                <tr key={s.id} className="border-b border-border last:border-0">
+                  <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-foreground">
                     <div className="flex items-center gap-1">
                       <span>#{s.sesion_n}</span>
                       {(locked || closedButEditable) && (
@@ -214,7 +214,7 @@ export function AttendanceGrid({
                     const estado = optimisticAttendance[key(student.id, s.id)] ?? null
                     const style = estado ? ATTENDANCE_STATUS_STYLE[estado] : null
                     return (
-                      <td key={student.id} className="border-b border-border p-1">
+                      <td key={student.id} className="p-1">
                         <div className="flex justify-center">
                           <button
                             type="button"
@@ -255,16 +255,24 @@ export function AttendanceGrid({
           </tbody>
           {sessions.length > 0 && (
             <tfoot>
-              <tr className="bg-muted/30">
-                <td className="sticky left-0 z-10 border-t border-border bg-muted/30 px-3 py-2 font-medium text-foreground">
-                  Horas
+              <tr className="border-t border-border bg-muted/30">
+                <td className="sticky left-0 z-10 bg-muted/30 px-3 py-2 font-medium text-foreground">
+                  Total
                 </td>
                 {students.map((student) => (
                   <td
                     key={student.id}
-                    className="border-t border-border px-1 py-2 text-center font-medium text-foreground"
+                    className="min-w-20 px-1 py-2 text-center font-medium text-foreground"
                   >
-                    {horasAcreditadas(student.id)}h
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-[10px] leading-tight text-muted-foreground">
+                        {student.apellido_nombre}
+                      </span>
+                      <span className="w-6 border-t border-border" />
+                      <span className="text-sm font-semibold">
+                        {horasAcreditadas(student.id)}h
+                      </span>
+                    </div>
                   </td>
                 ))}
               </tr>
