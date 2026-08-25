@@ -98,6 +98,11 @@ export function WorkOrderCard({
               {workOrder.grupo_creador}
             </span>
           )}
+          {workOrder.session && (
+            <span className="whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+              Sesión #{workOrder.session.sesion_n}
+            </span>
+          )}
         </span>
         <span
           className={cn(

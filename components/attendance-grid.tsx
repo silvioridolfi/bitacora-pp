@@ -83,7 +83,7 @@ export function AttendanceGrid({
     startTransition(async () => {
       const result = await createSession(grupo, newFecha)
       if (result.ok) {
-        toast.success('Fecha agregada (4hs)')
+        toast.success('Sesión agregada (4hs)')
         router.refresh()
       } else {
         toast.error(result.error)
@@ -94,7 +94,7 @@ export function AttendanceGrid({
   function handleDeleteFecha(session: Session) {
     if (
       !confirm(
-        `¿Borrar la fecha #${session.sesion_n} (${formatDate(session.fecha)})? Se borra también la asistencia y los roles de ese día. No se puede deshacer.`,
+        `¿Borrar la Sesión #${session.sesion_n} (${formatDate(session.fecha)})? Se borra también la asistencia y los roles de ese día, y se desvinculan las OT que estaban asociadas a esta sesión. No se puede deshacer.`,
       )
     )
       return
@@ -114,7 +114,7 @@ export function AttendanceGrid({
       <div className="flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-border p-3">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-muted-foreground" htmlFor="new-fecha">
-            Nueva fecha (4hs)
+            Nueva sesión (4hs)
           </label>
           <Input
             id="new-fecha"
@@ -126,7 +126,7 @@ export function AttendanceGrid({
         </div>
         <Button type="button" size="sm" disabled={pending} onClick={handleAddFecha}>
           <Plus className="size-4" data-icon="inline-start" />
-          Agregar fecha
+          Agregar sesión
         </Button>
         <div className="ml-auto flex gap-1 sm:hidden">
           <Button
@@ -178,14 +178,14 @@ export function AttendanceGrid({
                 <tr key={s.id} className="border-b border-border last:border-0">
                   <td className="sticky left-0 z-10 bg-card px-3 py-2 font-medium text-foreground">
                     <div className="flex items-center gap-1">
-                      <span>#{s.sesion_n}</span>
+                      <span>Sesión #{s.sesion_n}</span>
                       {(locked || closedButEditable) && (
                         <Lock className="size-3 text-muted-foreground" />
                       )}
                       {isAdmin && (
                         <button
                           type="button"
-                          title="Borrar esta fecha"
+                          title="Borrar esta sesión"
                           onClick={() => handleDeleteFecha(s)}
                           className="ml-auto text-muted-foreground hover:text-destructive"
                         >
@@ -265,7 +265,7 @@ export function AttendanceGrid({
                     className="min-w-20 px-1 py-2 text-center font-medium text-foreground"
                   >
                     <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-[10px] leading-tight text-muted-foreground">
+                      <span className="text-xs leading-tight text-muted-foreground">
                         {student.apellido_nombre}
                       </span>
                       <span className="w-6 border-t border-border" />
