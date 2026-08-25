@@ -121,15 +121,22 @@ export function attendanceCycleFor(allowPresente: boolean): EstadoAsistencia[] {
   return allowPresente ? ATTENDANCE_CYCLE : ['Tardanza', 'Ausente']
 }
 
+/**
+ * Rota al siguiente estado, y al llegar al final del ciclo vuelve a "sin
+ * marcar" (null) en vez de arrancar de nuevo -- así se puede deshacer una
+ * marca puesta por error (ej. alguien marcó Presente antes de que
+ * llegaran) sin depender del admin para borrarla a mano.
+ */
 export function nextAttendanceStatus(
   current: EstadoAsistencia | null,
   allowPresente: boolean,
-): EstadoAsistencia {
+): EstadoAsistencia | null {
   const cycle = attendanceCycleFor(allowPresente)
   if (!current) return cycle[0]
   const idx = cycle.indexOf(current)
   if (idx === -1) return cycle[0]
-  return cycle[(idx + 1) % cycle.length]
+  if (idx === cycle.length - 1) return null
+  return cycle[idx + 1]
 }
 
 export const RANKING_PUNTOS = {

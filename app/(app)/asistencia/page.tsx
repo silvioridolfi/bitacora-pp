@@ -60,7 +60,8 @@ export default async function AsistenciaPage({
         <div>
           <h1 className="font-heading text-2xl font-bold text-foreground">Asistencia</h1>
           <p className="text-sm text-muted-foreground">
-            Click en una celda para rotar el estado: Presente → Tardanza → Ausente.
+            Click en una celda para rotar el estado: Presente → Tardanza → Ausente → sin
+            marcar.
             <br />
             Antes de las 9:00 se puede marcar Presente; después de las 12:00 la fecha de hoy
             queda bloqueada para evitar cambios accidentales.

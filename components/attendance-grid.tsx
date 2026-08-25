@@ -50,7 +50,12 @@ export function AttendanceGrid({
     const current = optimisticAttendance[key(studentId, session.id)] ?? null
     const next = nextAttendanceStatus(current, allowPresente)
 
-    setOptimisticAttendance((prev) => ({ ...prev, [key(studentId, session.id)]: next }))
+    setOptimisticAttendance((prev) => {
+      const copy = { ...prev }
+      if (next) copy[key(studentId, session.id)] = next
+      else delete copy[key(studentId, session.id)]
+      return copy
+    })
     startTransition(async () => {
       const result = await setAttendance(studentId, session.id, next)
       if (!result.ok) {
@@ -149,15 +154,15 @@ export function AttendanceGrid({
 
       <div ref={scrollRef} className="overflow-x-auto rounded-xl border border-border bg-card">
         <table className="w-full border-collapse text-sm">
-          <thead>
+          <thead className="sticky top-0 z-20 bg-card shadow-sm">
             <tr className="border-b border-border">
-              <th className="sticky left-0 z-10 bg-card px-3 py-2 text-left font-medium text-muted-foreground">
+              <th className="sticky left-0 z-30 bg-card px-3 py-2 text-left font-medium text-muted-foreground">
                 Fecha
               </th>
               {students.map((student) => (
                 <th
                   key={student.id}
-                  className="min-w-20 px-1 py-2 text-center text-xs font-medium text-muted-foreground"
+                  className="min-w-20 bg-card px-1 py-2 text-center text-xs font-medium text-muted-foreground"
                 >
                   {student.apellido_nombre}
                 </th>

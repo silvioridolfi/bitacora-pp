@@ -312,7 +312,7 @@ export async function removeWorkOrderEventById(id: string): Promise<ActionResult
 export async function setAttendance(
   studentId: string,
   sessionId: string,
-  estado: EstadoAsistencia,
+  estado: EstadoAsistencia | null,
 ): Promise<ActionResult> {
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
@@ -341,6 +341,21 @@ export async function setAttendance(
         error: 'Ya pasaron las 9:00 -- solo se puede marcar Tardanza o Ausente.',
       }
     }
+  }
+
+  if (estado === null) {
+    const { error } = await supabase
+      .from('attendance')
+      .delete()
+      .eq('student_id', studentId)
+      .eq('session_id', sessionId)
+
+    if (error) return { ok: false, error: error.message }
+
+    revalidatePath('/asistencia')
+    revalidatePath('/ranking')
+    revalidatePath('/dashboard')
+    return { ok: true }
   }
 
   const { error } = await supabase.from('attendance').upsert(
