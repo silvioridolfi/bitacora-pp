@@ -17,7 +17,7 @@ export type School = {
   nombre_completo: string | null
 }
 
-export const TIPOS_EQUIPO = ['netbook', 'tablet', 'notebook', 'pc', 'otro'] as const
+export const TIPOS_EQUIPO = ['netbook', 'notebook', 'otro', 'pc', 'tablet'] as const
 export type TipoEquipo = (typeof TIPOS_EQUIPO)[number]
 
 export const TIPO_EQUIPO_LABEL: Record<TipoEquipo, string> = {
