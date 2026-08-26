@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { WorkOrderCard } from '@/components/work-order-card'
@@ -29,7 +29,15 @@ export function WorkOrderGrid({
   rolesByProfile: Record<string, DailyRoleName[]>
 }) {
   const [query, setQuery] = useState('')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   useRealtimeWorkOrders()
+
+  // Última versión conocida de la OT seleccionada -- si la vista está
+  // filtrada por estado (ej. un KPI del dashboard) y esa OT cambia de
+  // estado, puede desaparecer del array `orders` tras el refresh. En
+  // vez de cerrar el modal de golpe, seguimos mostrando los últimos
+  // datos que sí llegamos a ver.
+  const lastKnownRef = useRef<WorkOrder | null>(null)
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -44,6 +52,14 @@ export function WorkOrderGrid({
       : orders
     return [...base].sort((a, b) => codigoNumero(b.codigo) - codigoNumero(a.codigo))
   }, [orders, query])
+
+  const foundOrder = selectedId ? (orders.find((o) => o.id === selectedId) ?? null) : null
+
+  useEffect(() => {
+    if (foundOrder) lastKnownRef.current = foundOrder
+  }, [foundOrder])
+
+  const selectedOrder = selectedId ? (foundOrder ?? lastKnownRef.current) : null
 
   return (
     <div className="flex flex-col gap-3">
@@ -64,27 +80,31 @@ export function WorkOrderGrid({
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((wo) => (
-            <WorkOrderForm
+            <WorkOrderCard
               key={wo.id}
-              tipo={wo.tipo}
-              profiles={profiles}
-              schools={schools}
               workOrder={wo}
-              trigger={
-                <WorkOrderCard
-                  workOrder={wo}
-                  isAdmin={isAdmin}
-                  currentProfileId={currentProfileId}
-                  responsableRoles={
-                    wo.responsable_id ? (rolesByProfile[wo.responsable_id] ?? []) : []
-                  }
-                />
-              }
               isAdmin={isAdmin}
               currentProfileId={currentProfileId}
+              onClick={() => setSelectedId(wo.id)}
+              responsableRoles={
+                wo.responsable_id ? (rolesByProfile[wo.responsable_id] ?? []) : []
+              }
             />
           ))}
         </div>
+      )}
+
+      {selectedOrder && (
+        <WorkOrderForm
+          tipo={selectedOrder.tipo}
+          profiles={profiles}
+          schools={schools}
+          workOrder={selectedOrder}
+          isAdmin={isAdmin}
+          currentProfileId={currentProfileId}
+          open={!!selectedOrder}
+          onOpenChange={(v) => setSelectedId(v ? selectedOrder.id : null)}
+        />
       )}
     </div>
   )

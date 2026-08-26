@@ -11,6 +11,7 @@ import {
   KanbanSquare,
   Wrench,
   MapPin,
+  History,
   LogOut,
 } from 'lucide-react'
 import {
@@ -36,6 +37,7 @@ const NAV_ITEMS = [
   { href: '/tablero', label: 'Kanban', icon: KanbanSquare },
   { href: '/taller', label: 'Taller', icon: Wrench },
   { href: '/territorio', label: 'Territorio', icon: MapPin },
+  { href: '/actividad', label: 'Actividad', icon: History, adminOnly: true },
 ]
 
 export function AppSidebar({
@@ -87,7 +89,7 @@ export function AppSidebar({
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV_ITEMS.map((item) => {
+              {NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin).map((item) => {
                 const isActive = pathname.startsWith(item.href)
                 return (
                   <SidebarMenuItem key={item.href}>
