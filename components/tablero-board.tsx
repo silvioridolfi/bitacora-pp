@@ -182,7 +182,7 @@ export function TableroBoard({
                   className={cn('flex items-center gap-1.5 text-sm font-semibold', style.text)}
                 >
                   <span className={cn('size-2 rounded-full', style.dot)} />
-                  {col.estado}
+                  {style.label}
                 </span>
                 <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                   {col.items.length}

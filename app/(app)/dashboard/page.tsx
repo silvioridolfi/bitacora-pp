@@ -116,7 +116,7 @@ export default async function DashboardPage() {
                     )}
                   >
                     <span className={cn('text-[11px] font-medium leading-tight', style.text)}>
-                      {estado}
+                      {style.label}
                     </span>
                     <span className="font-heading text-base font-bold text-foreground">
                       {count}
