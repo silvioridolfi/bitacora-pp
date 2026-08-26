@@ -71,11 +71,16 @@ export const MARCAS_NETBOOK = [
 ] as const
 
 export const ESTADOS_INICIALES_EQUIPO = [
+  'Sin diagnosticar',
   'No enciende',
+  'Pantalla no enciende',
+  'Se apaga solo / no mantiene carga',
   'Bloqueada',
   'Enciende sin bloqueo',
   'Enciende con fallas',
+  'Sin sistema operativo',
   'Pantalla rota',
+  'Carcasa dañada / bisagra rota',
   'Rota físicamente',
 ] as const
 export type EstadoInicialEquipo = (typeof ESTADOS_INICIALES_EQUIPO)[number]
