@@ -29,12 +29,12 @@ export const TIPO_EQUIPO_LABEL: Record<TipoEquipo, string> = {
 }
 
 export const PROGRAMAS_NETBOOK = [
-  'Conectar Igualdad',
-  'Primaria Digital',
-  'PAD',
   'Aprender Conectados',
-  'Juana Manso',
+  'Conectar Igualdad',
   'Conectar Igualdad 2023',
+  'Juana Manso',
+  'PAD',
+  'Primaria Digital',
 ] as const
 export type ProgramaNetbook = (typeof PROGRAMAS_NETBOOK)[number]
 
@@ -51,23 +51,23 @@ export const PROGRAMA_SERIE_PREFIX: Record<ProgramaNetbook, string> = {
 export const GENERACIONES_NETBOOK = Array.from({ length: 10 }, (_, i) => `G${i + 1}`)
 
 export const MARCAS_NETBOOK = [
-  'EXO',
-  'BGH',
   'Banghó',
-  'Noblex',
-  'Novatech',
-  'Depot',
-  'Edunec',
-  'Samsung',
-  'Lenovo',
+  'BGH',
   'Coradir',
   'CX',
+  'Depot',
+  'Edunec',
+  'EXO',
   'Haier',
   'Ken Brown',
+  'Lenovo',
   'NBX',
-  'SUA',
+  'Noblex',
+  'Novatech',
   'PCBox',
   'PULSArE',
+  'Samsung',
+  'SUA',
 ] as const
 
 export const ESTADOS_INICIALES_EQUIPO = [

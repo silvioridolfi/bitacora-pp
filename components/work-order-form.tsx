@@ -271,6 +271,7 @@ export function WorkOrderForm({
                 id="diagnostico"
                 name="diagnostico"
                 defaultValue={workOrder?.diagnostico ?? ''}
+                placeholder="Qué problema tiene el equipo. Ej: no enciende, pantalla rota, falta instalar el SO"
                 rows={2}
               />
             </Field>
@@ -282,6 +283,7 @@ export function WorkOrderForm({
                   id="trabajo_realizado"
                   name="trabajo_realizado"
                   defaultValue={workOrder?.trabajo_realizado ?? ''}
+                  placeholder="Qué se hizo para resolverlo. Ej: se cambió la pila, se reinstaló Windows"
                   rows={2}
                 />
               </Field>
@@ -318,6 +320,7 @@ export function WorkOrderForm({
                 id="observaciones"
                 name="observaciones"
                 defaultValue={workOrder?.observaciones ?? ''}
+                placeholder="Cualquier detalle extra que no entre en diagnóstico o trabajo realizado. Ej: falta un tornillo de la tapa"
                 rows={2}
               />
             </Field>
