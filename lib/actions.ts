@@ -375,6 +375,36 @@ export async function setAttendance(
   return { ok: true }
 }
 
+/**
+ * Fija/cambia la escuela en la que está trabajando un grupo hoy en
+ * Territorio. No requiere ser admin -- cualquiera del grupo la puede
+ * cambiar (por ejemplo, al terminar en una escuela y arrancar otra el
+ * mismo día).
+ */
+export async function setEscuelaActiva(
+  grupo: Grupo,
+  schoolId: string | null,
+): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+
+  const { error } = await supabase.from('escuela_activa').upsert(
+    {
+      grupo,
+      school_id: schoolId,
+      updated_by: userData.user.id,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'grupo' },
+  )
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/territorio')
+  return { ok: true }
+}
+
 export async function createSession(grupo: Grupo, fecha: string): Promise<ActionResult> {
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()

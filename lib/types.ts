@@ -17,6 +17,18 @@ export type School = {
   nombre_completo: string | null
 }
 
+/** Escuela en la que está trabajando un grupo hoy en Territorio -- se
+ * precarga sola en cada OT nueva de ese grupo, sin bloquear que se
+ * cambie para una OT puntual. */
+export type EscuelaActiva = {
+  grupo: Grupo
+  school_id: string | null
+  updated_by: string | null
+  updated_at: string
+  school?: School | null
+  updated_by_profile?: Profile | null
+}
+
 export const TIPOS_EQUIPO = ['netbook', 'notebook', 'otro', 'pc', 'tablet'] as const
 export type TipoEquipo = (typeof TIPOS_EQUIPO)[number]
 

@@ -40,6 +40,7 @@ export function WorkOrderForm({
   currentProfileId = null,
   open: openProp,
   onOpenChange: onOpenChangeProp,
+  escuelaActiva = null,
 }: {
   tipo: TipoOT
   profiles: Profile[]
@@ -51,6 +52,9 @@ export function WorkOrderForm({
   /** Si se pasan, el modal queda controlado desde afuera (ver TableroBoard). */
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  /** Escuela con la que el grupo está trabajando hoy en Territorio -- se
+   * precarga solo al crear una OT nueva, nunca al editar una existente. */
+  escuelaActiva?: School | null
 }) {
   const [openState, setOpenState] = useState(false)
   const open = openProp ?? openState
@@ -164,7 +168,7 @@ export function WorkOrderForm({
                 <FieldLabel>Escuela</FieldLabel>
                 <SchoolCombobox
                   schools={schools ?? []}
-                  defaultSchool={workOrder?.school ?? null}
+                  defaultSchool={workOrder ? (workOrder.school ?? null) : escuelaActiva}
                 />
               </Field>
             )}
