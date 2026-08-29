@@ -21,7 +21,7 @@ export function EscuelaActivaPanel({
   const [editing, setEditing] = useState(!escuelaActiva?.school)
   const [pending, startTransition] = useTransition()
   const router = useRouter()
-  useRealtimeEscuelaActiva()
+  useRealtimeEscuelaActiva(grupo)
 
   function handleSelect(schoolId: string) {
     startTransition(async () => {

@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/client'
  * demás compañeros trabajando en otras compus la ven actualizada
  * solos, sin F5.
  */
-export function useRealtimeEscuelaActiva() {
+export function useRealtimeEscuelaActiva(channelSuffix: string = 'todos') {
   const router = useRouter()
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export function useRealtimeEscuelaActiva() {
     }
 
     const channel = supabase
-      .channel('escuela-activa-realtime')
+      .channel(`escuela-activa-realtime-${channelSuffix}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'bitacora_pp', table: 'escuela_activa' },
@@ -35,5 +35,5 @@ export function useRealtimeEscuelaActiva() {
       if (timeout) clearTimeout(timeout)
       supabase.removeChannel(channel)
     }
-  }, [router])
+  }, [router, channelSuffix])
 }
