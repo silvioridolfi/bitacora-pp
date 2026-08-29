@@ -42,7 +42,10 @@ export function EscuelaActivaPanel({
         <div className="flex items-center gap-2 text-sm">
           <MapPin className="size-4 shrink-0 text-primary" />
           <div>
-            <span className="text-muted-foreground">Trabajando hoy en </span>
+            <span className="mr-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+              {grupo}
+            </span>
+            <span className="text-muted-foreground">trabajando hoy en </span>
             <span className="font-semibold text-foreground">{escuelaActiva.school.nombre}</span>
             {escuelaActiva.updated_by_profile && (
               <span className="text-muted-foreground">
@@ -69,6 +72,9 @@ export function EscuelaActivaPanel({
   return (
     <div className="flex flex-col gap-1.5 rounded-lg border border-dashed border-border p-3">
       <label className="text-xs font-medium text-muted-foreground">
+        <span className="mr-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
+          {grupo}
+        </span>
         Escuela en la que están trabajando hoy (se precarga sola en cada OT nueva)
       </label>
       <div className="flex gap-2">
