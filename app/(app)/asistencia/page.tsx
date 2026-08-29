@@ -3,7 +3,7 @@ import { AttendanceGrid } from '@/components/attendance-grid'
 import { DailyRolesPanel } from '@/components/daily-roles-panel'
 import { getCurrentProfile } from '@/lib/data'
 import { formatDate } from '@/lib/format'
-import { todayInArgentina } from '@/lib/timezone'
+import { todayInArgentina, grupoDeHoy } from '@/lib/timezone'
 import { cn } from '@/lib/utils'
 import type { Attendance, DailyRole, Grupo, Profile, Session } from '@/lib/types'
 
@@ -13,7 +13,8 @@ export default async function AsistenciaPage({
   searchParams: Promise<{ grupo?: string }>
 }) {
   const { grupo: grupoParam } = await searchParams
-  const grupo: Grupo = grupoParam === 'Grupo 2' ? 'Grupo 2' : 'Grupo 1'
+  const grupo: Grupo =
+    grupoParam === 'Grupo 2' ? 'Grupo 2' : grupoParam === 'Grupo 1' ? 'Grupo 1' : (grupoDeHoy() ?? 'Grupo 1')
 
   const supabase = await createClient()
 

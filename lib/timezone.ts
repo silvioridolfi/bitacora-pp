@@ -1,6 +1,25 @@
 export const APP_TIMEZONE = 'America/Argentina/Buenos_Aires'
 
 /**
+ * Grupo que corresponde al día de hoy (hora Argentina): G1 va lunes y
+ * miércoles, G2 martes y jueves, de 8 a 12. Devuelve null los demás
+ * días (viernes a domingo) -- ahí no hay grupo "de hoy" para inferir.
+ * Se usa para precargar el campo Grupo al crear una OT nueva, y para
+ * abrir Asistencia directo en la pestaña que corresponde, sin
+ * obligar a elegirlo a mano cada vez.
+ */
+export function grupoDeHoy(): 'Grupo 1' | 'Grupo 2' | null {
+  const weekday = new Intl.DateTimeFormat('en-US', {
+    timeZone: APP_TIMEZONE,
+    weekday: 'short',
+  }).format(new Date())
+
+  if (weekday === 'Mon' || weekday === 'Wed') return 'Grupo 1'
+  if (weekday === 'Tue' || weekday === 'Thu') return 'Grupo 2'
+  return null
+}
+
+/**
  * Las OT migradas desde la planilla vieja (dos tandas: 16/08 y 23/08)
  * quedaron con un created_at artificial -- el momento exacto en que se
  * corrió el script de migración, no la hora real en que se cargaron en
