@@ -36,6 +36,18 @@ export function EscuelaActivaPanel({
     })
   }
 
+  function handleClear() {
+    startTransition(async () => {
+      const result = await setEscuelaActiva(grupo, null)
+      if (result.ok) {
+        toast.success('Escuela activa quitada')
+        router.refresh()
+      } else {
+        toast.error(result.error)
+      }
+    })
+  }
+
   if (!editing && escuelaActiva?.school) {
     return (
       <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
@@ -55,16 +67,28 @@ export function EscuelaActivaPanel({
             )}
           </div>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => setEditing(true)}
-          disabled={pending}
-        >
-          <X className="size-3.5" data-icon="inline-start" />
-          Cambiar
-        </Button>
+        <div className="flex gap-1.5">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setEditing(true)}
+            disabled={pending}
+          >
+            Cambiar
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleClear}
+            disabled={pending}
+            title="Dejar sin escuela activa"
+          >
+            <X className="size-3.5" data-icon="inline-start" />
+            Quitar
+          </Button>
+        </div>
       </div>
     )
   }

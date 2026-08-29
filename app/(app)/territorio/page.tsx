@@ -43,9 +43,15 @@ export default async function TerritorioPage() {
     ? [profile.grupo]
     : (['Grupo 1', 'Grupo 2'] as Grupo[])
   // Para el botón "Nueva OT" del header: la escuela activa del grupo del
-  // usuario (si es admin sin grupo propio, no se precarga nada).
-  const escuelaActivaPropia =
-    escuelasActivasList.find((e) => e.grupo === profile?.grupo)?.school ?? null
+  // usuario, si tiene uno. El admin no pertenece a ningún grupo, así que
+  // no hay uno propio para matchear -- usamos la que se haya fijado más
+  // recientemente entre los dos grupos (nunca hay dos grupos en
+  // territorio a la vez, así que la más nueva es la relevante hoy).
+  const escuelaActivaPropia = profile?.grupo
+    ? (escuelasActivasList.find((e) => e.grupo === profile.grupo)?.school ?? null)
+    : ([...escuelasActivasList]
+        .filter((e) => e.school)
+        .sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0]?.school ?? null)
 
   return (
     <div className="flex flex-col gap-4">
