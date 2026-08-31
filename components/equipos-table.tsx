@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,7 +24,13 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
   const [query, setQuery] = useState('')
   const [estado, setEstado] = useState('')
   const [grupo, setGrupo] = useState('')
+  /** null = orden original (por N° de serie, como viene del servidor). */
+  const [fechaSort, setFechaSort] = useState<'asc' | 'desc' | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+
+  function toggleFechaSort() {
+    setFechaSort((prev) => (prev === 'desc' ? 'asc' : prev === 'asc' ? null : 'desc'))
+  }
 
   function scrollByStep(direction: 1 | -1) {
     const scrollable = containerRef.current?.querySelector('[data-slot="table-container"]')
@@ -43,7 +49,7 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return equipment.filter((eq) => {
+    const result = equipment.filter((eq) => {
       const matchesQuery =
         !q ||
         eq.numero_serie?.toLowerCase().includes(q) ||
@@ -53,7 +59,20 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
       const matchesGrupo = !grupo || eq.grupo === grupo
       return matchesQuery && matchesEstado && matchesGrupo
     })
-  }, [equipment, query, estado, grupo])
+
+    if (fechaSort) {
+      result.sort((a, b) => {
+        // Sin fecha cargada siempre al final, sea cual sea el orden elegido.
+        if (!a.fecha_ingreso && !b.fecha_ingreso) return 0
+        if (!a.fecha_ingreso) return 1
+        if (!b.fecha_ingreso) return -1
+        const diff = new Date(a.fecha_ingreso).getTime() - new Date(b.fecha_ingreso).getTime()
+        return fechaSort === 'asc' ? diff : -diff
+      })
+    }
+
+    return result
+  }, [equipment, query, estado, grupo, fechaSort])
 
   return (
     <div className="flex flex-col gap-3">
@@ -128,7 +147,19 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
               <TableHead>N° de serie</TableHead>
               <TableHead>Modelo</TableHead>
               <TableHead>Generación</TableHead>
-              <TableHead>Ingreso</TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  onClick={toggleFechaSort}
+                  className="flex items-center gap-1 hover:text-foreground"
+                  title="Ordenar por fecha de ingreso"
+                >
+                  Ingreso
+                  {fechaSort === 'asc' && <ArrowUp className="size-3.5" />}
+                  {fechaSort === 'desc' && <ArrowDown className="size-3.5" />}
+                  {!fechaSort && <ArrowUpDown className="size-3.5 opacity-40" />}
+                </button>
+              </TableHead>
               <TableHead>Estado actual</TableHead>
               <TableHead>Grupo</TableHead>
             </TableRow>
