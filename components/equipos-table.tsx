@@ -3,7 +3,6 @@
 import { useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Search } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -15,15 +14,53 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatDate } from '@/lib/format'
-import type { Equipment } from '@/lib/types'
+import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
+import { cn } from '@/lib/utils'
+import type { Equipment, TipoOT, WorkOrderEstado } from '@/lib/types'
 
 const nativeSelectClass =
   'h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
 
-export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
+const TIPO_LABEL: Record<TipoOT, string> = {
+  taller: 'Taller',
+  territorio: 'Territorio',
+}
+
+function EstadoBadge({ estado }: { estado: string | null }) {
+  const style = estado ? WORK_ORDER_STATUS_STYLE[estado as WorkOrderEstado] : undefined
+  if (!style) {
+    return (
+      <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+        —
+      </span>
+    )
+  }
+  return (
+    <span
+      className={cn(
+        'flex w-fit items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium',
+        style.bg,
+        style.border,
+        style.text,
+      )}
+    >
+      <span className={cn('size-1.5 shrink-0 rounded-full', style.dot)} />
+      {style.label}
+    </span>
+  )
+}
+
+export function EquiposTable({
+  equipment,
+  tipoByEquipmentId,
+}: {
+  equipment: Equipment[]
+  tipoByEquipmentId: Record<string, TipoOT>
+}) {
   const [query, setQuery] = useState('')
   const [estado, setEstado] = useState('')
   const [grupo, setGrupo] = useState('')
+  const [tipo, setTipo] = useState('')
   /** null = orden original (por N° de serie, como viene del servidor). */
   const [fechaSort, setFechaSort] = useState<'asc' | 'desc' | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -57,7 +94,8 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
         eq.marca?.toLowerCase().includes(q)
       const matchesEstado = !estado || eq.estado_actual === estado
       const matchesGrupo = !grupo || eq.grupo === grupo
-      return matchesQuery && matchesEstado && matchesGrupo
+      const matchesTipo = !tipo || tipoByEquipmentId[eq.id] === tipo
+      return matchesQuery && matchesEstado && matchesGrupo && matchesTipo
     })
 
     if (fechaSort) {
@@ -72,7 +110,7 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
     }
 
     return result
-  }, [equipment, query, estado, grupo, fechaSort])
+  }, [equipment, query, estado, grupo, tipo, tipoByEquipmentId, fechaSort])
 
   return (
     <div className="flex flex-col gap-3">
@@ -86,6 +124,15 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
             className="pl-8"
           />
         </div>
+        <select
+          value={tipo}
+          onChange={(e) => setTipo(e.target.value)}
+          className={nativeSelectClass}
+        >
+          <option value="">Todos (taller/territorio)</option>
+          <option value="taller">Taller</option>
+          <option value="territorio">Territorio</option>
+        </select>
         <select
           value={estado}
           onChange={(e) => setEstado(e.target.value)}
@@ -161,6 +208,7 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
                 </button>
               </TableHead>
               <TableHead>Estado actual</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead>Grupo</TableHead>
             </TableRow>
           </TableHeader>
@@ -185,14 +233,17 @@ export function EquiposTable({ equipment }: { equipment: Equipment[] }) {
                   {formatDate(eq.fecha_ingreso)}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary">{eq.estado_actual ?? '—'}</Badge>
+                  <EstadoBadge estado={eq.estado_actual} />
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {tipoByEquipmentId[eq.id] ? TIPO_LABEL[tipoByEquipmentId[eq.id]] : '—'}
                 </TableCell>
                 <TableCell className="text-muted-foreground">{eq.grupo ?? '—'}</TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
                   Ningún equipo coincide con los filtros.
                 </TableCell>
               </TableRow>
