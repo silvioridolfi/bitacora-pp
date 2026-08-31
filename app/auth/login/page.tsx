@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { AuthShell } from '@/components/auth/auth-shell'
 import { Button } from '@/components/ui/button'
@@ -35,11 +35,21 @@ function loginErrorMessage(error: unknown): string {
 }
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
+  )
+}
+
+function LoginPageContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const infoMessage = searchParams.get('message')
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -86,6 +96,11 @@ export default function LoginPage() {
           <CardDescription>Ingresá con tu email y contraseña</CardDescription>
         </CardHeader>
         <CardContent>
+          {infoMessage && (
+            <p className="mb-4 rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
+              {infoMessage}
+            </p>
+          )}
           <form onSubmit={handleLogin}>
             <FieldGroup>
               <Field>

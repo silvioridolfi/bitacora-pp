@@ -7,6 +7,7 @@ export type Profile = {
   is_admin: boolean
   dias: string | null
   created_at: string
+  session_invalidated_at?: string | null
 }
 
 export type School = {

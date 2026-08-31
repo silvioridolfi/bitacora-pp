@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/data'
 import { ActivityFeed } from '@/components/activity-feed'
 import { LoginActivityFeed } from '@/components/login-activity-feed'
+import { ForceLogoutButton } from '@/components/force-logout-button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default async function ActividadPage() {
@@ -45,6 +46,9 @@ export default async function ActividadPage() {
           <ActivityFeed events={workOrderEvents ?? []} />
         </TabsContent>
         <TabsContent value="logins">
+          <div className="mb-3 flex justify-end">
+            <ForceLogoutButton />
+          </div>
           <LoginActivityFeed events={loginEvents ?? []} />
         </TabsContent>
       </Tabs>

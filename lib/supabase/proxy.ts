@@ -99,6 +99,24 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
+    // Kill switch para "cerrar sesión de todos los alumnos": si el admin
+    // marcó session_invalidated_at DESPUÉS del último login real de este
+    // usuario, el token actual quedó invalidado -- se cierra la sesión acá
+    // mismo y se redirige a login, sin esperar a que expire naturalmente.
+    if (
+      profile?.session_invalidated_at &&
+      user.last_sign_in_at &&
+      new Date(profile.session_invalidated_at) > new Date(user.last_sign_in_at)
+    ) {
+      await supabase.auth.signOut()
+      const url = request.nextUrl.clone()
+      url.pathname = '/auth/login'
+      url.searchParams.set('message', 'Tu sesión fue cerrada. Volvé a ingresar.')
+      const redirectResponse = NextResponse.redirect(url)
+      supabaseResponse.cookies.getAll().forEach((c) => redirectResponse.cookies.set(c))
+      return redirectResponse
+    }
+
     // Evita que cada página server-side tenga que volver a llamar a
     // auth.getUser() + consultar profiles: el middleware ya hizo esa
     // validación, así que se la pasamos lista via headers del REQUEST

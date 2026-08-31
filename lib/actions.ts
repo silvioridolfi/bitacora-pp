@@ -537,3 +537,29 @@ export async function deleteSession(id: string): Promise<ActionResult> {
   revalidatePath('/taller')
   return { ok: true }
 }
+
+/**
+ * Fuerza el cierre de sesión de todas las cuentas de alumnos (solo
+ * admin). No usa la Admin API de Supabase (requeriría la service_role
+ * key en el servidor, que este proyecto no tiene configurada) -- en
+ * cambio, marca un timestamp en cada perfil de alumno. El middleware
+ * (lib/supabase/proxy.ts) compara ese timestamp contra el último login
+ * real del usuario (user.last_sign_in_at) en cada request: si el token
+ * actual es de antes de este timestamp, cierra la sesión y redirige a
+ * /auth/login. No afecta cuentas admin.
+ */
+export async function forceLogoutAllStudents(): Promise<ActionResult> {
+  const { profile } = await getCurrentProfile()
+  if (!profile?.is_admin) {
+    return { ok: false, error: 'Solo el FED puede cerrar la sesión de todos los alumnos.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('profiles')
+    .update({ session_invalidated_at: new Date().toISOString() })
+    .eq('is_admin', false)
+  if (error) return { ok: false, error: error.message }
+
+  return { ok: true }
+}
