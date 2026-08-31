@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { logLoginEvent } from '@/lib/actions'
 import { AuthShell } from '@/components/auth/auth-shell'
 import { Button } from '@/components/ui/button'
 import {
@@ -50,6 +51,13 @@ export default function LoginPage() {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
+
+      // No bloqueante: si falla el registro de actividad, no debe impedir
+      // el ingreso del usuario.
+      logLoginEvent(typeof navigator !== 'undefined' ? navigator.userAgent : null).catch(
+        (err) => console.error('[v0] No se pudo registrar el login:', err),
+      )
+
       router.push('/dashboard')
       router.refresh()
     } catch (err: unknown) {
