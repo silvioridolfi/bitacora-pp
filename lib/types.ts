@@ -284,3 +284,11 @@ export type DailyRole = {
   created_at: string
   student?: Profile | null
 }
+
+export type LoginEvent = {
+  id: string
+  profile_id: string
+  logged_in_at: string
+  user_agent: string | null
+  profile?: Profile | null
+}
