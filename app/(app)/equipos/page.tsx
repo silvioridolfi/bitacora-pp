@@ -5,7 +5,10 @@ import type { Equipment, TipoOT } from '@/lib/types'
 export default async function EquiposPage() {
   const supabase = await createClient()
   const [{ data }, { data: workOrders }] = await Promise.all([
-    supabase.from('equipment').select('*').order('numero_serie'),
+    supabase
+      .from('equipment')
+      .select('*')
+      .order('fecha_ingreso', { ascending: false, nullsFirst: false }),
     supabase
       .from('work_orders')
       .select('equipment_id, tipo, created_at')

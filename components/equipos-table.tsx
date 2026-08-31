@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -25,6 +25,7 @@ const TIPO_LABEL: Record<TipoOT, string> = {
   territorio: 'Territorio',
 }
 
+const FECHA_SORT_STORAGE_KEY = 'equipos-fecha-sort'
 
 export function EquiposTable({
   equipment,
@@ -37,12 +38,24 @@ export function EquiposTable({
   const [estado, setEstado] = useState('')
   const [grupo, setGrupo] = useState('')
   const [tipo, setTipo] = useState('')
-  /** null = orden original (por N° de serie, como viene del servidor). */
-  const [fechaSort, setFechaSort] = useState<'asc' | 'desc' | null>(null)
+  // Por defecto, más nuevos primero (coincide con el orden que ya trae del
+  // servidor -- así no hay parpadeo al cargar la página). Después de
+  // montado, si el usuario había elegido otro orden en una visita
+  // anterior, se aplica acá.
+  const [fechaSort, setFechaSort] = useState<'asc' | 'desc'>('desc')
   const containerRef = useRef<HTMLDivElement | null>(null)
 
+  useEffect(() => {
+    const stored = window.localStorage.getItem(FECHA_SORT_STORAGE_KEY)
+    if (stored === 'asc' || stored === 'desc') setFechaSort(stored)
+  }, [])
+
   function toggleFechaSort() {
-    setFechaSort((prev) => (prev === 'desc' ? 'asc' : prev === 'asc' ? null : 'desc'))
+    setFechaSort((prev) => {
+      const next = prev === 'desc' ? 'asc' : 'desc'
+      window.localStorage.setItem(FECHA_SORT_STORAGE_KEY, next)
+      return next
+    })
   }
 
   function scrollByStep(direction: 1 | -1) {
@@ -74,16 +87,14 @@ export function EquiposTable({
       return matchesQuery && matchesEstado && matchesGrupo && matchesTipo
     })
 
-    if (fechaSort) {
-      result.sort((a, b) => {
-        // Sin fecha cargada siempre al final, sea cual sea el orden elegido.
-        if (!a.fecha_ingreso && !b.fecha_ingreso) return 0
-        if (!a.fecha_ingreso) return 1
-        if (!b.fecha_ingreso) return -1
-        const diff = new Date(a.fecha_ingreso).getTime() - new Date(b.fecha_ingreso).getTime()
-        return fechaSort === 'asc' ? diff : -diff
-      })
-    }
+    result.sort((a, b) => {
+      // Sin fecha cargada siempre al final, sea cual sea el orden elegido.
+      if (!a.fecha_ingreso && !b.fecha_ingreso) return 0
+      if (!a.fecha_ingreso) return 1
+      if (!b.fecha_ingreso) return -1
+      const diff = new Date(a.fecha_ingreso).getTime() - new Date(b.fecha_ingreso).getTime()
+      return fechaSort === 'asc' ? diff : -diff
+    })
 
     return result
   }, [equipment, query, estado, grupo, tipo, tipoByEquipmentId, fechaSort])
@@ -178,9 +189,11 @@ export function EquiposTable({
                   title="Ordenar por fecha de ingreso"
                 >
                   Ingreso
-                  {fechaSort === 'asc' && <ArrowUp className="size-3.5" />}
-                  {fechaSort === 'desc' && <ArrowDown className="size-3.5" />}
-                  {!fechaSort && <ArrowUpDown className="size-3.5 opacity-40" />}
+                  {fechaSort === 'asc' ? (
+                    <ArrowUp className="size-3.5" />
+                  ) : (
+                    <ArrowDown className="size-3.5" />
+                  )}
                 </button>
               </TableHead>
               <TableHead>Estado actual</TableHead>
