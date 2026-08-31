@@ -1,12 +1,11 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, HelpCircle } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { WorkOrderForm } from '@/components/work-order-form'
-import { Badge } from '@/components/ui/badge'
+import { EstadoBadge } from '@/components/estado-badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatDate } from '@/lib/format'
 import { getCurrentProfile } from '@/lib/data'
 import type { Equipment, Profile, School, WorkOrder } from '@/lib/types'
@@ -60,12 +59,12 @@ export default async function EquipoPage({
                 {eq.marca} {eq.modelo} {eq.generacion ? `· ${eq.generacion}` : ''}
               </p>
             </div>
-            <Badge variant="secondary" className="text-sm" title="Se calcula solo, según la OT más reciente de este equipo">
-              {eq.estado_actual ?? 'Sin estado'}
-            </Badge>
+            <span title="Se calcula solo, según la OT más reciente de este equipo">
+              <EstadoBadge estado={eq.estado_actual} className="text-sm" />
+            </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 border-t border-border pt-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 border-t border-border pt-4 sm:grid-cols-3">
             <div>
               <p className="text-xs text-muted-foreground">Ingreso</p>
               <p className="text-sm font-medium">{formatDate(eq.fecha_ingreso)}</p>
@@ -77,24 +76,6 @@ export default async function EquipoPage({
             <div>
               <p className="text-xs text-muted-foreground">Grupo</p>
               <p className="text-sm font-medium">{eq.grupo ?? '—'}</p>
-            </div>
-            <div>
-              <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                Formato de software
-                <Tooltip>
-                  <TooltipTrigger>
-                    <HelpCircle className="size-3" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    Indica si el equipo tiene instalado y verificado el sistema operativo /
-                    imagen de software correspondiente al programa. &quot;Con
-                    observación&quot; significa que hubo un problema con esa instalación.
-                  </TooltipContent>
-                </Tooltip>
-              </p>
-              <p className="text-sm font-medium">
-                {eq.formato_ok === null ? '—' : eq.formato_ok ? 'OK' : 'Con observación'}
-              </p>
             </div>
           </div>
 

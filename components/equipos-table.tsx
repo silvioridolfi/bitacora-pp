@@ -14,9 +14,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatDate } from '@/lib/format'
-import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
-import { cn } from '@/lib/utils'
-import type { Equipment, TipoOT, WorkOrderEstado } from '@/lib/types'
+import { EstadoBadge } from '@/components/estado-badge'
+import type { Equipment, TipoOT } from '@/lib/types'
 
 const nativeSelectClass =
   'h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
@@ -26,29 +25,6 @@ const TIPO_LABEL: Record<TipoOT, string> = {
   territorio: 'Territorio',
 }
 
-function EstadoBadge({ estado }: { estado: string | null }) {
-  const style = estado ? WORK_ORDER_STATUS_STYLE[estado as WorkOrderEstado] : undefined
-  if (!style) {
-    return (
-      <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-        —
-      </span>
-    )
-  }
-  return (
-    <span
-      className={cn(
-        'flex w-fit items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium',
-        style.bg,
-        style.border,
-        style.text,
-      )}
-    >
-      <span className={cn('size-1.5 shrink-0 rounded-full', style.dot)} />
-      {style.label}
-    </span>
-  )
-}
 
 export function EquiposTable({
   equipment,
