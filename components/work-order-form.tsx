@@ -216,7 +216,7 @@ export function WorkOrderForm({
               </select>
             </Field>
 
-            {tipo === 'taller' && workOrder ? (
+            {workOrder ? (
               <Field>
                 <FieldLabel>Estado ({workOrder.estado})</FieldLabel>
                 <WorkOrderTimeline

@@ -45,7 +45,7 @@ export function WorkOrderCard({
     (p) => !(p === 'desbloqueo' && workOrder.equipment?.estado_inicial === 'Enciende sin bloqueo'),
   )
   const nextPaso =
-    workOrder.tipo === 'taller' && workOrder.estado !== 'Finalizada OK' && workOrder.estado !== 'Derivada'
+    workOrder.estado !== 'Finalizada OK' && workOrder.estado !== 'Derivada'
       ? pasosAplicables.find((p) => !doneClaves.has(p))
       : undefined
   const nextInfo = nextPaso ? WORK_ORDER_PASO_INFO[nextPaso] : undefined
