@@ -563,3 +563,33 @@ export async function forceLogoutAllStudents(): Promise<ActionResult> {
 
   return { ok: true }
 }
+
+/**
+ * Borra un equipo y todas sus OT vinculadas (solo admin). El FK de
+ * work_orders.equipment_id es ON DELETE SET NULL (no cascada), así que
+ * hay que borrar las OT explícitamente primero -- si no, quedarían
+ * huérfanas (sin equipo) en vez de desaparecer. work_order_events sí
+ * cascadea solo al borrar la OT.
+ */
+export async function deleteEquipment(id: string): Promise<ActionResult> {
+  const { profile } = await getCurrentProfile()
+  if (!profile?.is_admin) return { ok: false, error: 'Solo el FED puede borrar un equipo.' }
+
+  const supabase = await createClient()
+
+  const { error: workOrdersError } = await supabase
+    .from('work_orders')
+    .delete()
+    .eq('equipment_id', id)
+  if (workOrdersError) return { ok: false, error: workOrdersError.message }
+
+  const { error } = await supabase.from('equipment').delete().eq('id', id)
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/equipos')
+  revalidatePath('/taller')
+  revalidatePath('/territorio')
+  revalidatePath('/tablero')
+  revalidatePath('/dashboard')
+  return { ok: true }
+}

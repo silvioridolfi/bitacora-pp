@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { EstadoBadge } from '@/components/estado-badge'
+import { DeleteEquipmentButton } from '@/components/delete-equipment-button'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatDate } from '@/lib/format'
 import { getCurrentProfile } from '@/lib/data'
@@ -59,9 +60,18 @@ export default async function EquipoPage({
                 {eq.marca} {eq.modelo} {eq.generacion ? `· ${eq.generacion}` : ''}
               </p>
             </div>
-            <span title="Se calcula solo, según la OT más reciente de este equipo">
-              <EstadoBadge estado={eq.estado_actual} className="text-sm" />
-            </span>
+            <div className="flex items-center gap-2">
+              <span title="Se calcula solo, según la OT más reciente de este equipo">
+                <EstadoBadge estado={eq.estado_actual} className="text-sm" />
+              </span>
+              {profile?.is_admin && (
+                <DeleteEquipmentButton
+                  equipmentId={eq.id}
+                  numeroSerie={eq.numero_serie}
+                  workOrderCount={orders.length}
+                />
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 border-t border-border pt-4 sm:grid-cols-3">
