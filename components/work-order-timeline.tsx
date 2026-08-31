@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Circle, Lock, Trash2 } from 'lucide-react'
+import { CheckCircle2, Circle, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,7 @@ import {
   WORK_ORDER_PASOS,
   WORK_ORDER_PASOS_BLOQUEANTES,
   WORK_ORDER_PASO_INFO,
+  FED_PROFILE_ID,
 } from '@/lib/types'
 import type { Profile, WorkOrderEvent, WorkOrderPaso } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -57,7 +58,10 @@ export function WorkOrderTimeline({
   const otros = events.filter((e) => e.clave === 'otro')
 
   function handleToggle(clave: WorkOrderPaso) {
-    const profileId = selected[clave] || currentProfileId || null
+    const info = WORK_ORDER_PASO_INFO[clave]
+    const profileId = info.responsableFijo
+      ? FED_PROFILE_ID
+      : selected[clave] || currentProfileId || null
     startTransition(async () => {
       const result = await toggleWorkOrderEvent(workOrderId, clave, profileId)
       if (result.ok) {
@@ -114,15 +118,12 @@ export function WorkOrderTimeline({
       {pasosBloqueantes.map((clave) => {
         const info = WORK_ORDER_PASO_INFO[clave]
         const done = doneByClave.get(clave)
-        const locked = info.reservada && !isAdmin
 
         return (
           <div key={clave} className="flex items-center justify-between gap-2 text-sm">
             <div className="flex items-center gap-2">
               {done ? (
                 <CheckCircle2 className="size-4 text-status-finalizada" />
-              ) : locked ? (
-                <Lock className="size-4 text-muted-foreground" />
               ) : (
                 <Circle className="size-4 text-muted-foreground" />
               )}
@@ -143,13 +144,21 @@ export function WorkOrderTimeline({
                 variant="ghost"
                 size="sm"
                 className="h-7 text-xs"
-                disabled={pending || (info.reservada && !isAdmin)}
+                disabled={pending || (info.responsableFijo && !isAdmin)}
                 onClick={() => handleUndo(clave)}
               >
                 Deshacer
               </Button>
-            ) : locked ? (
-              <span className="text-[11px] text-muted-foreground">Solo FED</span>
+            ) : info.responsableFijo ? (
+              <Button
+                type="button"
+                size="sm"
+                className="h-7 text-xs"
+                disabled={pending}
+                onClick={() => handleToggle(clave)}
+              >
+                Marcar hecho
+              </Button>
             ) : (
               <div className="flex items-center gap-1.5">
                 <select

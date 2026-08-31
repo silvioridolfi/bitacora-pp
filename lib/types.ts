@@ -151,22 +151,31 @@ export const WORK_ORDER_PASOS = [
 
 export type WorkOrderPaso = (typeof WORK_ORDER_PASOS)[number]
 
+/**
+ * Perfil de Silvio Ridolfi (FED) -- responsable fijo del paso de
+ * desbloqueo. Cualquier alumno puede tildar ese paso (requiere estar
+ * físicamente presente para desbloquear), pero el evento siempre queda
+ * asignado a este perfil, nunca a quien lo tildó.
+ */
+export const FED_PROFILE_ID = '3376ad0d-eb34-4d9c-ba18-849d82165385'
+
 export const WORK_ORDER_PASO_INFO: Record<
   WorkOrderPaso,
   {
     label: string
     rol: string
     resultingEstado: WorkOrderEstado | null
-    reservada?: boolean
+    /** El evento se asigna siempre a FED_PROFILE_ID, sin importar quién lo tilde. */
+    responsableFijo?: boolean
     permiteDescripcion?: boolean
   }
 > = {
   desarme: { label: 'Desarme', rol: 'Técnico', resultingEstado: 'Diagnosticando' },
   desbloqueo: {
     label: 'Desbloqueo',
-    rol: 'FED (rol reservado)',
+    rol: 'Silvio Ridolfi (FED)',
     resultingEstado: 'Desbloqueada',
-    reservada: true,
+    responsableFijo: true,
   },
   armado: { label: 'Armado', rol: 'Técnico', resultingEstado: 'Probando' },
   prueba_encendido: {

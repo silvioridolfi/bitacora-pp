@@ -9,7 +9,7 @@ import { formatDate, formatHoraArgentina } from '@/lib/format'
 import { hasReliableCreatedAt } from '@/lib/timezone'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import { toggleWorkOrderEvent } from '@/lib/actions'
-import { WORK_ORDER_PASOS_BLOQUEANTES, WORK_ORDER_PASO_INFO } from '@/lib/types'
+import { FED_PROFILE_ID, WORK_ORDER_PASOS_BLOQUEANTES, WORK_ORDER_PASO_INFO } from '@/lib/types'
 import type { DailyRoleName, WorkOrder } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -49,13 +49,13 @@ export function WorkOrderCard({
       ? pasosAplicables.find((p) => !doneClaves.has(p))
       : undefined
   const nextInfo = nextPaso ? WORK_ORDER_PASO_INFO[nextPaso] : undefined
-  const nextLocked = nextInfo?.reservada && !isAdmin
 
   function handleQuickAction(e: React.MouseEvent) {
     e.stopPropagation()
-    if (!nextPaso || nextLocked) return
+    if (!nextPaso) return
+    const profileId = nextInfo?.responsableFijo ? FED_PROFILE_ID : currentProfileId
     startTransition(async () => {
-      const result = await toggleWorkOrderEvent(workOrder.id, nextPaso, currentProfileId)
+      const result = await toggleWorkOrderEvent(workOrder.id, nextPaso, profileId)
       if (result.ok) {
         toast.success(`${WORK_ORDER_PASO_INFO[nextPaso].label} completado`)
         router.refresh()
@@ -165,19 +165,12 @@ export function WorkOrderCard({
       {nextInfo && (
         <button
           type="button"
-          disabled={pending || nextLocked}
+          disabled={pending}
           onClick={handleQuickAction}
-          className={cn(
-            'mt-1 flex items-center justify-between gap-1.5 rounded-md border border-dashed px-2 py-1.5 text-[11px] font-medium transition-colors',
-            nextLocked
-              ? 'cursor-not-allowed border-border text-muted-foreground'
-              : 'border-primary/40 text-primary hover:bg-primary/10',
-          )}
+          className="mt-1 flex items-center justify-between gap-1.5 rounded-md border border-dashed border-primary/40 px-2 py-1.5 text-[11px] font-medium text-primary transition-colors hover:bg-primary/10"
         >
-          <span className="truncate">
-            {nextLocked ? `Falta: ${nextInfo.label} (FED)` : `Marcar: ${nextInfo.label}`}
-          </span>
-          {!nextLocked && <ChevronRight className="size-3.5 shrink-0" />}
+          <span className="truncate">Marcar: {nextInfo.label}</span>
+          <ChevronRight className="size-3.5 shrink-0" />
         </button>
       )}
     </div>
