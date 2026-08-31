@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { logLoginEvent } from '@/lib/actions'
 import { AuthShell } from '@/components/auth/auth-shell'
 import { Button } from '@/components/ui/button'
 import {
@@ -49,14 +48,25 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
 
       // No bloqueante: si falla el registro de actividad, no debe impedir
-      // el ingreso del usuario.
-      logLoginEvent(typeof navigator !== 'undefined' ? navigator.userAgent : null).catch(
-        (err) => console.error('[v0] No se pudo registrar el login:', err),
-      )
+      // el ingreso del usuario. Se inserta directo con el cliente del
+      // navegador (ya tiene la sesión recién creada en memoria) en vez de
+      // pasar por una server action -- esa cookie recién seteada puede no
+      // llegar todavía al servidor en este mismo instante.
+      if (data.user) {
+        supabase
+          .from('login_events')
+          .insert({
+            profile_id: data.user.id,
+            user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+          })
+          .then(({ error: insertError }) => {
+            if (insertError) console.error('[v0] No se pudo registrar el login:', insertError)
+          })
+      }
 
       router.push('/dashboard')
       router.refresh()

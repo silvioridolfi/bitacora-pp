@@ -537,23 +537,3 @@ export async function deleteSession(id: string): Promise<ActionResult> {
   revalidatePath('/taller')
   return { ok: true }
 }
-
-/**
- * Registra un login exitoso en bitacora_pp.login_events. Se llama desde
- * el cliente justo después de signInWithPassword. No bloquea el flujo de
- * login: si falla, solo se loguea en consola (no rompe el ingreso del
- * usuario ni hace falta mostrarle un error por esto).
- */
-export async function logLoginEvent(userAgent: string | null): Promise<ActionResult> {
-  const supabase = await createClient()
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
-
-  const { error } = await supabase.from('login_events').insert({
-    profile_id: userData.user.id,
-    user_agent: userAgent,
-  })
-  if (error) return { ok: false, error: error.message }
-
-  return { ok: true }
-}
