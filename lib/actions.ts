@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   WORK_ORDER_PASO_INFO,
   WORK_ORDER_PASOS_BLOQUEANTES,
@@ -591,5 +592,47 @@ export async function deleteEquipment(id: string): Promise<ActionResult> {
   revalidatePath('/territorio')
   revalidatePath('/tablero')
   revalidatePath('/dashboard')
+  return { ok: true }
+}
+
+/**
+ * Resetea la contraseña de un alumno directamente desde la app, sin
+ * necesitar que reciba el correo de "olvidé mi contraseña" (útil cuando
+ * no tiene espacio en su casilla o no tiene acceso al mail). Solo el
+ * admin puede ejecutarla. Marca password_change_required para que la
+ * tenga que cambiar en su próximo login.
+ */
+export async function resetStudentPassword(
+  studentId: string,
+  newPassword: string,
+): Promise<ActionResult> {
+  const { profile } = await getCurrentProfile()
+  if (!profile?.is_admin) {
+    return { ok: false, error: 'Solo el FED puede resetear contraseñas.' }
+  }
+
+  if (newPassword.length < 6) {
+    return { ok: false, error: 'La contraseña debe tener al menos 6 caracteres.' }
+  }
+
+  let admin
+  try {
+    admin = createAdminClient()
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Error de configuración.' }
+  }
+
+  const { error: authError } = await admin.auth.admin.updateUserById(studentId, {
+    password: newPassword,
+  })
+  if (authError) return { ok: false, error: authError.message }
+
+  const supabase = await createClient()
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ password_change_required: true })
+    .eq('id', studentId)
+  if (profileError) return { ok: false, error: profileError.message }
+
   return { ok: true }
 }

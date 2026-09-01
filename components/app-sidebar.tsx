@@ -12,6 +12,7 @@ import {
   Wrench,
   MapPin,
   History,
+  Users,
   LogOut,
 } from 'lucide-react'
 import {
@@ -38,6 +39,7 @@ const NAV_ITEMS = [
   { href: '/taller', label: 'Taller', icon: Wrench },
   { href: '/territorio', label: 'Territorio', icon: MapPin },
   { href: '/actividad', label: 'Actividad', icon: History, adminOnly: true },
+  { href: '/usuarios', label: 'Usuarios', icon: Users, adminOnly: true },
 ]
 
 export function AppSidebar({
