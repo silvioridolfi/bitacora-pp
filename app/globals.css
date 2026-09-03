@@ -103,14 +103,17 @@
   --sidebar-border: #0e5c85;
   --sidebar-ring: var(--teal);
 
-  /* Estados de OT (work_order_estado) */
+  /* Estados de OT (work_order_estado) -- 9 estados, 9 colores únicos,
+     sin repetir ninguno (antes Diagnosticando/Probando compartían el
+     mismo púrpura, Instalando SO/Configurando el mismo turquesa, y
+     Pendiente de Instalación de SO/Derivada el mismo rosa). */
   --status-pendiente: var(--yellow);
   --status-diagnosticando: var(--purple);
-  --status-desbloqueada: var(--light-blue);
+  --status-desbloqueada: #0ea5e9;
+  --status-probando: #65a30d;
   --status-instalando-so: var(--teal);
-  --status-pendiente-so: var(--pink);
-  --status-configurando: var(--teal);
-  --status-probando: var(--purple);
+  --status-pendiente-so: #f97316;
+  --status-configurando: #92400e;
   --status-finalizada: #1f9d5a;
   --status-derivada: var(--pink);
 
