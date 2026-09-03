@@ -120,12 +120,15 @@ export function WorkOrderTimeline({
         const done = doneByClave.get(clave)
 
         return (
-          <div key={clave} className="flex items-center justify-between gap-2 text-sm">
-            <div className="flex items-center gap-2">
+          <div
+            key={clave}
+            className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="flex items-start gap-2">
               {done ? (
-                <CheckCircle2 className="size-4 text-status-finalizada" />
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-status-finalizada" />
               ) : (
-                <Circle className="size-4 text-muted-foreground" />
+                <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
               )}
               <div className="flex flex-col leading-tight">
                 <span className={cn(done && 'text-muted-foreground line-through')}>
@@ -143,7 +146,7 @@ export function WorkOrderTimeline({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-7 text-xs"
+                className="h-7 self-end text-xs sm:self-auto"
                 disabled={pending || (info.responsableFijo && !isAdmin)}
                 onClick={() => handleUndo(clave)}
               >
@@ -153,14 +156,14 @@ export function WorkOrderTimeline({
               <Button
                 type="button"
                 size="sm"
-                className="h-7 text-xs"
+                className="h-7 self-end text-xs sm:self-auto"
                 disabled={pending}
                 onClick={() => handleToggle(clave)}
               >
                 Marcar hecho
               </Button>
             ) : (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 self-end sm:self-auto">
                 <select
                   className={nativeSelectClass}
                   value={selected[clave] ?? currentProfileId ?? ''}
