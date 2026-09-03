@@ -229,7 +229,11 @@ export function WorkOrderForm({
                   }
                   isAdmin={isAdmin}
                   currentProfileId={currentProfileId}
-                  saltarDesbloqueo={workOrder.equipment?.estado_inicial === 'Enciende sin bloqueo'}
+                  saltarDesbloqueo={
+                    workOrder.equipment?.estado_inicial === 'Enciende sin bloqueo' ||
+                    (!!workOrder.equipment?.tipo_equipo &&
+                      workOrder.equipment.tipo_equipo !== 'netbook')
+                  }
                 />
                 <p className="text-[11px] text-muted-foreground">
                   El estado avanza solo a medida que se completan los pasos del pipeline. Para
