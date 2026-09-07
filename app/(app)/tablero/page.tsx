@@ -30,7 +30,6 @@ export default async function TableroPage({
       '*, equipment:equipment_id(*), responsable:responsable_id(*), responsable_original:responsable_original_id(*), last_edited_by_profile:last_edited_by(*), session:session_id(*), school:school_id(*), work_order_events(*, profile:profile_id(*))',
     )
     .order('fecha', { ascending: false })
-    .limit(300)
 
   if (tipo === 'taller' || tipo === 'territorio') {
     query = query.eq('tipo', tipo)

@@ -24,8 +24,7 @@ export default async function TerritorioPage() {
         '*, equipment:equipment_id(*), responsable:responsable_id(*), responsable_original:responsable_original_id(*), last_edited_by_profile:last_edited_by(*), session:session_id(*), school:school_id(*), work_order_events(*, profile:profile_id(*))',
       )
       .eq('tipo', 'territorio')
-      .order('fecha', { ascending: false })
-      .limit(60),
+      .order('fecha', { ascending: false }),
     supabase.from('profiles').select('*').order('apellido_nombre'),
     supabase.from('schools').select('*').order('nombre'),
     getCurrentProfile(),

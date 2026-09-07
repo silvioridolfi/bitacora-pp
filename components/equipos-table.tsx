@@ -30,9 +30,13 @@ const FECHA_SORT_STORAGE_KEY = 'equipos-fecha-sort'
 export function EquiposTable({
   equipment,
   tipoByEquipmentId,
+  otCodigoByEquipmentId,
+  ottCodigoByEquipmentId,
 }: {
   equipment: Equipment[]
   tipoByEquipmentId: Record<string, TipoOT>
+  otCodigoByEquipmentId: Record<string, string>
+  ottCodigoByEquipmentId: Record<string, string>
 }) {
   const [query, setQuery] = useState('')
   const [estado, setEstado] = useState('')
@@ -80,7 +84,9 @@ export function EquiposTable({
         !q ||
         eq.numero_serie?.toLowerCase().includes(q) ||
         eq.modelo?.toLowerCase().includes(q) ||
-        eq.marca?.toLowerCase().includes(q)
+        eq.marca?.toLowerCase().includes(q) ||
+        otCodigoByEquipmentId[eq.id]?.toLowerCase().includes(q) ||
+        ottCodigoByEquipmentId[eq.id]?.toLowerCase().includes(q)
       const matchesEstado = !estado || eq.estado_actual === estado
       const matchesGrupo = !grupo || eq.grupo === grupo
       const matchesTipo = !tipo || tipoByEquipmentId[eq.id] === tipo
@@ -97,7 +103,17 @@ export function EquiposTable({
     })
 
     return result
-  }, [equipment, query, estado, grupo, tipo, tipoByEquipmentId, fechaSort])
+  }, [
+    equipment,
+    query,
+    estado,
+    grupo,
+    tipo,
+    tipoByEquipmentId,
+    otCodigoByEquipmentId,
+    ottCodigoByEquipmentId,
+    fechaSort,
+  ])
 
   return (
     <div className="flex flex-col gap-3">
@@ -107,7 +123,7 @@ export function EquiposTable({
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por N° de serie, marca o modelo…"
+            placeholder="Buscar por N° de serie, marca, modelo o código de OT…"
             className="pl-8"
           />
         </div>
@@ -197,6 +213,7 @@ export function EquiposTable({
                 </button>
               </TableHead>
               <TableHead>Estado actual</TableHead>
+              <TableHead>OT</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Grupo</TableHead>
             </TableRow>
@@ -224,6 +241,11 @@ export function EquiposTable({
                 <TableCell>
                   <EstadoBadge estado={eq.estado_actual} />
                 </TableCell>
+                <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                  {[otCodigoByEquipmentId[eq.id], ottCodigoByEquipmentId[eq.id]]
+                    .filter(Boolean)
+                    .join(' · ') || '—'}
+                </TableCell>
                 <TableCell className="text-muted-foreground">
                   {tipoByEquipmentId[eq.id] ? TIPO_LABEL[tipoByEquipmentId[eq.id]] : '—'}
                 </TableCell>
@@ -232,7 +254,7 @@ export function EquiposTable({
             ))}
             {filtered.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
                   Ningún equipo coincide con los filtros.
                 </TableCell>
               </TableRow>
