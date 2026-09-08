@@ -1,5 +1,14 @@
 import path from 'path'
-import { Document, Page, Text, View, Image, StyleSheet, renderToBuffer } from '@react-pdf/renderer'
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  Image,
+  Font,
+  StyleSheet,
+  renderToBuffer,
+} from '@react-pdf/renderer'
 import { formatDate } from '@/lib/format'
 import type { Attendance, Profile, Session } from '@/lib/types'
 
@@ -8,6 +17,18 @@ const HEADER_LOGO_PATH = path.join(
   'public/images/informes/header-practicas-profesionalizantes.png',
 )
 const FOOTER_LOGO_PATH = path.join(process.cwd(), 'public/images/informes/footer-pba.png')
+
+// Tipografía institucional -- la misma que usa el resto de la app
+// (app/layout.tsx la carga vía next/font/google, que no deja archivos
+// sueltos reusables, así que acá se registran directo los .ttf).
+Font.register({
+  family: 'Encode Sans',
+  fonts: [
+    { src: path.join(process.cwd(), 'public/fonts/EncodeSans-Regular.ttf'), fontWeight: 400 },
+    { src: path.join(process.cwd(), 'public/fonts/EncodeSans-SemiBold.ttf'), fontWeight: 600 },
+    { src: path.join(process.cwd(), 'public/fonts/EncodeSans-Bold.ttf'), fontWeight: 700 },
+  ],
+})
 
 const ESTADO_COLOR: Record<string, string> = {
   Presente: '#1f9d5a',
@@ -21,7 +42,7 @@ const styles = StyleSheet.create({
     paddingBottom: 56,
     paddingHorizontal: 32,
     fontSize: 9,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Encode Sans',
   },
   headerFixed: {
     position: 'absolute',
