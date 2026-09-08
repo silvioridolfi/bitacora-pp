@@ -1,4 +1,4 @@
-import type { EstadoAsistencia, WorkOrderEstado } from '@/lib/types'
+import type { EstadoAsistencia, TipoOT, WorkOrder, WorkOrderEstado } from '@/lib/types'
 
 type StatusStyle = {
   label: string
@@ -144,4 +144,19 @@ export const RANKING_PUNTOS = {
   territorio: 15,
   presente: 10,
   tardanza: -5,
+}
+
+/**
+ * Replica exactamente la lógica del trigger generate_ot_codigo() en
+ * Postgres (cuenta las OT existentes de ese tipo en el año, +1, con
+ * padding a 3 dígitos) -- solo para MOSTRAR de antemano qué código le
+ * va a tocar a una OT nueva en el modal de creación. El código real lo
+ * sigue asignando la base al insertar; esto es puramente informativo.
+ */
+export function nextOtCodigo(orders: WorkOrder[], tipo: TipoOT, anio: number): string {
+  const prefix = tipo === 'taller' ? 'OT-' : 'OTT-'
+  const count = orders.filter(
+    (o) => o.tipo === tipo && o.fecha && new Date(o.fecha + 'T00:00:00').getFullYear() === anio,
+  ).length
+  return `${prefix}${anio}-${String(count + 1).padStart(3, '0')}`
 }

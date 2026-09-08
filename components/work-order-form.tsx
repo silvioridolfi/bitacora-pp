@@ -41,6 +41,7 @@ export function WorkOrderForm({
   open: openProp,
   onOpenChange: onOpenChangeProp,
   escuelaActiva = null,
+  proximoCodigo,
 }: {
   tipo: TipoOT
   profiles: Profile[]
@@ -55,6 +56,10 @@ export function WorkOrderForm({
   /** Escuela con la que el grupo está trabajando hoy en Territorio -- se
    * precarga solo al crear una OT nueva, nunca al editar una existente. */
   escuelaActiva?: School | null
+  /** Código que le va a tocar a la próxima OT nueva (calculado en el
+   * server con la misma lógica que el trigger de la base) -- solo se
+   * muestra al crear, nunca al editar una existente. */
+  proximoCodigo?: string
 }) {
   const [openState, setOpenState] = useState(false)
   const open = openProp ?? openState
@@ -123,7 +128,9 @@ export function WorkOrderForm({
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-heading">
-            {workOrder ? `Editar ${workOrder.codigo}` : `Nueva OT de ${tipo}`}
+            {workOrder
+              ? `Editar ${workOrder.codigo}`
+              : `Nueva OT de ${tipo}${proximoCodigo ? ` · ${proximoCodigo}` : ''}`}
           </DialogTitle>
           <DialogDescription>
             {workOrder

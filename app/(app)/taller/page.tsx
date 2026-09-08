@@ -4,6 +4,8 @@ import { WorkOrderGrid } from '@/components/work-order-grid'
 import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Wrench } from 'lucide-react'
 import { getCurrentProfile, getTodayRolesByProfile } from '@/lib/data'
+import { nextOtCodigo } from '@/lib/status'
+import { todayInArgentina } from '@/lib/timezone'
 import type { Profile, WorkOrder } from '@/lib/types'
 
 export default async function TallerPage() {
@@ -41,6 +43,7 @@ export default async function TallerPage() {
           profiles={(profiles ?? []) as Profile[]}
           isAdmin={isAdmin}
           currentProfileId={currentProfileId}
+          proximoCodigo={nextOtCodigo(orders, 'taller', Number(todayInArgentina().slice(0, 4)))}
         />
       </div>
 

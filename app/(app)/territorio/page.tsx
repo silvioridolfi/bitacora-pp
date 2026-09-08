@@ -5,6 +5,8 @@ import { EscuelaActivaPanel } from '@/components/escuela-activa-panel'
 import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { MapPin } from 'lucide-react'
 import { getCurrentProfile, getTodayRolesByProfile } from '@/lib/data'
+import { nextOtCodigo } from '@/lib/status'
+import { todayInArgentina } from '@/lib/timezone'
 import type { EscuelaActiva, Grupo, Profile, School, WorkOrder } from '@/lib/types'
 
 export default async function TerritorioPage() {
@@ -68,6 +70,11 @@ export default async function TerritorioPage() {
           isAdmin={isAdmin}
           currentProfileId={currentProfileId}
           escuelaActiva={escuelaActivaPropia}
+          proximoCodigo={nextOtCodigo(
+            orders,
+            'territorio',
+            Number(todayInArgentina().slice(0, 4)),
+          )}
         />
       </div>
 
