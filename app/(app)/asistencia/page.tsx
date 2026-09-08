@@ -86,7 +86,9 @@ export default async function AsistenciaPage({
               </a>
             ))}
           </div>
-          <ExportAttendanceButton grupo={grupo} students={(students ?? []) as Profile[]} />
+          {profile?.is_admin && (
+            <ExportAttendanceButton grupo={grupo} students={(students ?? []) as Profile[]} />
+          )}
         </div>
       </div>
 

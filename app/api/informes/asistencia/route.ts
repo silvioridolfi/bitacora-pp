@@ -10,6 +10,12 @@ export async function GET(request: NextRequest) {
   if (!profile) {
     return NextResponse.json({ error: 'No hay sesión activa.' }, { status: 401 })
   }
+  if (!profile.is_admin) {
+    return NextResponse.json(
+      { error: 'Solo el FED puede exportar informes de asistencia.' },
+      { status: 403 },
+    )
+  }
 
   const { searchParams } = new URL(request.url)
   const formato = searchParams.get('formato') === 'excel' ? 'excel' : 'pdf'
