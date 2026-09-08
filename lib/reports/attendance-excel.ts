@@ -4,7 +4,7 @@ import type { Attendance, Profile, Session } from '@/lib/types'
 
 const ESTADO_ARGB: Record<string, string> = {
   Presente: 'FF1F9D5A',
-  Tardanza: 'FFB45309',
+  Tardanza: 'FFF97316',
   Ausente: 'FFC0392B',
 }
 

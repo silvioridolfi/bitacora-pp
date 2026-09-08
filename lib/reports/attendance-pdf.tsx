@@ -32,7 +32,7 @@ Font.register({
 
 const ESTADO_COLOR: Record<string, string> = {
   Presente: '#1f9d5a',
-  Tardanza: '#b45309',
+  Tardanza: '#f97316',
   Ausente: '#c0392b',
 }
 
