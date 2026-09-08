@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { AttendanceGrid } from '@/components/attendance-grid'
+import { ExportAttendanceButton } from '@/components/export-attendance-button'
 import { DailyRolesPanel } from '@/components/daily-roles-panel'
 import { getCurrentProfile } from '@/lib/data'
 import { formatDate } from '@/lib/format'
@@ -68,21 +69,24 @@ export default async function AsistenciaPage({
             queda bloqueada para evitar cambios accidentales.
           </p>
         </div>
-        <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
-          {(['Grupo 1', 'Grupo 2'] as const).map((g) => (
-            <a
-              key={g}
-              href={`/asistencia?grupo=${encodeURIComponent(g)}`}
-              className={cn(
-                'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                grupo === g
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted',
-              )}
-            >
-              {g}
-            </a>
-          ))}
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
+            {(['Grupo 1', 'Grupo 2'] as const).map((g) => (
+              <a
+                key={g}
+                href={`/asistencia?grupo=${encodeURIComponent(g)}`}
+                className={cn(
+                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  grupo === g
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted',
+                )}
+              >
+                {g}
+              </a>
+            ))}
+          </div>
+          <ExportAttendanceButton grupo={grupo} students={(students ?? []) as Profile[]} />
         </div>
       </div>
 
