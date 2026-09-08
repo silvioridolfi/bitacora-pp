@@ -9,8 +9,20 @@ const HEADER_LOGO_PATH = path.join(
 )
 const FOOTER_LOGO_PATH = path.join(process.cwd(), 'public/images/informes/footer-pba.png')
 
+const ESTADO_COLOR: Record<string, string> = {
+  Presente: '#1f9d5a',
+  Tardanza: '#b45309',
+  Ausente: '#c0392b',
+}
+
 const styles = StyleSheet.create({
-  page: { paddingTop: 76, paddingBottom: 56, paddingHorizontal: 32, fontSize: 10, fontFamily: 'Helvetica' },
+  page: {
+    paddingTop: 76,
+    paddingBottom: 56,
+    paddingHorizontal: 32,
+    fontSize: 9,
+    fontFamily: 'Helvetica',
+  },
   headerFixed: {
     position: 'absolute',
     top: 20,
@@ -20,26 +32,44 @@ const styles = StyleSheet.create({
   },
   headerLogo: { width: 260 },
   title: { fontSize: 16, fontWeight: 700, marginBottom: 2, color: '#1a3a5c' },
-  subtitle: { fontSize: 9, color: '#666666', marginBottom: 16 },
-  studentHeading: { fontSize: 12, fontWeight: 700, marginTop: 18, marginBottom: 6 },
-  table: { display: 'flex', flexDirection: 'column', marginBottom: 8 },
+  subtitle: { fontSize: 9, color: '#666666', marginBottom: 14 },
+  sectionHeading: { fontSize: 12, fontWeight: 700, marginBottom: 6, color: '#1a3a5c' },
+  studentHeading: { fontSize: 11, fontWeight: 700, marginTop: 14, marginBottom: 1 },
+  studentSubheading: { fontSize: 8.5, color: '#666666', marginBottom: 5 },
+  table: { display: 'flex', flexDirection: 'column', marginBottom: 4 },
   tableHeaderRow: {
+    flexDirection: 'row',
+    backgroundColor: '#e5eef5',
+    paddingVertical: 3,
+    paddingHorizontal: 4,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    paddingVertical: 2.5,
+    paddingHorizontal: 4,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#dddddd',
+  },
+  cellSesion: { width: '18%', fontWeight: 700 },
+  cellFecha: { width: '27%' },
+  cellEstado: { width: '25%', fontWeight: 700 },
+  headerCell: { fontWeight: 700 },
+  summaryTable: { display: 'flex', flexDirection: 'column', marginBottom: 18 },
+  summaryHeaderRow: {
     flexDirection: 'row',
     backgroundColor: '#e5eef5',
     paddingVertical: 4,
     paddingHorizontal: 4,
   },
-  tableRow: {
+  summaryRow: {
     flexDirection: 'row',
     paddingVertical: 4,
     paddingHorizontal: 4,
     borderBottomWidth: 0.5,
     borderBottomColor: '#dddddd',
   },
-  cellSesion: { width: '20%', fontWeight: 700 },
-  cellFecha: { width: '30%' },
-  cellEstado: { width: '30%' },
-  headerCell: { fontWeight: 700 },
+  summaryCellAlumno: { width: '32%', fontWeight: 700 },
+  summaryCell: { width: '17%', textAlign: 'center' },
   footerFixed: {
     position: 'absolute',
     bottom: 14,
@@ -59,15 +89,30 @@ const styles = StyleSheet.create({
   },
 })
 
-function horasAcreditadas(
+function computeStats(
   studentId: string,
   sessions: Session[],
   attendanceByKey: Map<string, Attendance['estado']>,
 ) {
-  return sessions.reduce((acc, s) => {
+  let presentes = 0
+  let tardanzas = 0
+  let ausentes = 0
+  let horas = 0
+  for (const s of sessions) {
     const estado = attendanceByKey.get(`${studentId}:${s.id}`)
-    return estado === 'Presente' || estado === 'Tardanza' ? acc + s.horas : acc
-  }, 0)
+    if (estado === 'Presente') {
+      presentes++
+      horas += s.horas
+    } else if (estado === 'Tardanza') {
+      tardanzas++
+      horas += s.horas
+    } else if (estado === 'Ausente') {
+      ausentes++
+    }
+  }
+  const totalMarcado = presentes + tardanzas + ausentes
+  const porcentaje = totalMarcado > 0 ? Math.round(((presentes + tardanzas) / totalMarcado) * 100) : 0
+  return { presentes, tardanzas, ausentes, horas, porcentaje, totalMarcado }
 }
 
 function AttendanceDocument({
@@ -97,26 +142,64 @@ function AttendanceDocument({
           DTE Región 1
         </Text>
 
+        {students.length > 1 && (
+          <View wrap={false}>
+            <Text style={styles.sectionHeading}>Resumen</Text>
+            <View style={styles.summaryTable}>
+              <View style={styles.summaryHeaderRow}>
+                <Text style={[styles.summaryCellAlumno, styles.headerCell]}>Alumno</Text>
+                <Text style={[styles.summaryCell, styles.headerCell]}>Presentes</Text>
+                <Text style={[styles.summaryCell, styles.headerCell]}>Tardanzas</Text>
+                <Text style={[styles.summaryCell, styles.headerCell]}>Ausentes</Text>
+                <Text style={[styles.summaryCell, styles.headerCell]}>% Asist.</Text>
+              </View>
+              {students.map((student) => {
+                const stats = computeStats(student.id, sessions, attendanceByKey)
+                return (
+                  <View key={student.id} style={styles.summaryRow}>
+                    <Text style={styles.summaryCellAlumno}>{student.apellido_nombre}</Text>
+                    <Text style={styles.summaryCell}>{stats.presentes}</Text>
+                    <Text style={styles.summaryCell}>{stats.tardanzas}</Text>
+                    <Text style={styles.summaryCell}>{stats.ausentes}</Text>
+                    <Text style={styles.summaryCell}>{stats.porcentaje}%</Text>
+                  </View>
+                )
+              })}
+            </View>
+          </View>
+        )}
+
         {students.map((student) => {
-          const horas = horasAcreditadas(student.id, sessions, attendanceByKey)
+          const stats = computeStats(student.id, sessions, attendanceByKey)
           return (
-            <View key={student.id} wrap={false}>
-              <Text style={styles.studentHeading}>
-                {student.apellido_nombre} -- {horas}hs acreditadas
-              </Text>
-              <View style={styles.table}>
+            <View key={student.id}>
+              <View wrap={false}>
+                <Text style={styles.studentHeading}>{student.apellido_nombre}</Text>
+                <Text style={styles.studentSubheading}>
+                  {stats.horas}hs acreditadas · {stats.presentes + stats.tardanzas}/
+                  {stats.totalMarcado} presentes ({stats.porcentaje}%)
+                </Text>
                 <View style={styles.tableHeaderRow}>
                   <Text style={[styles.cellSesion, styles.headerCell]}>Sesión</Text>
                   <Text style={[styles.cellFecha, styles.headerCell]}>Fecha</Text>
                   <Text style={[styles.cellEstado, styles.headerCell]}>Estado</Text>
                 </View>
+              </View>
+              <View style={styles.table}>
                 {sessions.map((session) => {
-                  const estado = attendanceByKey.get(`${student.id}:${session.id}`) ?? '—'
+                  const estado = attendanceByKey.get(`${student.id}:${session.id}`) ?? null
                   return (
-                    <View key={session.id} style={styles.tableRow}>
+                    <View key={session.id} style={styles.tableRow} wrap={false}>
                       <Text style={styles.cellSesion}>#{session.sesion_n}</Text>
                       <Text style={styles.cellFecha}>{formatDate(session.fecha)}</Text>
-                      <Text style={styles.cellEstado}>{estado}</Text>
+                      <Text
+                        style={[
+                          styles.cellEstado,
+                          { color: estado ? ESTADO_COLOR[estado] : '#999999' },
+                        ]}
+                      >
+                        {estado ?? '—'}
+                      </Text>
                     </View>
                   )
                 })}
