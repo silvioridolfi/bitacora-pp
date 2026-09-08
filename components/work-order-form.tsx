@@ -128,10 +128,13 @@ export function WorkOrderForm({
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-heading">
-            {workOrder
-              ? `Editar ${workOrder.codigo}`
-              : `Nueva OT de ${tipo}${proximoCodigo ? ` · ${proximoCodigo}` : ''}`}
+            {workOrder ? `Editar ${workOrder.codigo}` : `Nueva OT de ${tipo}`}
           </DialogTitle>
+          {!workOrder && proximoCodigo && (
+            <p className="font-heading text-2xl font-bold tracking-tight text-primary">
+              {proximoCodigo}
+            </p>
+          )}
           <DialogDescription>
             {workOrder
               ? hasReliableCreatedAt(workOrder.created_at)
