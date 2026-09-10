@@ -59,9 +59,27 @@ export function WorkOrderTimeline({
 
   function handleToggle(clave: WorkOrderPaso) {
     const info = WORK_ORDER_PASO_INFO[clave]
-    const profileId = info.responsableFijo
-      ? FED_PROFILE_ID
-      : selected[clave] || currentProfileId || null
+    if (info.responsableFijo) {
+      startTransition(async () => {
+        const result = await toggleWorkOrderEvent(workOrderId, clave, FED_PROFILE_ID)
+        if (result.ok) {
+          toast.success(`${WORK_ORDER_PASO_INFO[clave].label} completado`)
+          router.refresh()
+        } else {
+          toast.error(result.error)
+        }
+      })
+      return
+    }
+    // Sin fallback a currentProfileId: si nadie eligió explícitamente quién
+    // hizo el paso, no se guarda con la sesión logueada por defecto -- eso
+    // es justo lo que causaba que el crédito quedara siempre en quien
+    // inició sesión, aunque otro compañero hiciera el trabajo real.
+    const profileId = selected[clave]
+    if (!profileId) {
+      toast.error('Elegí quién completó este paso antes de marcarlo.')
+      return
+    }
     startTransition(async () => {
       const result = await toggleWorkOrderEvent(workOrderId, clave, profileId)
       if (result.ok) {
@@ -166,12 +184,12 @@ export function WorkOrderTimeline({
               <div className="flex items-center gap-1.5 self-end sm:self-auto">
                 <select
                   className={nativeSelectClass}
-                  value={selected[clave] ?? currentProfileId ?? ''}
+                  value={selected[clave] ?? ''}
                   onChange={(e) =>
                     setSelected((prev) => ({ ...prev, [clave]: e.target.value }))
                   }
                 >
-                  <option value="">Sin asignar</option>
+                  <option value="">¿Quién lo hizo?</option>
                   {profiles.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.apellido_nombre}
@@ -182,7 +200,7 @@ export function WorkOrderTimeline({
                   type="button"
                   size="sm"
                   className="h-7 text-xs"
-                  disabled={pending}
+                  disabled={pending || !selected[clave]}
                   onClick={() => handleToggle(clave)}
                 >
                   Marcar hecho
