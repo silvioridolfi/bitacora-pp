@@ -174,9 +174,8 @@ export const WORK_ORDER_PASO_INFO: Record<
   desarme: { label: 'Desarme', rol: 'Técnico', resultingEstado: 'Diagnosticando' },
   desbloqueo: {
     label: 'Desbloqueo',
-    rol: 'Silvio Ridolfi (FED)',
+    rol: 'Técnico',
     resultingEstado: 'Desbloqueada',
-    responsableFijo: true,
   },
   armado: { label: 'Armado', rol: 'Técnico', resultingEstado: 'Probando' },
   prueba_encendido: {
