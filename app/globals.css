@@ -109,7 +109,7 @@
      Pendiente de Instalación de SO/Derivada el mismo rosa). */
   --status-pendiente: var(--yellow);
   --status-diagnosticando: var(--purple);
-  --status-desbloqueada: #475569;
+  --status-desbloqueada: #0369a1;
   --status-probando: #65a30d;
   --status-instalando-so: var(--teal);
   --status-pendiente-so: #f97316;
