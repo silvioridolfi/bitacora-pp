@@ -17,6 +17,7 @@ const DAILY_ROLE_SHORT: Record<DailyRoleName, string> = {
   Líder: 'Líder',
   Documentador: 'Doc.',
   Técnico: 'Técnico',
+  Reprogramador: 'Reprog.',
   'Tester/Instalador': 'Tester',
   'Control de Calidad': 'Calidad',
 }

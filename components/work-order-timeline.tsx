@@ -28,7 +28,7 @@ const nativeSelectClass =
  * asignarlo en silencio. */
 const ROL_PASO_A_DAILY_ROLE: Partial<Record<WorkOrderPaso, DailyRoleName>> = {
   desarme: 'Técnico',
-  desbloqueo: 'Técnico',
+  desbloqueo: 'Reprogramador',
   armado: 'Técnico',
   cambio_pila: 'Técnico',
   prueba_encendido: 'Tester/Instalador',

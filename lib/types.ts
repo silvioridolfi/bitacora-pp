@@ -174,7 +174,7 @@ export const WORK_ORDER_PASO_INFO: Record<
   desarme: { label: 'Desarme', rol: 'Técnico', resultingEstado: 'Diagnosticando' },
   desbloqueo: {
     label: 'Desbloqueo',
-    rol: 'Técnico',
+    rol: 'Reprogramador',
     resultingEstado: 'Desbloqueada',
   },
   armado: { label: 'Armado', rol: 'Técnico', resultingEstado: 'Probando' },
@@ -277,6 +277,7 @@ export const DAILY_ROLES = [
   'Líder',
   'Documentador',
   'Técnico',
+  'Reprogramador',
   'Tester/Instalador',
   'Control de Calidad',
 ] as const
