@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
 import { Trophy } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { RANKING_PUNTOS } from '@/lib/status'
@@ -156,18 +157,20 @@ function RankingList({ ranking }: { ranking: ReturnType<typeof buildRanking> }) 
 export default async function RankingPage() {
   const supabase = await createClient()
 
-  const [{ data: students }, { data: workOrders }, { data: events }, { data: attendanceRows }] =
-    await Promise.all([
-      supabase.from('profiles').select('*').eq('is_admin', false).order('apellido_nombre'),
-      supabase.from('work_orders').select('id, tipo').eq('estado', 'Finalizada OK'),
-      supabase.from('work_order_events').select('*'),
-      supabase.from('attendance').select('*'),
-    ])
+  const [{ data: students }, finishedOrders, workOrderEvents, attendance] = await Promise.all([
+    supabase.from('profiles').select('*').eq('is_admin', false).order('apellido_nombre'),
+    fetchAllRows<FinishedOrder>((from, to) =>
+      supabase.from('work_orders').select('id, tipo').eq('estado', 'Finalizada OK').range(from, to),
+    ),
+    fetchAllRows<WorkOrderEvent>((from, to) =>
+      supabase.from('work_order_events').select('*').range(from, to),
+    ),
+    fetchAllRows<Attendance>((from, to) =>
+      supabase.from('attendance').select('*').range(from, to),
+    ),
+  ])
 
   const profiles = (students ?? []) as Profile[]
-  const finishedOrders = (workOrders ?? []) as FinishedOrder[]
-  const workOrderEvents = (events ?? []) as WorkOrderEvent[]
-  const attendance = (attendanceRows ?? []) as Attendance[]
 
   const grupos: Grupo[] = ['Grupo 1', 'Grupo 2']
 
