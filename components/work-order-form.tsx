@@ -21,7 +21,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { formatDate, formatHoraArgentina } from '@/lib/format'
 import { createWorkOrder, updateWorkOrder, deleteWorkOrder } from '@/lib/actions'
 import { WORK_ORDER_ESTADOS } from '@/lib/types'
-import type { Profile, School, TipoOT, WorkOrder } from '@/lib/types'
+import type { DailyRoleName, Profile, School, TipoOT, WorkOrder } from '@/lib/types'
 import { WorkOrderTimeline } from '@/components/work-order-timeline'
 import { EquipoIntakeFields } from '@/components/equipo-intake-fields'
 import { SchoolCombobox } from '@/components/school-combobox'
@@ -42,6 +42,7 @@ export function WorkOrderForm({
   onOpenChange: onOpenChangeProp,
   escuelaActiva = null,
   proximoCodigo,
+  rolesByProfile = {},
 }: {
   tipo: TipoOT
   profiles: Profile[]
@@ -60,6 +61,9 @@ export function WorkOrderForm({
    * server con la misma lógica que el trigger de la base) -- solo se
    * muestra al crear, nunca al editar una existente. */
   proximoCodigo?: string
+  /** Roles del día (Asistencia) por alumno -- se usa en la línea de
+   * tiempo para sugerir quién completó cada paso según su rol asignado. */
+  rolesByProfile?: Record<string, DailyRoleName[]>
 }) {
   const [openState, setOpenState] = useState(false)
   const open = openProp ?? openState
@@ -239,6 +243,7 @@ export function WorkOrderForm({
                   }
                   isAdmin={isAdmin}
                   currentProfileId={currentProfileId}
+                  rolesByProfile={rolesByProfile}
                   saltarDesbloqueo={
                     workOrder.equipment?.estado_inicial === 'Enciende sin bloqueo' ||
                     (!!workOrder.equipment?.tipo_equipo &&

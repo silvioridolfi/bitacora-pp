@@ -220,6 +220,7 @@ export function TableroBoard({
           workOrder={selectedOrder}
           isAdmin={isAdmin}
           currentProfileId={currentProfileId}
+          rolesByProfile={rolesByProfile}
           open={!!selectedOrder}
           onOpenChange={(v) => setSelectedId(v ? selectedOrder.id : null)}
         />

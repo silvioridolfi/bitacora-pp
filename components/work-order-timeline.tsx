@@ -17,11 +17,22 @@ import {
   WORK_ORDER_PASO_INFO,
   FED_PROFILE_ID,
 } from '@/lib/types'
-import type { Profile, WorkOrderEvent, WorkOrderPaso } from '@/lib/types'
+import type { DailyRoleName, Profile, WorkOrderEvent, WorkOrderPaso } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const nativeSelectClass =
   'h-8 w-40 rounded-md border border-input bg-transparent px-2 text-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
+
+/** Qué rol del día (asignado en Asistencia) corresponde a cada paso del
+ * pipeline técnico -- se usa solo para SUGERIR quién lo hizo, nunca para
+ * asignarlo en silencio. */
+const ROL_PASO_A_DAILY_ROLE: Partial<Record<WorkOrderPaso, DailyRoleName>> = {
+  desarme: 'Técnico',
+  armado: 'Técnico',
+  cambio_pila: 'Técnico',
+  prueba_encendido: 'Tester/Instalador',
+  instalacion_so: 'Tester/Instalador',
+}
 
 export function WorkOrderTimeline({
   workOrderId,
@@ -30,6 +41,7 @@ export function WorkOrderTimeline({
   isAdmin,
   currentProfileId,
   saltarDesbloqueo = false,
+  rolesByProfile = {},
 }: {
   workOrderId: string
   events: WorkOrderEvent[]
@@ -38,11 +50,25 @@ export function WorkOrderTimeline({
   currentProfileId: string | null
   /** true si el equipo llegó "Enciende sin bloqueo": esa etapa no aplica. */
   saltarDesbloqueo?: boolean
+  /** Roles del día (Asistencia) por alumno -- se usa para sugerir de
+   * entrada quién completó cada paso, solo cuando hay un único alumno
+   * con el rol correspondiente ese día. Siempre queda editable. */
+  rolesByProfile?: Record<string, DailyRoleName[]>
 }) {
   const [pending, startTransition] = useTransition()
   const [selected, setSelected] = useState<Record<string, string>>({})
   const [otroDescripcion, setOtroDescripcion] = useState('')
   const router = useRouter()
+
+  /** Para un paso dado, si hay exactamente un alumno (de este grupo) con
+   * el rol del día que corresponde, lo sugiere -- si hay 0 o más de 1,
+   * no sugiere nada (mejor vacío que arriesgar una elección ambigua). */
+  function sugeridoPara(clave: WorkOrderPaso): string | null {
+    const dailyRole = ROL_PASO_A_DAILY_ROLE[clave]
+    if (!dailyRole) return null
+    const candidatos = profiles.filter((p) => rolesByProfile[p.id]?.includes(dailyRole))
+    return candidatos.length === 1 ? candidatos[0].id : null
+  }
 
   const pasosBloqueantes = WORK_ORDER_PASOS_BLOQUEANTES.filter(
     (p) => !(p === 'desbloqueo' && saltarDesbloqueo),
@@ -71,11 +97,12 @@ export function WorkOrderTimeline({
       })
       return
     }
-    // Sin fallback a currentProfileId: si nadie eligió explícitamente quién
-    // hizo el paso, no se guarda con la sesión logueada por defecto -- eso
-    // es justo lo que causaba que el crédito quedara siempre en quien
-    // inició sesión, aunque otro compañero hiciera el trabajo real.
-    const profileId = selected[clave]
+    // Si el usuario no tocó el selector, se usa la sugerencia (rol del día
+    // asignado en Asistencia) -- viene de un dato real y explícito, no de
+    // "quien está mirando la pantalla ahora" como el bug anterior. Sigue
+    // siendo 100% editable: si no hay sugerencia clara, queda vacío y
+    // exige elegir a mano, igual que antes.
+    const profileId = selected[clave] ?? sugeridoPara(clave)
     if (!profileId) {
       toast.error('Elegí quién completó este paso antes de marcarlo.')
       return
@@ -184,7 +211,7 @@ export function WorkOrderTimeline({
               <div className="flex items-center gap-1.5 self-end sm:self-auto">
                 <select
                   className={nativeSelectClass}
-                  value={selected[clave] ?? ''}
+                  value={selected[clave] ?? sugeridoPara(clave) ?? ''}
                   onChange={(e) =>
                     setSelected((prev) => ({ ...prev, [clave]: e.target.value }))
                   }
@@ -200,7 +227,7 @@ export function WorkOrderTimeline({
                   type="button"
                   size="sm"
                   className="h-7 text-xs"
-                  disabled={pending || !selected[clave]}
+                  disabled={pending || !(selected[clave] ?? sugeridoPara(clave))}
                   onClick={() => handleToggle(clave)}
                 >
                   Marcar hecho
