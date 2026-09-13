@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent } from '@/components/ui/card'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
+import { AnimatedNumber } from '@/components/animated-number'
+import { AnimatedProgressBar } from '@/components/animated-progress-bar'
 import { Laptop, Trophy, Users } from 'lucide-react'
 import type { WorkOrderEstado } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -88,7 +90,7 @@ export default async function DashboardPage() {
               <CardContent className="flex flex-col gap-1 p-4">
                 <span className="text-xs text-muted-foreground">{kpi.label}</span>
                 <span className="font-heading text-2xl font-bold text-foreground">
-                  {kpi.value}
+                  <AnimatedNumber value={kpi.value} />
                 </span>
               </CardContent>
             </Card>
@@ -119,7 +121,7 @@ export default async function DashboardPage() {
                       {style.label}
                     </span>
                     <span className="font-heading text-base font-bold text-foreground">
-                      {count}
+                      <AnimatedNumber value={count} />
                     </span>
                   </Link>
                 )
@@ -137,14 +139,11 @@ export default async function DashboardPage() {
                 <h2 className="font-heading text-sm font-semibold text-foreground">
                   % de avance general
                 </h2>
-                <span className="font-heading text-xl font-bold text-primary">{avance}%</span>
+                <span className="font-heading text-xl font-bold text-primary">
+                  <AnimatedNumber value={avance} suffix="%" />
+                </span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${avance}%` }}
-                />
-              </div>
+              <AnimatedProgressBar percent={avance} colorClass="bg-primary" />
               <p className="text-xs text-muted-foreground">
                 Órdenes finalizadas o derivadas sobre el total de {total}.
               </p>
@@ -169,15 +168,11 @@ export default async function DashboardPage() {
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-medium text-foreground">{g.label}</span>
                   <span className="text-muted-foreground">
-                    {g.list.length} OT · {finalizadoRate(g.list)}% finalizadas
+                    <AnimatedNumber value={g.list.length} /> OT ·{' '}
+                    <AnimatedNumber value={finalizadoRate(g.list)} suffix="%" /> finalizadas
                   </span>
                 </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-accent"
-                    style={{ width: `${finalizadoRate(g.list)}%` }}
-                  />
-                </div>
+                <AnimatedProgressBar percent={finalizadoRate(g.list)} colorClass="bg-accent" />
               </Link>
             ))}
           </CardContent>
@@ -191,7 +186,7 @@ export default async function DashboardPage() {
               <Laptop className="size-8 text-primary" />
               <div>
                 <p className="font-heading text-xl font-bold text-foreground">
-                  {equiposCount ?? 0}
+                  <AnimatedNumber value={equiposCount ?? 0} />
                 </p>
                 <p className="text-xs text-muted-foreground">Equipos cargados</p>
               </div>

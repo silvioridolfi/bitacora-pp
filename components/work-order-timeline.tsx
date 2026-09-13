@@ -172,7 +172,7 @@ export function WorkOrderTimeline({
           >
             <div className="flex items-start gap-2">
               {done ? (
-                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-status-finalizada" />
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 animate-in zoom-in-50 spin-in-45 text-status-finalizada duration-300" />
               ) : (
                 <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
               )}
