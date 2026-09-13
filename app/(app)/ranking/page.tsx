@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentProfile } from '@/lib/data'
 import { fetchAllRows } from '@/lib/supabase/fetch-all'
 import { Trophy } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { AnimatedNumber } from '@/components/animated-number'
+import { RankingCelebration } from '@/components/ranking-celebration'
 import { RANKING_PUNTOS } from '@/lib/status'
 import { WORK_ORDER_PASOS_BLOQUEANTES } from '@/lib/types'
 import type { Attendance, Grupo, Profile, TipoOT, WorkOrderEvent } from '@/lib/types'
@@ -166,6 +168,7 @@ function RankingList({ ranking }: { ranking: ReturnType<typeof buildRanking> }) 
 
 export default async function RankingPage() {
   const supabase = await createClient()
+  const { profile: currentProfile } = await getCurrentProfile()
 
   const [{ data: students }, finishedOrders, workOrderEvents, attendance] = await Promise.all([
     supabase.from('profiles').select('*').eq('is_admin', false).order('apellido_nombre'),
@@ -184,8 +187,27 @@ export default async function RankingPage() {
 
   const grupos: Grupo[] = ['Grupo 1', 'Grupo 2']
 
+  // Si el alumno logueado empata en primer puesto en su propio grupo
+  // (con más de 0 puntos, para no festejar un ranking vacío), se
+  // dispara la celebración -- calculado acá una sola vez para toda la
+  // página, no por cada tarjeta de grupo.
+  let esGanador = false
+  if (currentProfile && !currentProfile.is_admin) {
+    const rankingDeSuGrupo = buildRanking(
+      profiles.filter((p) => p.grupo === currentProfile.grupo),
+      finishedOrders,
+      workOrderEvents,
+      attendance,
+    )
+    const mejorPuntaje = rankingDeSuGrupo[0]?.total ?? 0
+    esGanador =
+      mejorPuntaje > 0 &&
+      rankingDeSuGrupo.some((r) => r.profile.id === currentProfile.id && r.total === mejorPuntaje)
+  }
+
   return (
     <div className="flex flex-col gap-4">
+      <RankingCelebration esGanador={esGanador} />
       <div>
         <h1 className="font-heading text-2xl font-bold text-foreground">Ranking</h1>
         <p className="text-sm text-muted-foreground">
