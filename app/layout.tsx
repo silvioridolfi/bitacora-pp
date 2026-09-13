@@ -18,9 +18,9 @@ const roboto = Roboto({
 })
 
 export const metadata: Metadata = {
-  title: 'Prácticas Profesionalizantes DTE',
+  title: 'Prácticas Educativas en Ambientes de Trabajo | DTE',
   description:
-    'Sistema de gestión de Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE), Región 1.',
+    'Sistema de gestión de Prácticas Educativas en Ambientes de Trabajo en la Dirección de Tecnología Educativa (DTE), Región 1.',
   generator: 'v0.app',
   icons: {
     icon: [

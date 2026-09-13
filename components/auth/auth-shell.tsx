@@ -31,15 +31,18 @@ export function AuthShell({ children }: { children: ReactNode }) {
       <div className="relative flex flex-1 items-center justify-center p-6 md:p-10">
         <div className="flex w-full max-w-lg flex-col items-center">
           <div className="mb-8 flex flex-col items-center gap-3 text-center">
-            <div className="rounded-2xl border border-border/40 bg-card px-6 py-4 shadow-lg">
-              <Image
-                src="/images/logo-practicas-profesionalizantes-dte.png"
-                alt="Prácticas Profesionalizantes en la Dirección de Tecnología Educativa (DTE)"
-                width={1920}
-                height={176}
-                className="h-auto w-full max-w-[512px] object-contain"
-                priority
-              />
+            <div
+              className="flex w-full flex-col items-center gap-2 rounded-2xl border border-border/40 px-8 py-6 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #03466e 0%, #623b75 55%, #cd2b7b 100%)',
+              }}
+            >
+              <h1 className="font-heading text-xl font-bold leading-tight text-white sm:text-2xl">
+                Prácticas Educativas en Ambientes de Trabajo
+              </h1>
+              <span className="inline-block rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
+                Dirección de Tecnología Educativa
+              </span>
             </div>
           </div>
           <div className="w-full max-w-sm shadow-2xl shadow-black/20">{children}</div>
