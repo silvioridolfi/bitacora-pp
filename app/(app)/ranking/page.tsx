@@ -4,7 +4,7 @@ import { fetchAllRows } from '@/lib/supabase/fetch-all'
 import { Trophy } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { AnimatedNumber } from '@/components/animated-number'
-import { RankingCelebration } from '@/components/ranking-celebration'
+import { RankingCelebration, ProbarCelebracionButton } from '@/components/ranking-celebration'
 import { RANKING_PUNTOS } from '@/lib/status'
 import { WORK_ORDER_PASOS_BLOQUEANTES } from '@/lib/types'
 import type { Attendance, Grupo, Profile, TipoOT, WorkOrderEvent } from '@/lib/types'
@@ -208,16 +208,19 @@ export default async function RankingPage() {
   return (
     <div className="flex flex-col gap-4">
       <RankingCelebration esGanador={esGanador} />
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">Ranking</h1>
-        <p className="text-sm text-muted-foreground">
-          Cómo se calcula: cada OT finalizada reparte +{RANKING_PUNTOS.taller}pts (taller) o +
-          {RANKING_PUNTOS.territorio}pts (territorio) entre todos los que completaron algún paso
-          en ella -- no solo quien quedó como responsable final.
-          <br />
-          +{RANKING_PUNTOS.presente}pts por cada asistencia presente, y{' '}
-          {RANKING_PUNTOS.tardanza}pts por cada tardanza. Hay un ranking por grupo.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Ranking</h1>
+          <p className="text-sm text-muted-foreground">
+            Cómo se calcula: cada OT finalizada reparte +{RANKING_PUNTOS.taller}pts (taller) o +
+            {RANKING_PUNTOS.territorio}pts (territorio) entre todos los que completaron algún paso
+            en ella -- no solo quien quedó como responsable final.
+            <br />
+            +{RANKING_PUNTOS.presente}pts por cada asistencia presente, y{' '}
+            {RANKING_PUNTOS.tardanza}pts por cada tardanza. Hay un ranking por grupo.
+          </p>
+        </div>
+        {currentProfile?.is_admin && <ProbarCelebracionButton />}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
