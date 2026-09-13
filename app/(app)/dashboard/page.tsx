@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import { AnimatedNumber } from '@/components/animated-number'
 import { AnimatedProgressBar } from '@/components/animated-progress-bar'
+import { TrendChart } from '@/components/trend-chart'
 import { Laptop, Trophy, Users } from 'lucide-react'
 import type { WorkOrderEstado } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -13,11 +14,16 @@ export default async function DashboardPage() {
   const supabase = await createClient()
 
   const [{ data }, { count: equiposCount }, { data: sessions }] = await Promise.all([
-    supabase.from('work_orders').select('tipo, estado, grupo'),
+    supabase.from('work_orders').select('tipo, estado, grupo, fecha'),
     supabase.from('equipment').select('*', { count: 'exact', head: true }),
     supabase.from('sessions').select('id, fecha').order('fecha', { ascending: false }).limit(1),
   ])
-  const orders = (data ?? []) as { tipo: string; estado: WorkOrderEstado; grupo: string | null }[]
+  const orders = (data ?? []) as {
+    tipo: string
+    estado: WorkOrderEstado
+    grupo: string | null
+    fecha: string | null
+  }[]
   const ultimaFecha = sessions?.[0]?.fecha ?? null
 
   const total = orders.length
@@ -41,6 +47,33 @@ export default async function DashboardPage() {
     list.length > 0
       ? Math.round((list.filter((o) => o.estado === 'Finalizada OK').length / list.length) * 100)
       : 0
+
+  // Tendencia: OT finalizadas por semana, últimas 8 semanas (lunes a
+  // domingo, según la fecha de la OT).
+  function startOfWeek(d: Date) {
+    const date = new Date(d)
+    const day = date.getDay()
+    const diff = (day === 0 ? -6 : 1) - day // lunes como inicio de semana
+    date.setDate(date.getDate() + diff)
+    date.setHours(0, 0, 0, 0)
+    return date
+  }
+  const hoy = new Date()
+  const semanas = Array.from({ length: 8 }).map((_, i) => {
+    const inicio = startOfWeek(hoy)
+    inicio.setDate(inicio.getDate() - (7 - i) * 7)
+    const fin = new Date(inicio)
+    fin.setDate(fin.getDate() + 6)
+    const cantidad = orders.filter((o) => {
+      if (o.estado !== 'Finalizada OK' || !o.fecha) return false
+      const f = new Date(o.fecha + 'T00:00:00')
+      return f >= inicio && f <= fin
+    }).length
+    return {
+      semana: `${inicio.getDate()}/${inicio.getMonth() + 1}`,
+      cantidad,
+    }
+  })
 
   const kpis = [
     { label: 'Recibidos', value: recibidos, href: '/tablero' },
@@ -134,6 +167,15 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardContent className="flex flex-col gap-2 p-5">
+          <h2 className="text-sm font-semibold text-foreground">
+            OT finalizadas por semana
+          </h2>
+          <TrendChart data={semanas} />
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Link href={`/tablero?estados=${encodeURIComponent('Finalizada OK,Derivada')}`}>

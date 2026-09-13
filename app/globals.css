@@ -124,6 +124,61 @@
   --status-ausente: var(--pink);
 }
 
+.dark {
+  color-scheme: dark;
+  --background: #0a1620;
+  --foreground: #e8f1f5;
+  --card: #0f1f2c;
+  --card-foreground: #e8f1f5;
+  --popover: #0f1f2c;
+  --popover-foreground: #e8f1f5;
+  --primary: #4db8d9;
+  --primary-foreground: #0a1620;
+  --secondary: #16293a;
+  --secondary-foreground: #e8f1f5;
+  --muted: #16293a;
+  --muted-foreground: #8fb3c4;
+  --accent: var(--pink);
+  --accent-foreground: #ffffff;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #1f3547;
+  --input: #1f3547;
+  --ring: var(--teal);
+  --chart-1: var(--teal);
+  --chart-2: var(--purple);
+  --chart-3: var(--pink);
+  --chart-4: var(--yellow);
+  --chart-5: #4db8d9;
+  --sidebar: #061019;
+  --sidebar-foreground: #e8f1f5;
+  --sidebar-primary: var(--pink);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #16293a;
+  --sidebar-accent-foreground: #e8f1f5;
+  --sidebar-border: #16293a;
+  --sidebar-ring: var(--teal);
+
+  /* Estados de OT: mismos hue que en claro, aclarados para buen
+     contraste sobre fondo oscuro. 'Configurando' se ajustó a mano
+     (aclarar el marrón con la misma fórmula que el resto lo convertía
+     en un naranja casi idéntico a 'Pend. SO'). */
+  --status-pendiente: #f1c026;
+  --status-diagnosticando: #8b7ae6;
+  --status-desbloqueada: #19adff;
+  --status-probando: #ff4d6d;
+  --status-instalando-so: #19e1ff;
+  --status-pendiente-so: #fe7719;
+  --status-configurando: #c99354;
+  --status-finalizada: #3bdd87;
+  --status-derivada: #f83a90;
+
+  /* Estados de asistencia */
+  --status-presente: #3bdd87;
+  --status-tardanza: #f1c026;
+  --status-justificado: #8dd7e8;
+  --status-ausente: #f83a90;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

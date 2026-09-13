@@ -33,6 +33,13 @@ export default function DashboardLoading() {
         </Card>
       </div>
 
+      <Card>
+        <CardContent className="flex flex-col gap-3 p-5">
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-32 w-full rounded-lg" />
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardContent className="flex flex-col gap-4 p-5">

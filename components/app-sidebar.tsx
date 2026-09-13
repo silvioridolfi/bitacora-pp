@@ -14,7 +14,11 @@ import {
   History,
   Users,
   LogOut,
+  Sun,
+  Moon,
 } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
 import {
   Sidebar,
   SidebarContent,
@@ -52,6 +56,11 @@ export function AppSidebar({
   const pathname = usePathname()
   const router = useRouter()
   const { isMobile, setOpenMobile } = useSidebar()
+  const { resolvedTheme, setTheme } = useTheme()
+  // next-themes no sabe el tema real hasta montar en el cliente -- sin
+  // este guard, el ícono parpadearía entre sol/luna al hidratar.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   function handleNavClick() {
     if (isMobile) setOpenMobile(false)
@@ -131,6 +140,15 @@ export function AppSidebar({
           </div>
         </div>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+              tooltip="Cambiar tema"
+            >
+              {mounted && resolvedTheme === 'dark' ? <Sun /> : <Moon />}
+              <span>{mounted && resolvedTheme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar sesión">
               <LogOut />
