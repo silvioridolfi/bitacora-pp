@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from 'react'
  */
 export function AnimatedNumber({
   value,
-  duration = 700,
+  duration = 1400,
   suffix = '',
   decimals = 0,
 }: {
