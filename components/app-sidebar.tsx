@@ -16,6 +16,7 @@ import {
   LogOut,
   Sun,
   Moon,
+  ShieldCheck,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
@@ -44,6 +45,7 @@ const NAV_ITEMS = [
   { href: '/territorio', label: 'Territorio', icon: MapPin },
   { href: '/actividad', label: 'Actividad', icon: History, adminOnly: true },
   { href: '/usuarios', label: 'Usuarios', icon: Users, adminOnly: true },
+  { href: '/auditoria', label: 'Auditoría', icon: ShieldCheck, adminOnly: true },
 ]
 
 export function AppSidebar({
