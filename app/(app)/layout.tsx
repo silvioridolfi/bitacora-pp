@@ -41,7 +41,7 @@ export default async function AppLayout({
               DTE · Región 1
             </span>
           </div>
-          <div className="flex min-w-0 flex-col items-center gap-1 text-center sm:flex-row sm:justify-center sm:gap-3">
+          <div className="flex min-w-0 flex-col items-center gap-1 text-center">
             <h1 className="font-heading text-xs font-bold leading-tight text-white sm:text-lg lg:text-xl">
               Prácticas Educativas en Ambientes de Trabajo
             </h1>
