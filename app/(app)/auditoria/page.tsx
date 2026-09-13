@@ -16,7 +16,7 @@ import type {
 import { AuditoriaViewer } from '@/components/auditoria-viewer'
 import { formatDate } from '@/lib/format'
 
-type FinishedOrder = { id: string; codigo: string; tipo: TipoOT }
+type FinishedOrder = { id: string; codigo: string; tipo: TipoOT; fecha: string | null }
 
 export type AuditoriaPaso = {
   clave: WorkOrderPaso
@@ -27,6 +27,7 @@ export type AuditoriaPaso = {
 export type AuditoriaOT = {
   codigo: string
   tipo: TipoOT
+  fecha: string | null
   companeros: string[]
   misPasos: number
   totalPasosOt: number
@@ -95,6 +96,7 @@ function buildAuditoria(
       ots.push({
         codigo: ot.codigo,
         tipo: ot.tipo,
+        fecha: ot.fecha,
         companeros,
         misPasos,
         totalPasosOt,
@@ -154,7 +156,7 @@ export default async function AuditoriaPage() {
       fetchAllRows<FinishedOrder>((from, to) =>
         supabase
           .from('work_orders')
-          .select('id, codigo, tipo')
+          .select('id, codigo, tipo, fecha')
           .eq('estado', 'Finalizada OK')
           .range(from, to),
       ),

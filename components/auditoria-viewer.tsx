@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatDate } from '@/lib/format'
 import type {
@@ -9,81 +9,160 @@ import type {
   AuditoriaOT,
 } from '@/app/(app)/auditoria/page'
 
+type OrdenOT = 'nuevas' | 'antiguas' | 'codigo' | 'puntos'
+
+const ORDEN_LABEL: Record<OrdenOT, string> = {
+  nuevas: 'Más nuevas primero',
+  antiguas: 'Más antiguas primero',
+  codigo: 'Código (A-Z)',
+  puntos: 'Más puntos primero',
+}
+
+function ordenarOTs(ots: AuditoriaOT[], orden: OrdenOT): AuditoriaOT[] {
+  const copia = [...ots]
+  switch (orden) {
+    case 'nuevas':
+      return copia.sort((a, b) => (b.fecha ?? '').localeCompare(a.fecha ?? ''))
+    case 'antiguas':
+      return copia.sort((a, b) => (a.fecha ?? '').localeCompare(b.fecha ?? ''))
+    case 'puntos':
+      return copia.sort((a, b) => b.puntosAsignados - a.puntosAsignados)
+    case 'codigo':
+    default:
+      return copia.sort((a, b) => a.codigo.localeCompare(b.codigo))
+  }
+}
+
 function TablaOTs({ ots }: { ots: AuditoriaOT[] }) {
+  const [orden, setOrden] = useState<OrdenOT>('nuevas')
+  const ordenadas = useMemo(() => ordenarOTs(ots, orden), [ots, orden])
+
   if (ots.length === 0) {
     return <p className="text-sm text-muted-foreground">No participó en ninguna OT finalizada.</p>
   }
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
-      <table className="w-full border-collapse text-xs">
-        <thead>
-          <tr className="border-b border-border bg-muted/40">
-            <th className="px-3 py-2 text-left font-medium text-muted-foreground">Código</th>
-            <th className="px-3 py-2 text-left font-medium text-muted-foreground">Tipo</th>
-            <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-              Compañeros que la compartieron
-            </th>
-            <th className="px-3 py-2 text-right font-medium text-muted-foreground">
-              Puntos de la OT
-            </th>
-            <th className="px-3 py-2 text-right font-medium text-muted-foreground">
-              Pasos hizo / total
-            </th>
-            <th className="px-3 py-2 text-right font-medium text-muted-foreground">
-              Le tocaron a él/ella
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {ots.map((ot) => (
-            <tr key={ot.codigo} className="border-b border-border last:border-0">
-              <td className="px-3 py-2 font-medium text-foreground">{ot.codigo}</td>
-              <td className="px-3 py-2 capitalize text-muted-foreground">{ot.tipo}</td>
-              <td className="px-3 py-2 text-muted-foreground">
-                {ot.companeros.length > 0 ? ot.companeros.join(', ') : 'Nadie más (solo él/ella)'}
-              </td>
-              <td className="px-3 py-2 text-right text-muted-foreground">{ot.puntosOt}</td>
-              <td className="px-3 py-2 text-right text-muted-foreground">
-                {ot.misPasos} / {ot.totalPasosOt}
-              </td>
-              <td className="px-3 py-2 text-right font-semibold text-foreground">
-                {ot.puntosAsignados} pts
-              </td>
-            </tr>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2 self-end text-xs">
+        <label htmlFor="orden-ot" className="text-muted-foreground">
+          Ordenar por:
+        </label>
+        <select
+          id="orden-ot"
+          value={orden}
+          onChange={(e) => setOrden(e.target.value as OrdenOT)}
+          className="h-8 rounded-md border border-input bg-transparent px-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {(Object.keys(ORDEN_LABEL) as OrdenOT[]).map((key) => (
+            <option key={key} value={key}>
+              {ORDEN_LABEL[key]}
+            </option>
           ))}
-        </tbody>
-      </table>
+        </select>
+      </div>
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full border-collapse text-xs">
+          <thead>
+            <tr className="border-b border-border bg-muted/40">
+              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Código</th>
+              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Fecha</th>
+              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Tipo</th>
+              <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                Compañeros que la compartieron
+              </th>
+              <th className="px-3 py-2 text-right font-medium text-muted-foreground">
+                Puntos de la OT
+              </th>
+              <th className="px-3 py-2 text-right font-medium text-muted-foreground">
+                Pasos hizo / total
+              </th>
+              <th className="px-3 py-2 text-right font-medium text-muted-foreground">
+                Le tocaron a él/ella
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {ordenadas.map((ot) => (
+              <tr key={ot.codigo} className="border-b border-border last:border-0">
+                <td className="px-3 py-2 font-medium text-foreground">{ot.codigo}</td>
+                <td className="px-3 py-2 text-muted-foreground">
+                  {ot.fecha ? formatDate(ot.fecha) : '—'}
+                </td>
+                <td className="px-3 py-2 capitalize text-muted-foreground">{ot.tipo}</td>
+                <td className="px-3 py-2 text-muted-foreground">
+                  {ot.companeros.length > 0
+                    ? ot.companeros.join(', ')
+                    : 'Nadie más (solo él/ella)'}
+                </td>
+                <td className="px-3 py-2 text-right text-muted-foreground">{ot.puntosOt}</td>
+                <td className="px-3 py-2 text-right text-muted-foreground">
+                  {ot.misPasos} / {ot.totalPasosOt}
+                </td>
+                <td className="px-3 py-2 text-right font-semibold text-foreground">
+                  {ot.puntosAsignados} pts
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
 
+type OrdenFecha = 'nuevas' | 'antiguas'
+
 function TablaPasos({ ots }: { ots: AuditoriaOT[] }) {
-  const filas = ots.flatMap((ot) => ot.pasos.map((p) => ({ ...p, codigo: ot.codigo })))
+  const [orden, setOrden] = useState<OrdenFecha>('nuevas')
+  const filas = useMemo(() => {
+    const base = ots.flatMap((ot) => ot.pasos.map((p) => ({ ...p, codigo: ot.codigo })))
+    return [...base].sort((a, b) =>
+      orden === 'nuevas' ? b.fecha.localeCompare(a.fecha) : a.fecha.localeCompare(b.fecha),
+    )
+  }, [ots, orden])
+
   if (filas.length === 0) {
     return <p className="text-sm text-muted-foreground">Sin pasos registrados.</p>
   }
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
-      <table className="w-full border-collapse text-xs">
-        <thead>
-          <tr className="border-b border-border bg-muted/40">
-            <th className="px-3 py-2 text-left font-medium text-muted-foreground">OT</th>
-            <th className="px-3 py-2 text-left font-medium text-muted-foreground">Paso</th>
-            <th className="px-3 py-2 text-left font-medium text-muted-foreground">Completado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filas.map((f, i) => (
-            <tr key={i} className="border-b border-border last:border-0">
-              <td className="px-3 py-2 font-medium text-foreground">{f.codigo}</td>
-              <td className="px-3 py-2 text-muted-foreground">{f.label}</td>
-              <td className="px-3 py-2 text-muted-foreground">
-                {new Date(f.fecha).toLocaleString('es-AR')}
-              </td>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2 self-end text-xs">
+        <label htmlFor="orden-pasos" className="text-muted-foreground">
+          Ordenar por:
+        </label>
+        <select
+          id="orden-pasos"
+          value={orden}
+          onChange={(e) => setOrden(e.target.value as OrdenFecha)}
+          className="h-8 rounded-md border border-input bg-transparent px-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <option value="nuevas">Más nuevos primero</option>
+          <option value="antiguas">Más antiguos primero</option>
+        </select>
+      </div>
+      <div className="overflow-x-auto rounded-lg border border-border">
+        <table className="w-full border-collapse text-xs">
+          <thead>
+            <tr className="border-b border-border bg-muted/40">
+              <th className="px-3 py-2 text-left font-medium text-muted-foreground">OT</th>
+              <th className="px-3 py-2 text-left font-medium text-muted-foreground">Paso</th>
+              <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                Completado
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filas.map((f, i) => (
+              <tr key={i} className="border-b border-border last:border-0">
+                <td className="px-3 py-2 font-medium text-foreground">{f.codigo}</td>
+                <td className="px-3 py-2 text-muted-foreground">{f.label}</td>
+                <td className="px-3 py-2 text-muted-foreground">
+                  {new Date(f.fecha).toLocaleString('es-AR')}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
