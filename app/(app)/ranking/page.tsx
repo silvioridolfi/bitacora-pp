@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { fetchAllRows } from '@/lib/supabase/fetch-all'
 import { Trophy } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { AnimatedNumber } from '@/components/animated-number'
 import { RANKING_PUNTOS } from '@/lib/status'
 import { WORK_ORDER_PASOS_BLOQUEANTES } from '@/lib/types'
 import type { Attendance, Grupo, Profile, TipoOT, WorkOrderEvent } from '@/lib/types'
@@ -108,7 +109,14 @@ function RankingList({ ranking }: { ranking: ReturnType<typeof buildRanking> }) 
   return (
     <div className="flex flex-col gap-2">
       {ranking.map((r, idx) => (
-        <Card key={r.profile.id} className={cn(idx === 0 && 'ring-2 ring-yellow-400/60')}>
+        <Card
+          key={r.profile.id}
+          className={cn(
+            'animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards duration-500',
+            idx === 0 && 'ring-2 ring-yellow-400/60',
+          )}
+          style={{ animationDelay: `${idx * 60}ms` }}
+        >
           <CardContent className="flex flex-wrap items-center gap-4 p-4">
             <div
               className={cn(
@@ -139,7 +147,9 @@ function RankingList({ ranking }: { ranking: ReturnType<typeof buildRanking> }) 
               </span>
             </div>
             <div className="ml-auto text-right">
-              <p className="font-heading text-xl font-bold text-primary">{r.total}</p>
+              <p className="font-heading text-xl font-bold text-primary">
+                <AnimatedNumber value={r.total} decimals={r.total % 1 !== 0 ? 1 : 0} />
+              </p>
               <p className="text-[11px] text-muted-foreground">puntos</p>
             </div>
           </CardContent>
@@ -204,7 +214,7 @@ export default async function RankingPage() {
                 <h2 className="font-heading text-sm font-semibold text-foreground">{g}</h2>
                 <div className="flex items-baseline gap-1.5 rounded-lg bg-primary/10 px-3 py-1">
                   <span className="font-heading text-lg font-bold text-primary">
-                    {totalGrupo}
+                    <AnimatedNumber value={totalGrupo} decimals={totalGrupo % 1 !== 0 ? 1 : 0} />
                   </span>
                   <span className="text-[11px] text-muted-foreground">pts del grupo</span>
                 </div>

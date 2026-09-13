@@ -11,10 +11,12 @@ export function AnimatedNumber({
   value,
   duration = 700,
   suffix = '',
+  decimals = 0,
 }: {
   value: number
   duration?: number
   suffix?: string
+  decimals?: number
 }) {
   const [display, setDisplay] = useState(0)
   const startRef = useRef<number | null>(null)
@@ -34,7 +36,7 @@ export function AnimatedNumber({
       const elapsed = timestamp - startRef.current
       const progress = Math.min(elapsed / duration, 1)
       const eased = 1 - Math.pow(1 - progress, 3) // ease-out cubic
-      setDisplay(Math.round(eased * value))
+      setDisplay(eased * value)
       if (progress < 1) frame = requestAnimationFrame(step)
     }
 
@@ -44,7 +46,7 @@ export function AnimatedNumber({
 
   return (
     <span>
-      {display}
+      {display.toFixed(decimals)}
       {suffix}
     </span>
   )

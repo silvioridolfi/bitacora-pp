@@ -84,9 +84,12 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {kpis.map((kpi) => (
+        {kpis.map((kpi, idx) => (
           <Link key={kpi.label} href={kpi.href}>
-            <Card className="transition-colors hover:border-primary/50 hover:bg-muted/40">
+            <Card
+              className="animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards duration-500 transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm"
+              style={{ animationDelay: `${idx * 50}ms` }}
+            >
               <CardContent className="flex flex-col gap-1 p-4">
                 <span className="text-xs text-muted-foreground">{kpi.label}</span>
                 <span className="font-heading text-2xl font-bold text-foreground">
@@ -105,17 +108,18 @@ export default async function DashboardPage() {
               Distribución por estado
             </h2>
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
-              {estadoCounts.map(({ estado, count }) => {
+              {estadoCounts.map(({ estado, count }, idx) => {
                 const style = WORK_ORDER_STATUS_STYLE[estado]
                 return (
                   <Link
                     key={estado}
                     href={`/tablero?estado=${encodeURIComponent(estado)}`}
                     className={cn(
-                      'flex flex-col gap-0.5 rounded-lg border p-2 transition-opacity hover:opacity-80',
+                      'flex animate-in flex-col gap-0.5 rounded-lg border p-2 fade-in slide-in-from-bottom-2 fill-mode-backwards duration-500 transition-opacity hover:opacity-80',
                       style.bg,
                       style.border,
                     )}
+                    style={{ animationDelay: `${idx * 40}ms` }}
                   >
                     <span className={cn('text-[11px] font-medium leading-tight', style.text)}>
                       {style.label}
@@ -133,7 +137,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Link href={`/tablero?estados=${encodeURIComponent('Finalizada OK,Derivada')}`}>
-          <Card className="h-full transition-colors hover:border-primary/50 hover:bg-muted/40">
+          <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
             <CardContent className="flex flex-col gap-4 p-5">
               <div className="flex items-center justify-between">
                 <h2 className="font-heading text-sm font-semibold text-foreground">
@@ -181,7 +185,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Link href="/equipos">
-          <Card className="h-full transition-colors hover:border-primary/50 hover:bg-muted/40">
+          <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
             <CardContent className="flex items-center gap-3 p-4">
               <Laptop className="size-8 text-primary" />
               <div>
@@ -194,7 +198,7 @@ export default async function DashboardPage() {
           </Card>
         </Link>
         <Link href="/asistencia">
-          <Card className="h-full transition-colors hover:border-primary/50 hover:bg-muted/40">
+          <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
             <CardContent className="flex items-center gap-3 p-4">
               <Users className="size-8 text-primary" />
               <div>
@@ -207,7 +211,7 @@ export default async function DashboardPage() {
           </Card>
         </Link>
         <Link href="/ranking">
-          <Card className="h-full transition-colors hover:border-primary/50 hover:bg-muted/40">
+          <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
             <CardContent className="flex items-center gap-3 p-4">
               <Trophy className="size-8 text-primary" />
               <div>
