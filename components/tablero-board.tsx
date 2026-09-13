@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { WorkOrderCard } from '@/components/work-order-card'
+import { AnimatedNumber } from '@/components/animated-number'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { WORK_ORDER_ESTADO_ORDER, WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import { useRealtimeWorkOrders } from '@/hooks/use-realtime-work-orders'
@@ -187,7 +188,7 @@ export function TableroBoard({
                     {style.label}
                   </span>
                   <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                    {col.items.length}
+                    <AnimatedNumber value={col.items.length} duration={500} />
                   </span>
                 </div>
                 <div className="flex flex-col gap-2">

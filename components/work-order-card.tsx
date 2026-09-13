@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Laptop, MapPin, School, User, Wrench, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
@@ -38,6 +38,20 @@ export function WorkOrderCard({
   const style = WORK_ORDER_STATUS_STYLE[workOrder.estado]
   const [pending, startTransition] = useTransition()
   const router = useRouter()
+
+  // Destello breve cuando el estado cambia respecto al último visto --
+  // sirve tanto para confirmar una acción propia como para notar que
+  // otro compañero movió la OT (por el realtime).
+  const [flash, setFlash] = useState(false)
+  const lastEstadoRef = useRef<string | null>(null)
+  useEffect(() => {
+    const changed = lastEstadoRef.current !== null && lastEstadoRef.current !== workOrder.estado
+    lastEstadoRef.current = workOrder.estado
+    if (!changed) return
+    setFlash(true)
+    const t = setTimeout(() => setFlash(false), 900)
+    return () => clearTimeout(t)
+  }, [workOrder.estado])
 
   const doneClaves = new Set((workOrder.work_order_events ?? []).map((e) => e.clave))
   // El equipo ya vino "Enciende sin bloqueo" -- esa etapa no aplica, se
@@ -76,6 +90,7 @@ export function WorkOrderCard({
       }}
       className={cn(
         'flex w-full flex-col gap-2 rounded-lg border p-3 text-left transition-colors hover:shadow-sm cursor-pointer',
+        flash && 'ring-2 ring-primary ring-offset-1 transition-shadow duration-700',
         style.bg,
         style.border,
       )}
