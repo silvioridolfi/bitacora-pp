@@ -13,15 +13,15 @@ import { cn } from '@/lib/utils'
 type FinishedOrder = { id: string; tipo: TipoOT }
 
 /**
- * Reparte los puntos de cada OT Finalizada OK entre TODOS los alumnos
- * que completaron al menos un paso del pipeline en ella (Desarme,
- * Armado, Prueba de encendido, Instalación de SO -- 'Desbloqueo' queda
- * afuera solo porque es rol fijo del FED, no un alumno). Antes el
- * puntaje completo se lo llevaba quien quedara como "responsable
- * final" de la OT, dejando afuera a quien participó en otros pasos
- * (ej. alguien que solo desarmó, si otro terminó instalando el SO).
- * El total de puntos que sale de una OT sigue siendo el mismo
- * (taller=10, territorio=15) -- solo cambia cómo se reparte.
+ * Reparte los puntos de cada OT Finalizada OK entre los alumnos que
+ * completaron pasos en ella, PROPORCIONAL a cuántos pasos hizo cada
+ * uno respecto al total de pasos completados en esa OT (no en partes
+ * iguales por persona) -- quien hizo más trabajo en una OT se lleva
+ * proporcionalmente más. Ej.: OT de 10pts con 4 pasos completados en
+ * total, uno hizo 3 y otro hizo 1 -> 7.5pts y 2.5pts, no 5 y 5.
+ * 'Desbloqueo' cuenta como cualquier otro paso (ya no es rol fijo del
+ * FED); solo queda afuera automáticamente si quien lo hizo es admin,
+ * por el filtro de alumnoIds.
  */
 function puntosPorAlumnoDesdeOTs(
   finishedOrders: FinishedOrder[],
@@ -31,22 +31,25 @@ function puntosPorAlumnoDesdeOTs(
   const puntos = new Map<string, number>()
   const otById = new Map(finishedOrders.map((o) => [o.id, o]))
 
-  const alumnosPorOt = new Map<string, Set<string>>()
+  // Por OT: cuántos pasos completó cada alumno.
+  const pasosPorOtPorAlumno = new Map<string, Map<string, number>>()
   for (const e of events) {
     if (!e.profile_id || !alumnoIds.has(e.profile_id)) continue
     if (!WORK_ORDER_PASOS_BLOQUEANTES.includes(e.clave)) continue
     const ot = otById.get(e.work_order_id)
     if (!ot) continue
-    if (!alumnosPorOt.has(ot.id)) alumnosPorOt.set(ot.id, new Set())
-    alumnosPorOt.get(ot.id)!.add(e.profile_id)
+    if (!pasosPorOtPorAlumno.has(ot.id)) pasosPorOtPorAlumno.set(ot.id, new Map())
+    const porAlumno = pasosPorOtPorAlumno.get(ot.id)!
+    porAlumno.set(e.profile_id, (porAlumno.get(e.profile_id) ?? 0) + 1)
   }
 
-  for (const [otId, alumnos] of alumnosPorOt) {
+  for (const [otId, porAlumno] of pasosPorOtPorAlumno) {
     const ot = otById.get(otId)!
     const puntosOt = ot.tipo === 'taller' ? RANKING_PUNTOS.taller : RANKING_PUNTOS.territorio
-    const porAlumno = puntosOt / alumnos.size
-    for (const alumnoId of alumnos) {
-      puntos.set(alumnoId, (puntos.get(alumnoId) ?? 0) + porAlumno)
+    const totalPasos = [...porAlumno.values()].reduce((acc, n) => acc + n, 0)
+    for (const [alumnoId, misPasos] of porAlumno) {
+      const asignado = puntosOt * (misPasos / totalPasos)
+      puntos.set(alumnoId, (puntos.get(alumnoId) ?? 0) + asignado)
     }
   }
 
@@ -213,8 +216,9 @@ export default async function RankingPage() {
           <h1 className="font-heading text-2xl font-bold text-foreground">Ranking</h1>
           <p className="text-sm text-muted-foreground">
             Cómo se calcula: cada OT finalizada reparte +{RANKING_PUNTOS.taller}pts (taller) o +
-            {RANKING_PUNTOS.territorio}pts (territorio) entre todos los que completaron algún paso
-            en ella -- no solo quien quedó como responsable final.
+            {RANKING_PUNTOS.territorio}pts (territorio) entre quienes completaron pasos en ella,
+            proporcional a cuántos pasos hizo cada uno -- quien hizo más trabajo en una OT se
+            lleva proporcionalmente más, no una parte igual sin importar cuánto hizo.
             <br />
             +{RANKING_PUNTOS.presente}pts por cada asistencia presente, y{' '}
             {RANKING_PUNTOS.tardanza}pts por cada tardanza. Hay un ranking por grupo.

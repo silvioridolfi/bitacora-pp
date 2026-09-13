@@ -27,7 +27,7 @@ function TablaOTs({ ots }: { ots: AuditoriaOT[] }) {
               Puntos de la OT
             </th>
             <th className="px-3 py-2 text-right font-medium text-muted-foreground">
-              Repartidos entre
+              Pasos hizo / total
             </th>
             <th className="px-3 py-2 text-right font-medium text-muted-foreground">
               Le tocaron a él/ella
@@ -44,7 +44,7 @@ function TablaOTs({ ots }: { ots: AuditoriaOT[] }) {
               </td>
               <td className="px-3 py-2 text-right text-muted-foreground">{ot.puntosOt}</td>
               <td className="px-3 py-2 text-right text-muted-foreground">
-                {ot.totalParticipantes} persona{ot.totalParticipantes !== 1 ? 's' : ''}
+                {ot.misPasos} / {ot.totalPasosOt}
               </td>
               <td className="px-3 py-2 text-right font-semibold text-foreground">
                 {ot.puntosAsignados} pts

@@ -28,7 +28,8 @@ export type AuditoriaOT = {
   codigo: string
   tipo: TipoOT
   companeros: string[]
-  totalParticipantes: number
+  misPasos: number
+  totalPasosOt: number
   puntosOt: number
   puntosAsignados: number
   pasos: AuditoriaPaso[]
@@ -87,13 +88,16 @@ function buildAuditoria(
         .filter((id) => id !== alumno.id)
         .map((id) => profileById.get(id)?.apellido_nombre ?? '—')
       const puntosOt = ot.tipo === 'taller' ? RANKING_PUNTOS.taller : RANKING_PUNTOS.territorio
-      const puntosAsignados = Math.round((puntosOt / participantes.size) * 10) / 10
+      const totalPasosOt = eventosDeEsaOt.length
+      const misPasos = misEventos.length
+      const puntosAsignados = Math.round(puntosOt * (misPasos / totalPasosOt) * 10) / 10
 
       ots.push({
         codigo: ot.codigo,
         tipo: ot.tipo,
         companeros,
-        totalParticipantes: participantes.size,
+        misPasos,
+        totalPasosOt,
         puntosOt,
         puntosAsignados,
         pasos: misEventos
@@ -173,9 +177,10 @@ export default async function AuditoriaPage() {
       <div>
         <h1 className="font-heading text-2xl font-bold text-foreground">Auditoría de puntos</h1>
         <p className="text-sm text-muted-foreground">
-          Desglose completo de cómo se arma el puntaje de cada alumno: por cada OT, cuántos la
-          compartieron y qué fracción le tocó a cada uno; por cada paso individual completado; y
-          por asistencia. Generado el {formatDate(new Date().toISOString().slice(0, 10))}.
+          Desglose completo de cómo se arma el puntaje de cada alumno: por cada OT, cuántos
+          pasos hizo cada uno respecto al total de la OT y qué fracción le tocó (proporcional,
+          no partes iguales); por cada paso individual completado; y por asistencia. Generado el{' '}
+          {formatDate(new Date().toISOString().slice(0, 10))}.
         </p>
       </div>
       <AuditoriaViewer auditoria={auditoria} />
