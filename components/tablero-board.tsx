@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { motion, LayoutGroup } from 'motion/react'
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -163,53 +164,61 @@ export function TableroBoard({
         onClickCapture={handleClickCapture}
         className="flex cursor-grab select-none gap-3 overflow-x-auto pb-2 active:cursor-grabbing"
       >
-        {columns.map((col) => {
-          const style = WORK_ORDER_STATUS_STYLE[col.estado]
-          const highlighted = targetEstado === col.estado
-          return (
-            <div
-              key={col.estado}
-              ref={(el) => {
-                columnRefs.current[col.estado] = el
-              }}
-              className={cn(
-                'flex w-72 shrink-0 flex-col gap-3 rounded-xl border bg-card/50 p-3 transition-colors',
-                highlighted ? 'border-primary ring-2 ring-primary/40' : 'border-border',
-              )}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span
-                  className={cn('flex items-center gap-1.5 text-sm font-semibold', style.text)}
-                >
-                  <span className={cn('size-2 rounded-full', style.dot)} />
-                  {style.label}
-                </span>
-                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  {col.items.length}
-                </span>
-              </div>
-              <div className="flex flex-col gap-2">
-                {col.items.map((wo) => (
-                  <WorkOrderCard
-                    key={wo.id}
-                    workOrder={wo}
-                    isAdmin={isAdmin}
-                    currentProfileId={currentProfileId}
-                    onClick={() => setSelectedId(wo.id)}
-                    responsableRoles={
-                      wo.responsable_id ? (rolesByProfile[wo.responsable_id] ?? []) : []
-                    }
-                  />
-                ))}
-                {col.items.length === 0 && (
-                  <p className="py-6 text-center text-xs text-muted-foreground">
-                    Sin OT en este estado
-                  </p>
+        <LayoutGroup>
+          {columns.map((col) => {
+            const style = WORK_ORDER_STATUS_STYLE[col.estado]
+            const highlighted = targetEstado === col.estado
+            return (
+              <div
+                key={col.estado}
+                ref={(el) => {
+                  columnRefs.current[col.estado] = el
+                }}
+                className={cn(
+                  'flex w-72 shrink-0 flex-col gap-3 rounded-xl border bg-card/50 p-3 transition-colors',
+                  highlighted ? 'border-primary ring-2 ring-primary/40' : 'border-border',
                 )}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span
+                    className={cn('flex items-center gap-1.5 text-sm font-semibold', style.text)}
+                  >
+                    <span className={cn('size-2 rounded-full', style.dot)} />
+                    {style.label}
+                  </span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    {col.items.length}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {col.items.map((wo) => (
+                    <motion.div
+                      key={wo.id}
+                      layoutId={wo.id}
+                      layout
+                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    >
+                      <WorkOrderCard
+                        workOrder={wo}
+                        isAdmin={isAdmin}
+                        currentProfileId={currentProfileId}
+                        onClick={() => setSelectedId(wo.id)}
+                        responsableRoles={
+                          wo.responsable_id ? (rolesByProfile[wo.responsable_id] ?? []) : []
+                        }
+                      />
+                    </motion.div>
+                  ))}
+                  {col.items.length === 0 && (
+                    <p className="py-6 text-center text-xs text-muted-foreground">
+                      Sin OT en este estado
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </LayoutGroup>
       </div>
 
       {selectedOrder && (
