@@ -10,28 +10,33 @@ import { todayInArgentina } from '@/lib/timezone'
 const COLORS = ['#f43f91', '#705ccb', '#02afc9', '#ebb715', '#1f9d5a']
 
 /** El efecto en sí -- reutilizado tanto por la celebración automática
- * como por el botón de prueba para admin. */
+ * como por el botón de prueba para admin. Antes disparaba una
+ * explosión nueva en CADA frame durante ~2s (hasta ~120 disparos de
+ * 60 partículas, miles de partículas simultáneas) -- muy pesado en
+ * hardware viejo, se notaba clarísimo cómo se iba frenando a medida
+ * que caían. Ahora son 4 disparos discretos y espaciados en el
+ * tiempo, con menos partículas cada uno y una vida más corta
+ * (`ticks`), así que nunca hay tantas partículas juntas en pantalla. */
 function dispararFuegosArtificiales() {
-  const duration = 2200
-  const end = Date.now() + duration
+  const disparos = [
+    { originX: 0.2, delay: 0 },
+    { originX: 0.5, delay: 200 },
+    { originX: 0.8, delay: 400 },
+    { originX: 0.35, delay: 650 },
+  ]
 
-  function disparo(originX: number) {
-    confetti({
-      particleCount: 60,
-      spread: 70,
-      startVelocity: 45,
-      origin: { x: originX, y: 0.55 },
-      colors: COLORS,
-      scalar: 1.1,
-    })
+  for (const { originX, delay } of disparos) {
+    setTimeout(() => {
+      confetti({
+        particleCount: 35,
+        spread: 65,
+        startVelocity: 40,
+        ticks: 150,
+        origin: { x: originX, y: 0.55 },
+        colors: COLORS,
+      })
+    }, delay)
   }
-
-  disparo(0.2)
-  const frame = () => {
-    disparo(Math.random() * 0.6 + 0.2)
-    if (Date.now() < end) requestAnimationFrame(frame)
-  }
-  setTimeout(frame, 250)
 
   toast.success('¡Estás primero en el ranking! 🏆', {
     description: 'Seguí así, gran trabajo.',
