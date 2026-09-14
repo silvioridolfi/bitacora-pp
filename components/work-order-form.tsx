@@ -26,9 +26,7 @@ import { WorkOrderTimeline } from '@/components/work-order-timeline'
 import { EquipoIntakeFields } from '@/components/equipo-intake-fields'
 import { SchoolCombobox } from '@/components/school-combobox'
 import { todayInArgentina, hasReliableCreatedAt, grupoDeHoy } from '@/lib/timezone'
-
-const nativeSelectClass =
-  'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
+import { nativeSelectClass } from '@/lib/utils'
 
 export function WorkOrderForm({
   tipo,

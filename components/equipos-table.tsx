@@ -16,9 +16,7 @@ import {
 import { formatDate } from '@/lib/format'
 import { EstadoBadge } from '@/components/estado-badge'
 import type { Equipment, TipoOT } from '@/lib/types'
-
-const nativeSelectClass =
-  'h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
+import { cn, nativeSelectClass } from '@/lib/utils'
 
 const TIPO_LABEL: Record<TipoOT, string> = {
   taller: 'Taller',
@@ -130,7 +128,7 @@ export function EquiposTable({
         <select
           value={tipo}
           onChange={(e) => setTipo(e.target.value)}
-          className={nativeSelectClass}
+          className={cn(nativeSelectClass, 'w-auto')}
         >
           <option value="">Todos (taller/territorio)</option>
           <option value="taller">Taller</option>
@@ -139,7 +137,7 @@ export function EquiposTable({
         <select
           value={estado}
           onChange={(e) => setEstado(e.target.value)}
-          className={nativeSelectClass}
+          className={cn(nativeSelectClass, 'w-auto')}
         >
           <option value="">Todos los estados</option>
           {estados.map((e) => (
@@ -151,7 +149,7 @@ export function EquiposTable({
         <select
           value={grupo}
           onChange={(e) => setGrupo(e.target.value)}
-          className={nativeSelectClass}
+          className={cn(nativeSelectClass, 'w-auto')}
         >
           <option value="">Todos los grupos</option>
           {grupos.map((g) => (

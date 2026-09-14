@@ -6,9 +6,7 @@ import { toast } from 'sonner'
 import { assignDailyRole, removeDailyRole } from '@/lib/actions'
 import { DAILY_ROLES, EXCLUSIVE_DAILY_ROLES } from '@/lib/types'
 import type { DailyRole, DailyRoleName, Profile } from '@/lib/types'
-
-const nativeSelectClass =
-  'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
+import { nativeSelectClass } from '@/lib/utils'
 
 export function DailyRolesPanel({
   sessionId,

@@ -13,9 +13,7 @@ import {
   TIPO_EQUIPO_LABEL,
 } from '@/lib/types'
 import type { ProgramaNetbook, TipoEquipo } from '@/lib/types'
-
-const nativeSelectClass =
-  'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
+import { nativeSelectClass } from '@/lib/utils'
 
 export function EquipoIntakeFields() {
   const [tipoEquipo, setTipoEquipo] = useState<TipoEquipo>('netbook')

@@ -7,7 +7,7 @@ import { WORK_ORDER_PASO_INFO } from '@/lib/types'
 import type { Profile, WorkOrderPaso } from '@/lib/types'
 import { formatDate, formatHoraArgentina } from '@/lib/format'
 import { hasReliableCreatedAt } from '@/lib/timezone'
-import { cn } from '@/lib/utils'
+import { cn, nativeSelectClass } from '@/lib/utils'
 
 type ActivityEvent = {
   id: string
@@ -40,8 +40,6 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
     })
   }, [events, query, grupo])
 
-  const nativeSelectClass =
-    'h-9 rounded-md border border-input bg-transparent px-2 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
 
   return (
     <div className="flex flex-col gap-3">
@@ -53,7 +51,7 @@ export function ActivityFeed({ events }: { events: ActivityEvent[] }) {
           className="max-w-sm"
         />
         <select
-          className={nativeSelectClass}
+          className={cn(nativeSelectClass, 'w-auto rounded-md px-2')}
           value={grupo}
           onChange={(e) => setGrupo(e.target.value)}
         >

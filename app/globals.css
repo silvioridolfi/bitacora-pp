@@ -186,4 +186,20 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Los <select> nativos heredan bien el color de texto/fondo del
+     select CERRADO, pero el popup con las opciones es renderizado por
+     el navegador/SO y no siempre respeta ese mismo color-scheme --
+     en algunos navegadores queda con fondo claro fijo, y como el
+     texto SÍ hereda el color oscuro definido para el tema, termina
+     en texto claro sobre fondo claro en modo oscuro. Forzando el
+     color de las <option> acá cubre todos los selects de la app de
+     una sola vez, sin depender de cada uso individual. */
+  select {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+  select option {
+    background-color: var(--popover);
+    color: var(--popover-foreground);
+  }
 }
