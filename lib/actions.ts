@@ -636,3 +636,36 @@ export async function resetStudentPassword(
 
   return { ok: true }
 }
+
+/**
+ * Cambia el tipo (taller/territorio) de una OT ya creada -- solo
+ * admin. Pensado para el caso de un equipo que se llevó a otra
+ * escuela (OT de territorio) pero no se terminó ahí y se trajo al
+ * taller: en vez de crear una OT nueva y perder el historial de
+ * pasos ya completados, se reclasifica la existente. El código
+ * (OTT-XXX) se mantiene igual aunque cambie de tipo -- preserva la
+ * trazabilidad de que ese equipo estuvo en territorio. Los puntos que
+ * vale la OT se recalculan solos, ya que el ranking mira el tipo
+ * actual en tiempo real, no un valor fijado al crearla.
+ */
+export async function changeWorkOrderTipo(
+  id: string,
+  nuevoTipo: TipoOT,
+): Promise<ActionResult> {
+  const { profile } = await getCurrentProfile()
+  if (!profile?.is_admin) {
+    return { ok: false, error: 'Solo el FED puede cambiar el tipo de una OT.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.from('work_orders').update({ tipo: nuevoTipo }).eq('id', id)
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/taller')
+  revalidatePath('/territorio')
+  revalidatePath('/tablero')
+  revalidatePath('/dashboard')
+  revalidatePath('/ranking')
+  revalidatePath('/auditoria')
+  return { ok: true }
+}

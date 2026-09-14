@@ -19,7 +19,7 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDate, formatHoraArgentina } from '@/lib/format'
-import { createWorkOrder, updateWorkOrder, deleteWorkOrder } from '@/lib/actions'
+import { createWorkOrder, updateWorkOrder, deleteWorkOrder, changeWorkOrderTipo } from '@/lib/actions'
 import { WORK_ORDER_ESTADOS } from '@/lib/types'
 import type { DailyRoleName, Profile, School, TipoOT, WorkOrder } from '@/lib/types'
 import { WorkOrderTimeline } from '@/components/work-order-timeline'
@@ -69,6 +69,7 @@ export function WorkOrderForm({
   const open = openProp ?? openState
   const setOpen = onOpenChangeProp ?? setOpenState
   const [pending, startTransition] = useTransition()
+  const [cambiandoTipo, startCambioTipo] = useTransition()
   const [grupo, setGrupo] = useState(workOrder?.grupo ?? grupoDeHoy() ?? '')
   const [estado, setEstado] = useState(workOrder?.estado ?? 'Pendiente')
   const router = useRouter()
@@ -153,6 +154,36 @@ export function WorkOrderForm({
               Última edición: {workOrder.last_edited_by_profile.apellido_nombre} ·{' '}
               {formatDate(workOrder.last_edited_at)} {formatHoraArgentina(workOrder.last_edited_at)}
             </p>
+          )}
+          {isAdmin && workOrder && (
+            <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-2 text-xs">
+              <span className="text-muted-foreground">
+                Tipo actual: <strong className="text-foreground capitalize">{workOrder.tipo}</strong>
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="ml-auto h-7 text-xs"
+                disabled={cambiandoTipo}
+                onClick={() => {
+                  const nuevoTipo = workOrder.tipo === 'taller' ? 'territorio' : 'taller'
+                  startCambioTipo(async () => {
+                    const result = await changeWorkOrderTipo(workOrder.id, nuevoTipo)
+                    if (result.ok) {
+                      toast.success(
+                        `${workOrder.codigo} ahora es de tipo ${nuevoTipo} -- se movió a esa sección.`,
+                      )
+                      router.refresh()
+                    } else {
+                      toast.error(result.error)
+                    }
+                  })
+                }}
+              >
+                Pasar a {workOrder.tipo === 'taller' ? 'territorio' : 'taller'}
+              </Button>
+            </div>
           )}
         </DialogHeader>
         <form action={handleSubmit}>
