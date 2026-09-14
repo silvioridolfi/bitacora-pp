@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { AppSidebar } from '@/components/app-sidebar'
 import { SessionGuard } from '@/components/session-guard'
+import { ScrollToTopButton } from '@/components/scroll-to-top-button'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { getCurrentProfile } from '@/lib/data'
@@ -60,6 +61,7 @@ export default async function AppLayout({
             Desarrollado por Silvio Ridolfi, Facilitador de Educación Digital
           </div>
         </footer>
+        <ScrollToTopButton />
       </SidebarInset>
     </SidebarProvider>
   )
