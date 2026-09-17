@@ -669,3 +669,53 @@ export async function changeWorkOrderTipo(
   revalidatePath('/auditoria')
   return { ok: true }
 }
+
+/**
+ * Corrige los datos de identificación de un equipo ya cargado --
+ * solo admin. Pensado para el caso de un dato mal tipeado al cargar
+ * (número de serie sobre todo, pero también marca/modelo/generación),
+ * que hasta ahora no tenía forma de corregirse sin borrar el equipo
+ * entero (perdiendo su historial de OT).
+ */
+export async function updateEquipment(id: string, formData: FormData): Promise<ActionResult> {
+  const { profile } = await getCurrentProfile()
+  if (!profile?.is_admin) {
+    return { ok: false, error: 'Solo el FED puede editar los datos de un equipo.' }
+  }
+
+  const tipo_equipo = formData.get('tipo_equipo') as TipoEquipo
+  const programaRaw = (formData.get('programa') as string) || ''
+  const programa =
+    tipo_equipo === 'netbook' && PROGRAMAS_NETBOOK.includes(programaRaw as ProgramaNetbook)
+      ? (programaRaw as ProgramaNetbook)
+      : null
+  const generacion = tipo_equipo === 'netbook' ? (formData.get('generacion') as string) || null : null
+  const marca = (formData.get('equipo_marca') as string) || null
+  const modelo = (formData.get('equipo_modelo') as string) || null
+  const estado_inicial = (formData.get('estado_inicial') as string) || null
+  const numero_serie = ((formData.get('numero_serie') as string) || '').trim()
+
+  if (!numero_serie) {
+    return { ok: false, error: 'El N° de serie es obligatorio.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('equipment')
+    .update({ numero_serie, tipo_equipo, programa, generacion, marca, modelo, estado_inicial })
+    .eq('id', id)
+
+  if (error) {
+    if (error.code === '23505') {
+      return { ok: false, error: `Ya existe otro equipo cargado con el N° de serie ${numero_serie}.` }
+    }
+    return { ok: false, error: error.message }
+  }
+
+  revalidatePath('/equipos')
+  revalidatePath(`/equipos/${id}`)
+  revalidatePath('/tablero')
+  revalidatePath('/taller')
+  revalidatePath('/territorio')
+  return { ok: true }
+}

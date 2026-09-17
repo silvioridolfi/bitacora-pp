@@ -97,6 +97,24 @@ export function WorkOrderTimeline({
       })
       return
     }
+    // Los pasos opcionales (ej. 'cambio_pila') no forman parte de
+    // WORK_ORDER_PASOS_BLOQUEANTES, así que no afectan el reparto de
+    // puntos -- no tiene sentido exigir elegir explícitamente a
+    // alguien (y de hecho el checkbox no tiene ningún selector visible
+    // para hacerlo, así que antes esto era imposible de completar).
+    // Se registra directo con quien está logueado.
+    if (!WORK_ORDER_PASOS_BLOQUEANTES.includes(clave)) {
+      startTransition(async () => {
+        const result = await toggleWorkOrderEvent(workOrderId, clave, currentProfileId)
+        if (result.ok) {
+          toast.success(`${WORK_ORDER_PASO_INFO[clave].label} completado`)
+          router.refresh()
+        } else {
+          toast.error(result.error)
+        }
+      })
+      return
+    }
     // Si el usuario no tocó el selector, se usa la sugerencia (rol del día
     // asignado en Asistencia) -- viene de un dato real y explícito, no de
     // "quien está mirando la pantalla ahora" como el bug anterior. Sigue

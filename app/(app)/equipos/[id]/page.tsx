@@ -6,6 +6,7 @@ import { WorkOrderCard } from '@/components/work-order-card'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { EstadoBadge } from '@/components/estado-badge'
 import { DeleteEquipmentButton } from '@/components/delete-equipment-button'
+import { EditEquipmentButton } from '@/components/edit-equipment-button'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatDate } from '@/lib/format'
 import { getCurrentProfile } from '@/lib/data'
@@ -65,11 +66,14 @@ export default async function EquipoPage({
                 <EstadoBadge estado={eq.estado_actual} className="text-sm" />
               </span>
               {profile?.is_admin && (
-                <DeleteEquipmentButton
-                  equipmentId={eq.id}
-                  numeroSerie={eq.numero_serie}
-                  workOrderCount={orders.length}
-                />
+                <>
+                  <EditEquipmentButton equipment={eq} />
+                  <DeleteEquipmentButton
+                    equipmentId={eq.id}
+                    numeroSerie={eq.numero_serie}
+                    workOrderCount={orders.length}
+                  />
+                </>
               )}
             </div>
           </div>

@@ -217,16 +217,17 @@ export function WorkOrderForm({
             )}
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field>
+              <Field className="min-w-0">
                 <FieldLabel htmlFor="fecha">Fecha</FieldLabel>
                 <Input
                   id="fecha"
                   name="fecha"
                   type="date"
+                  className="w-full min-w-0"
                   defaultValue={workOrder?.fecha ?? todayInArgentina()}
                 />
               </Field>
-              <Field>
+              <Field className="min-w-0">
                 <FieldLabel htmlFor="grupo">Grupo</FieldLabel>
                 <select
                   id="grupo"
