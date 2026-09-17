@@ -61,13 +61,13 @@ export default async function EquipoPage({
                 {eq.marca} {eq.modelo} {eq.generacion ? `· ${eq.generacion}` : ''}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span title="Se calcula solo, según la OT más reciente de este equipo">
                 <EstadoBadge estado={eq.estado_actual} className="text-sm" />
               </span>
               {profile?.is_admin && (
                 <>
-                  <EditEquipmentButton equipment={eq} />
+                  <EditEquipmentButton equipment={eq} compact />
                   <DeleteEquipmentButton
                     equipmentId={eq.id}
                     numeroSerie={eq.numero_serie}

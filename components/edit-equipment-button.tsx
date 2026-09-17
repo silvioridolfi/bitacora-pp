@@ -33,7 +33,15 @@ import { nativeSelectClass } from '@/lib/utils'
  * todo) sin necesitar borrar el equipo entero y perder su historial
  * de OT.
  */
-export function EditEquipmentButton({ equipment }: { equipment: Equipment }) {
+export function EditEquipmentButton({
+  equipment,
+  compact = false,
+}: {
+  equipment: Equipment
+  /** Solo ícono + "Editar", para usar junto a otro label (ej. dentro
+   * del modal de la OT, donde "Editar equipo" sería redundante). */
+  compact?: boolean
+}) {
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const [tipoEquipo, setTipoEquipo] = useState<TipoEquipo>(equipment.tipo_equipo)
@@ -56,9 +64,9 @@ export function EditEquipmentButton({ equipment }: { equipment: Equipment }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button type="button" variant="outline" size="sm">
+          <Button type="button" variant="outline" size="sm" className={compact ? 'h-7 text-xs' : ''}>
             <Pencil className="size-4" data-icon="inline-start" />
-            Editar equipo
+            {compact ? 'Editar' : 'Editar equipo'}
           </Button>
         }
       />

@@ -52,7 +52,7 @@ export function DeleteEquipmentButton({
       className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
     >
       <Trash2 className="size-3.5" />
-      Borrar equipo
+      Borrar
     </Button>
   )
 }

@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDate, formatHoraArgentina } from '@/lib/format'
 import { createWorkOrder, updateWorkOrder, deleteWorkOrder, changeWorkOrderTipo } from '@/lib/actions'
+import { EditEquipmentButton } from '@/components/edit-equipment-button'
 import { WORK_ORDER_ESTADOS } from '@/lib/types'
 import type { DailyRoleName, Profile, School, TipoOT, WorkOrder } from '@/lib/types'
 import { WorkOrderTimeline } from '@/components/work-order-timeline'
@@ -189,7 +190,12 @@ export function WorkOrderForm({
           <FieldGroup>
             {workOrder ? (
               <Field>
-                <FieldLabel>Equipo</FieldLabel>
+                <div className="flex items-center justify-between gap-2">
+                  <FieldLabel>Equipo</FieldLabel>
+                  {isAdmin && workOrder.equipment && (
+                    <EditEquipmentButton equipment={workOrder.equipment} compact />
+                  )}
+                </div>
                 <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
                   <p className="font-medium text-foreground">
                     {workOrder.equipment?.numero_serie ?? '—'}
@@ -384,7 +390,7 @@ export function WorkOrderForm({
               <Button
                 type="button"
                 variant="outline"
-                className="mr-auto text-destructive hover:text-destructive"
+                className="w-full text-destructive hover:text-destructive sm:mr-auto sm:w-auto"
                 disabled={pending}
                 onClick={handleDelete}
               >
