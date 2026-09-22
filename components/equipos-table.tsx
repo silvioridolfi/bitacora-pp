@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/search-input'
 import {
   Table,
   TableBody,
@@ -116,15 +116,12 @@ export function EquiposTable({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[220px]">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por N° de serie, marca, modelo o código de OT…"
-            className="pl-8"
-          />
-        </div>
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Buscar por N° de serie, marca, modelo o código de OT…"
+          className="min-w-[220px] flex-1"
+        />
         <select
           value={tipo}
           onChange={(e) => setTipo(e.target.value)}

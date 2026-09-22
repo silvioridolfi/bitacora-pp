@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, LayoutGroup } from 'motion/react'
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/search-input'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { AnimatedNumber } from '@/components/animated-number'
 import { WorkOrderForm } from '@/components/work-order-form'
@@ -125,15 +125,12 @@ export function TableroBoard({
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="relative max-w-sm flex-1">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar por código, N° de serie, responsable o escuela…"
-            className="pl-8"
-          />
-        </div>
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Buscar por código, N° de serie, responsable o escuela…"
+          className="max-w-sm flex-1"
+        />
         <div className="flex gap-1">
           <Button
             type="button"
