@@ -3,21 +3,22 @@
 import { useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-const TIMEBOX_MS = 24 * 60 * 60 * 1000 // 24hs desde el login, tenga actividad o no
-const INACTIVITY_MS = 8 * 60 * 60 * 1000 // 8hs sin ninguna interacción
-const CHECK_INTERVAL_MS = 5 * 60 * 1000 // revisa cada 5 min
+const TIMEBOX_MS = 6 * 60 * 60 * 1000 // 6hs desde el login, tenga actividad o no
+const INACTIVITY_MS = 30 * 60 * 1000 // 30 min sin ninguna interacción
+const CHECK_INTERVAL_MS = 2 * 60 * 1000 // revisa cada 2 min
 const ACTIVITY_KEY = 'rt_last_activity'
 const SESSION_START_KEY = 'rt_session_start'
 
 /**
  * Reemplaza el "Time-box user sessions" / "Inactivity timeout" de
  * Supabase Auth (solo disponible en plan Pro) con la misma lógica
- * hecha a mano: 24hs de duración máxima desde el login, o cierre por
- * 8hs sin actividad -- pensado para compus compartidas del taller
- * donde alguien se puede olvidar de cerrar sesión. No reemplaza la
- * restricción real de horario para editar OT (esa corre en el
- * servidor); esto es una capa de higiene adicional para las sesiones
- * que quedan abiertas sin uso.
+ * hecha a mano: 6hs de duración máxima desde el login (cubre una
+ * jornada de taller entera), o cierre por 30 min sin actividad --
+ * pensado para compus compartidas del taller donde alguien se puede
+ * olvidar de cerrar sesión y el siguiente grupo hereda su sesión sin
+ * darse cuenta. No reemplaza la restricción real de horario para
+ * editar OT (esa corre en el servidor); esto es una capa de higiene
+ * adicional para las sesiones que quedan abiertas sin uso.
  *
  * El momento de inicio se guarda en localStorage al detectar el login
  * (evento SIGNED_IN) -- no se puede usar el `iat` del access token,
