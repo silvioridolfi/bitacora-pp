@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Search } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { SearchInput } from '@/components/search-input'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { useRealtimeWorkOrders } from '@/hooks/use-realtime-work-orders'
@@ -63,15 +62,12 @@ export function WorkOrderGrid({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar por código, N° de serie, responsable o escuela…"
-          className="pl-8"
-        />
-      </div>
+      <SearchInput
+        value={query}
+        onChange={setQuery}
+        placeholder="Buscar por código, N° de serie, responsable o escuela…"
+        className="max-w-sm"
+      />
 
       {filtered.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">
