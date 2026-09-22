@@ -254,13 +254,20 @@ export async function removeWorkOrderEvent(
   const hoursError = await assertWithinWorkOrderEditHours()
   if (hoursError) return hoursError
 
-  const { error: deleteError } = await supabase
+  const { data: deleted, error: deleteError } = await supabase
     .from('work_order_events')
     .delete()
     .eq('work_order_id', workOrderId)
     .eq('clave', clave)
+    .select('id')
 
   if (deleteError) return { ok: false, error: deleteError.message }
+  // Si RLS bloquea el borrado, Postgrest no tira error -- simplemente no
+  // borra nada. Sin este chequeo, el cliente mostraría "revertido" con
+  // éxito aunque el paso siga tildado.
+  if (!deleted || deleted.length === 0) {
+    return { ok: false, error: 'No se pudo deshacer este paso. Probá de nuevo o avisale a un admin.' }
+  }
 
   if (WORK_ORDER_PASOS_BLOQUEANTES.includes(clave)) {
     const { data: remaining } = await supabase
@@ -301,8 +308,15 @@ export async function removeWorkOrderEventById(id: string): Promise<ActionResult
   const hoursError = await assertWithinWorkOrderEditHours()
   if (hoursError) return hoursError
 
-  const { error } = await supabase.from('work_order_events').delete().eq('id', id)
+  const { data: deleted, error } = await supabase
+    .from('work_order_events')
+    .delete()
+    .eq('id', id)
+    .select('id')
   if (error) return { ok: false, error: error.message }
+  if (!deleted || deleted.length === 0) {
+    return { ok: false, error: 'No se pudo borrar. Probá de nuevo o avisale a un admin.' }
+  }
 
   revalidatePath('/taller')
   revalidatePath('/territorio')
