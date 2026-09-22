@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Laptop, MapPin, School, User, Wrench, ChevronRight } from 'lucide-react'
+import { Laptop, MapPin, MessageSquareText, School, User, Wrench, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate, formatHoraArgentina } from '@/lib/format'
 import { hasReliableCreatedAt } from '@/lib/timezone'
@@ -117,6 +117,11 @@ export function WorkOrderCard({
           {workOrder.session && (
             <span className="whitespace-nowrap rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
               Sesión #{workOrder.session.sesion_n}
+            </span>
+          )}
+          {workOrder.observaciones && workOrder.observaciones.trim() && (
+            <span title={workOrder.observaciones} className="flex items-center text-amber-600">
+              <MessageSquareText className="size-3.5" />
             </span>
           )}
         </span>
