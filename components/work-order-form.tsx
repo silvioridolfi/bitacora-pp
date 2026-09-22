@@ -348,31 +348,6 @@ export function WorkOrderForm({
               </Field>
             )}
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="horas_estimadas">Minutos estimados</FieldLabel>
-                <Input
-                  id="horas_estimadas"
-                  name="horas_estimadas"
-                  type="number"
-                  step="5"
-                  min="0"
-                  defaultValue={workOrder?.horas_estimadas ?? ''}
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="horas_reales">Minutos reales</FieldLabel>
-                <Input
-                  id="horas_reales"
-                  name="horas_reales"
-                  type="number"
-                  step="5"
-                  min="0"
-                  defaultValue={workOrder?.horas_reales ?? ''}
-                />
-              </Field>
-            </div>
-
             <Field>
               <FieldLabel htmlFor="observaciones">Observaciones</FieldLabel>
               <Textarea
