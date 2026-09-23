@@ -11,7 +11,15 @@ import { buildRanking, type FinishedOrder } from '@/lib/student-stats'
 import type { Attendance, Grupo, Profile, WorkOrderEvent } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
-function RankingList({ ranking }: { ranking: ReturnType<typeof buildRanking> }) {
+function RankingList({
+  ranking,
+  viewerId,
+  viewerIsAdmin,
+}: {
+  ranking: ReturnType<typeof buildRanking>
+  viewerId: string | null
+  viewerIsAdmin: boolean
+}) {
   return (
     <div className="flex flex-col gap-2">
       {ranking.map((r, idx) => (
@@ -35,12 +43,16 @@ function RankingList({ ranking }: { ranking: ReturnType<typeof buildRanking> }) 
               {idx === 0 ? <Trophy className="size-4" /> : idx + 1}
             </div>
             <div className="min-w-32 flex-1">
-              <Link
-                href={`/alumnos/${r.profile.id}`}
-                className="font-medium text-foreground hover:underline"
-              >
-                {r.profile.apellido_nombre}
-              </Link>
+              {viewerIsAdmin || r.profile.id === viewerId ? (
+                <Link
+                  href={`/alumnos/${r.profile.id}`}
+                  className="font-medium text-foreground hover:underline"
+                >
+                  {r.profile.apellido_nombre}
+                </Link>
+              ) : (
+                <p className="font-medium text-foreground">{r.profile.apellido_nombre}</p>
+              )}
             </div>
             <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
               <span>
@@ -154,7 +166,11 @@ export default async function RankingPage() {
                   <span className="text-[11px] text-muted-foreground">pts del grupo</span>
                 </div>
               </div>
-              <RankingList ranking={ranking} />
+              <RankingList
+                ranking={ranking}
+                viewerId={currentProfile?.id ?? null}
+                viewerIsAdmin={currentProfile?.is_admin ?? false}
+              />
             </div>
           )
         })}
