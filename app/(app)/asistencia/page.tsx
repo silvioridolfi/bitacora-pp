@@ -107,14 +107,6 @@ export default async function AsistenciaPage({
         </div>
       </div>
 
-      <AttendanceGrid
-        grupo={grupo}
-        students={(students ?? []) as Profile[]}
-        sessions={sessionsList}
-        attendance={attendanceMap}
-        isAdmin={isAdmin}
-      />
-
       {latestSession && (
         <div className="flex flex-col gap-2">
           <p className="text-sm font-medium text-foreground">
@@ -128,6 +120,14 @@ export default async function AsistenciaPage({
           />
         </div>
       )}
+
+      <AttendanceGrid
+        grupo={grupo}
+        students={(students ?? []) as Profile[]}
+        sessions={sessionsList}
+        attendance={attendanceMap}
+        isAdmin={isAdmin}
+      />
     </div>
   )
 }
