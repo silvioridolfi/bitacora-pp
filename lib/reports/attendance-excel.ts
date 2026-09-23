@@ -1,5 +1,6 @@
 import ExcelJS from 'exceljs'
 import { formatDate } from '@/lib/format'
+import { attendanceByKeyFrom, attendanceStatsFor } from '@/lib/student-stats'
 import type { Attendance, Profile, Session } from '@/lib/types'
 
 const ESTADO_ARGB: Record<string, string> = {
@@ -46,31 +47,8 @@ export async function buildAttendanceExcel({
   workbook.creator = 'Registro Técnico -- DTE Región 1'
   workbook.created = new Date()
 
-  const attendanceByKey = new Map<string, Attendance['estado']>()
-  for (const a of attendance) attendanceByKey.set(`${a.student_id}:${a.session_id}`, a.estado)
-
-  function statsFor(studentId: string) {
-    let presentes = 0
-    let tardanzas = 0
-    let ausentes = 0
-    let horas = 0
-    for (const s of sessions) {
-      const estado = attendanceByKey.get(`${studentId}:${s.id}`)
-      if (estado === 'Presente') {
-        presentes++
-        horas += s.horas
-      } else if (estado === 'Tardanza') {
-        tardanzas++
-        horas += s.horas
-      } else if (estado === 'Ausente') {
-        ausentes++
-      }
-    }
-    const totalMarcado = presentes + tardanzas + ausentes
-    const porcentaje =
-      totalMarcado > 0 ? Math.round(((presentes + tardanzas) / totalMarcado) * 100) : 0
-    return { presentes, tardanzas, ausentes, horas, porcentaje }
-  }
+  const attendanceByKey = attendanceByKeyFrom(attendance)
+  const statsFor = (studentId: string) => attendanceStatsFor(studentId, sessions, attendanceByKey)
 
   // -- Hoja "Resumen": un vistazo rápido de todo el grupo (solo tiene
   // sentido cuando hay más de un alumno en el informe).

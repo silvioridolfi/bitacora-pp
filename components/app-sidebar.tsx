@@ -17,6 +17,7 @@ import {
   Sun,
   Moon,
   ShieldCheck,
+  UserRound,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
@@ -51,9 +52,11 @@ const NAV_ITEMS = [
 export function AppSidebar({
   apellidoNombre,
   isAdmin,
+  profileId,
 }: {
   apellidoNombre: string | null
   isAdmin: boolean
+  profileId: string | null
 }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -102,6 +105,20 @@ export function AppSidebar({
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
+              {!isAdmin && profileId && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    render={
+                      <Link href={`/alumnos/${profileId}`} onClick={handleNavClick} />
+                    }
+                    isActive={pathname.startsWith(`/alumnos/${profileId}`)}
+                    tooltip="Mi perfil"
+                  >
+                    <UserRound />
+                    <span>Mi perfil</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               {NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin).map((item) => {
                 const isActive = pathname.startsWith(item.href)
                 return (
