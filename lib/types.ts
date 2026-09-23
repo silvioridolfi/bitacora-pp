@@ -153,10 +153,11 @@ export const WORK_ORDER_PASOS = [
 export type WorkOrderPaso = (typeof WORK_ORDER_PASOS)[number]
 
 /**
- * Perfil de Silvio Ridolfi (FED) -- responsable fijo del paso de
- * desbloqueo. Cualquier alumno puede tildar ese paso (requiere estar
- * físicamente presente para desbloquear), pero el evento siempre queda
- * asignado a este perfil, nunca a quien lo tildó.
+ * Perfil de Silvio Ridolfi (FED). Se usa como responsable fijo para
+ * pasos marcados con `responsableFijo` -- actualmente ningún paso del
+ * pipeline lo usa (los alumnos ya aprendieron a hacer la reprogramación,
+ * así que se elige a mano como el resto de los pasos), pero queda
+ * disponible para el caso en que haga falta uno reservado al FED.
  */
 export const FED_PROFILE_ID = '3376ad0d-eb34-4d9c-ba18-849d82165385'
 
@@ -176,7 +177,6 @@ export const WORK_ORDER_PASO_INFO: Record<
     label: 'Reprogramación',
     rol: 'Reprogramador',
     resultingEstado: 'Desbloqueada',
-    responsableFijo: true,
   },
   armado: { label: 'Armado', rol: 'Técnico', resultingEstado: 'Probando' },
   prueba_encendido: {
