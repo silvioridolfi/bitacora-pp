@@ -105,7 +105,7 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Link href="/ranking">
           <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
-            <CardContent className="flex items-center gap-4 p-6">
+            <CardContent className="flex h-full items-center gap-4 p-6">
               <div
                 className={cn(
                   'flex size-12 shrink-0 items-center justify-center rounded-full',
@@ -132,7 +132,7 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
         </Link>
         <Link href="/asistencia">
           <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
-            <CardContent className="flex items-center gap-4 p-6">
+            <CardContent className="flex h-full items-center gap-4 p-6">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-status-presente/10 text-status-presente">
                 <CalendarCheck className="size-6" />
               </div>
@@ -151,7 +151,7 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
         </Link>
         <Link href="/asistencia">
           <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
-            <CardContent className="flex items-center gap-4 p-6">
+            <CardContent className="flex h-full items-center gap-4 p-6">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
                 <Clock className="size-6" />
               </div>
@@ -166,7 +166,7 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
         </Link>
         <Link href={`/alumnos/${id}/ordenes?estado=${encodeURIComponent('Finalizada OK')}`}>
           <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
-            <CardContent className="flex items-center gap-4 p-6">
+            <CardContent className="flex h-full items-center gap-4 p-6">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-status-finalizada/10 text-status-finalizada">
                 <CheckCircle2 className="size-6" />
               </div>
