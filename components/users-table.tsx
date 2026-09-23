@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import { KeyRound } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -64,7 +65,15 @@ export function UsersTable({
           <tbody>
             {profiles.map((p) => (
               <tr key={p.id} className="border-b border-border last:border-0">
-                <td className="px-3 py-2 font-medium text-foreground">{p.apellido_nombre}</td>
+                <td className="px-3 py-2 font-medium text-foreground">
+                  {p.is_admin ? (
+                    p.apellido_nombre
+                  ) : (
+                    <Link href={`/alumnos/${p.id}`} className="hover:underline">
+                      {p.apellido_nombre}
+                    </Link>
+                  )}
+                </td>
                 <td className="px-3 py-2 text-muted-foreground">{p.grupo ?? '—'}</td>
                 <td className="px-3 py-2 text-muted-foreground">
                   {emailById[p.id] || '—'}

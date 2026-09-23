@@ -23,6 +23,7 @@ export default async function AppLayout({
       <AppSidebar
         apellidoNombre={profile?.apellido_nombre ?? email}
         isAdmin={profile?.is_admin ?? false}
+        profileId={profile?.id ?? null}
       />
       <SidebarInset>
         <header

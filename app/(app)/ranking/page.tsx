@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/data'
 import { fetchAllRows } from '@/lib/supabase/fetch-all'
@@ -6,109 +7,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { AnimatedNumber } from '@/components/animated-number'
 import { RankingCelebration, ProbarCelebracionButton } from '@/components/ranking-celebration'
 import { RANKING_PUNTOS } from '@/lib/status'
-import { WORK_ORDER_PASOS_BLOQUEANTES } from '@/lib/types'
-import type { Attendance, Grupo, Profile, TipoOT, WorkOrderEvent } from '@/lib/types'
+import { buildRanking, type FinishedOrder } from '@/lib/student-stats'
+import type { Attendance, Grupo, Profile, WorkOrderEvent } from '@/lib/types'
 import { cn } from '@/lib/utils'
-
-type FinishedOrder = { id: string; tipo: TipoOT }
-
-/**
- * Reparte los puntos de cada OT Finalizada OK entre los alumnos que
- * completaron pasos en ella, PROPORCIONAL a cuántos pasos hizo cada
- * uno respecto al total de pasos completados en esa OT (no en partes
- * iguales por persona) -- quien hizo más trabajo en una OT se lleva
- * proporcionalmente más. Ej.: OT de 10pts con 4 pasos completados en
- * total, uno hizo 3 y otro hizo 1 -> 7.5pts y 2.5pts, no 5 y 5.
- * 'Desbloqueo' cuenta como cualquier otro paso (ya no es rol fijo del
- * FED); solo queda afuera automáticamente si quien lo hizo es admin,
- * por el filtro de alumnoIds.
- */
-function puntosPorAlumnoDesdeOTs(
-  finishedOrders: FinishedOrder[],
-  events: WorkOrderEvent[],
-  alumnoIds: Set<string>,
-): Map<string, number> {
-  const puntos = new Map<string, number>()
-  const otById = new Map(finishedOrders.map((o) => [o.id, o]))
-
-  // Por OT: cuántos pasos completó cada alumno.
-  const pasosPorOtPorAlumno = new Map<string, Map<string, number>>()
-  for (const e of events) {
-    if (!e.profile_id || !alumnoIds.has(e.profile_id)) continue
-    if (!WORK_ORDER_PASOS_BLOQUEANTES.includes(e.clave)) continue
-    const ot = otById.get(e.work_order_id)
-    if (!ot) continue
-    if (!pasosPorOtPorAlumno.has(ot.id)) pasosPorOtPorAlumno.set(ot.id, new Map())
-    const porAlumno = pasosPorOtPorAlumno.get(ot.id)!
-    porAlumno.set(e.profile_id, (porAlumno.get(e.profile_id) ?? 0) + 1)
-  }
-
-  for (const [otId, porAlumno] of pasosPorOtPorAlumno) {
-    const ot = otById.get(otId)!
-    const puntosOt = ot.tipo === 'taller' ? RANKING_PUNTOS.taller : RANKING_PUNTOS.territorio
-    const totalPasos = [...porAlumno.values()].reduce((acc, n) => acc + n, 0)
-    for (const [alumnoId, misPasos] of porAlumno) {
-      const asignado = puntosOt * (misPasos / totalPasos)
-      puntos.set(alumnoId, (puntos.get(alumnoId) ?? 0) + asignado)
-    }
-  }
-
-  return puntos
-}
-
-function buildRanking(
-  profiles: Profile[],
-  finishedOrders: FinishedOrder[],
-  events: WorkOrderEvent[],
-  attendance: Attendance[],
-) {
-  const alumnoIds = new Set(profiles.map((p) => p.id))
-  const puntosOtPorAlumno = puntosPorAlumnoDesdeOTs(finishedOrders, events, alumnoIds)
-
-  // Conteos "OT taller/territorio" mostrados en la card: cuántas OT
-  // finalizadas tuvieron a este alumno en al menos un paso -- ya no es
-  // "de las que soy responsable final", sino "en las que participé".
-  const otsPorAlumnoPorTipo = new Map<string, { taller: Set<string>; territorio: Set<string> }>()
-  const otById = new Map(finishedOrders.map((o) => [o.id, o]))
-  for (const e of events) {
-    if (!e.profile_id || !alumnoIds.has(e.profile_id)) continue
-    if (!WORK_ORDER_PASOS_BLOQUEANTES.includes(e.clave)) continue
-    const ot = otById.get(e.work_order_id)
-    if (!ot) continue
-    if (!otsPorAlumnoPorTipo.has(e.profile_id)) {
-      otsPorAlumnoPorTipo.set(e.profile_id, { taller: new Set(), territorio: new Set() })
-    }
-    otsPorAlumnoPorTipo.get(e.profile_id)![ot.tipo === 'taller' ? 'taller' : 'territorio'].add(
-      ot.id,
-    )
-  }
-
-  return profiles
-    .map((p) => {
-      const otsTaller = otsPorAlumnoPorTipo.get(p.id)?.taller.size ?? 0
-      const otsTerritorio = otsPorAlumnoPorTipo.get(p.id)?.territorio.size ?? 0
-      const asistencias = attendance.filter((a) => a.student_id === p.id)
-      const presentes = asistencias.filter((a) => a.estado === 'Presente').length
-      const tardanzas = asistencias.filter((a) => a.estado === 'Tardanza').length
-
-      const puntosOT = Math.round((puntosOtPorAlumno.get(p.id) ?? 0) * 10) / 10
-      const puntosAsistencia =
-        presentes * RANKING_PUNTOS.presente + tardanzas * RANKING_PUNTOS.tardanza
-      const total = Math.round((puntosOT + puntosAsistencia) * 10) / 10
-
-      return {
-        profile: p,
-        otsTaller,
-        otsTerritorio,
-        presentes,
-        tardanzas,
-        puntosOT,
-        puntosAsistencia,
-        total,
-      }
-    })
-    .sort((a, b) => b.total - a.total)
-}
 
 function RankingList({ ranking }: { ranking: ReturnType<typeof buildRanking> }) {
   return (
@@ -134,7 +35,12 @@ function RankingList({ ranking }: { ranking: ReturnType<typeof buildRanking> }) 
               {idx === 0 ? <Trophy className="size-4" /> : idx + 1}
             </div>
             <div className="min-w-32 flex-1">
-              <p className="font-medium text-foreground">{r.profile.apellido_nombre}</p>
+              <Link
+                href={`/alumnos/${r.profile.id}`}
+                className="font-medium text-foreground hover:underline"
+              >
+                {r.profile.apellido_nombre}
+              </Link>
             </div>
             <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
               <span>

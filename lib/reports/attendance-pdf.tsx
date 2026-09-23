@@ -15,6 +15,7 @@ import {
   renderToBuffer,
 } from '@react-pdf/renderer'
 import { formatDate } from '@/lib/format'
+import { attendanceByKeyFrom, attendanceStatsFor } from '@/lib/student-stats'
 import type { Attendance, Profile, Session } from '@/lib/types'
 
 const FOOTER_LOGO_PATH = path.join(process.cwd(), 'public/images/informes/footer-pba.png')
@@ -128,32 +129,6 @@ const styles = StyleSheet.create({
   },
 })
 
-function computeStats(
-  studentId: string,
-  sessions: Session[],
-  attendanceByKey: Map<string, Attendance['estado']>,
-) {
-  let presentes = 0
-  let tardanzas = 0
-  let ausentes = 0
-  let horas = 0
-  for (const s of sessions) {
-    const estado = attendanceByKey.get(`${studentId}:${s.id}`)
-    if (estado === 'Presente') {
-      presentes++
-      horas += s.horas
-    } else if (estado === 'Tardanza') {
-      tardanzas++
-      horas += s.horas
-    } else if (estado === 'Ausente') {
-      ausentes++
-    }
-  }
-  const totalMarcado = presentes + tardanzas + ausentes
-  const porcentaje = totalMarcado > 0 ? Math.round(((presentes + tardanzas) / totalMarcado) * 100) : 0
-  return { presentes, tardanzas, ausentes, horas, porcentaje, totalMarcado }
-}
-
 function AttendanceDocument({
   students,
   sessions,
@@ -165,8 +140,7 @@ function AttendanceDocument({
   attendance: Attendance[]
   titulo: string
 }) {
-  const attendanceByKey = new Map<string, Attendance['estado']>()
-  for (const a of attendance) attendanceByKey.set(`${a.student_id}:${a.session_id}`, a.estado)
+  const attendanceByKey = attendanceByKeyFrom(attendance)
 
   return (
     <Document>
@@ -220,7 +194,7 @@ function AttendanceDocument({
                 <Text style={[styles.summaryCell, styles.headerCell]}>% Asist.</Text>
               </View>
               {students.map((student) => {
-                const stats = computeStats(student.id, sessions, attendanceByKey)
+                const stats = attendanceStatsFor(student.id, sessions, attendanceByKey)
                 return (
                   <View key={student.id} style={styles.summaryRow}>
                     <Text style={styles.summaryCellAlumno}>{student.apellido_nombre}</Text>
@@ -236,7 +210,7 @@ function AttendanceDocument({
         )}
 
         {students.map((student, index) => {
-          const stats = computeStats(student.id, sessions, attendanceByKey)
+          const stats = attendanceStatsFor(student.id, sessions, attendanceByKey)
           return (
             // Cada alumno arranca en una hoja nueva -- si no, su propia
             // tabla de sesiones puede quedar cortada a mitad de página
