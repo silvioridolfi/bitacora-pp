@@ -4,6 +4,24 @@ import type { Attendance, Profile, Session, TipoOT, WorkOrderEvent } from '@/lib
 
 export type FinishedOrder = { id: string; tipo: TipoOT }
 
+export type PodioTier = 'oro' | 'plata' | 'bronce'
+
+/** 1° -> oro, 2° -> plata, 3° -> bronce, el resto no tiene podio. */
+export function podioTier(puesto: number): PodioTier | null {
+  if (puesto === 1) return 'oro'
+  if (puesto === 2) return 'plata'
+  if (puesto === 3) return 'bronce'
+  return null
+}
+
+/** Mismos colores en /ranking y en el perfil de cada alumno -- el oro
+ * reusa las clases que ya tenía el 1° puesto en el ranking. */
+export const PODIO_STYLE: Record<PodioTier, { bg: string; text: string; ring: string }> = {
+  oro: { bg: 'bg-status-pendiente', text: 'text-foreground', ring: 'ring-yellow-400/60' },
+  plata: { bg: 'bg-slate-300/40', text: 'text-slate-600', ring: 'ring-slate-400/50' },
+  bronce: { bg: 'bg-amber-700/20', text: 'text-amber-700', ring: 'ring-amber-700/40' },
+}
+
 /**
  * Reparte los puntos de cada OT Finalizada OK entre los alumnos que
  * completaron pasos en ella, PROPORCIONAL a cuántos pasos hizo cada

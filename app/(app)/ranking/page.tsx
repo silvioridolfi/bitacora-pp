@@ -2,12 +2,12 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/data'
 import { fetchAllRows } from '@/lib/supabase/fetch-all'
-import { Trophy } from 'lucide-react'
+import { Trophy, Medal } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { AnimatedNumber } from '@/components/animated-number'
 import { RankingCelebration, ProbarCelebracionButton } from '@/components/ranking-celebration'
 import { RANKING_PUNTOS } from '@/lib/status'
-import { buildRanking, type FinishedOrder } from '@/lib/student-stats'
+import { buildRanking, podioTier, PODIO_STYLE, type FinishedOrder } from '@/lib/student-stats'
 import type { Attendance, Grupo, Profile, WorkOrderEvent } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -22,62 +22,72 @@ function RankingList({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      {ranking.map((r, idx) => (
-        <Card
-          key={r.profile.id}
-          className={cn(
-            'animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards duration-500',
-            idx === 0 && 'ring-2 ring-yellow-400/60',
-          )}
-          style={{ animationDelay: `${idx * 60}ms` }}
-        >
-          <CardContent className="flex flex-wrap items-center gap-4 p-4">
-            <div
-              className={cn(
-                'flex size-9 shrink-0 items-center justify-center rounded-full font-heading text-sm font-bold',
-                idx === 0
-                  ? 'bg-status-pendiente text-foreground'
-                  : 'bg-muted text-muted-foreground',
-              )}
-            >
-              {idx === 0 ? <Trophy className="size-4" /> : idx + 1}
-            </div>
-            <div className="min-w-32 flex-1">
-              {viewerIsAdmin || r.profile.id === viewerId ? (
-                <Link
-                  href={`/alumnos/${r.profile.id}`}
-                  className="font-medium text-foreground hover:underline"
-                >
+      {ranking.map((r, idx) => {
+        const tier = podioTier(idx + 1)
+        const canView = viewerIsAdmin || r.profile.id === viewerId
+        const card = (
+          <Card
+            className={cn(
+              'animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards duration-500',
+              tier && `ring-2 ${PODIO_STYLE[tier].ring}`,
+              canView &&
+                'transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm',
+            )}
+            style={{ animationDelay: `${idx * 60}ms` }}
+          >
+            <CardContent className="flex flex-wrap items-center gap-4 p-4">
+              <div
+                className={cn(
+                  'flex size-9 shrink-0 items-center justify-center rounded-full font-heading text-sm font-bold',
+                  tier ? cn(PODIO_STYLE[tier].bg, PODIO_STYLE[tier].text) : 'bg-muted text-muted-foreground',
+                )}
+              >
+                {tier === 'oro' ? (
+                  <Trophy className="size-4" />
+                ) : tier ? (
+                  <Medal className="size-4" />
+                ) : (
+                  idx + 1
+                )}
+              </div>
+              <div className="min-w-32 flex-1">
+                <p className={cn('font-medium text-foreground', canView && 'hover:underline')}>
                   {r.profile.apellido_nombre}
-                </Link>
-              ) : (
-                <p className="font-medium text-foreground">{r.profile.apellido_nombre}</p>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-              <span>
-                Taller: <strong className="text-foreground">{r.otsTaller}</strong>
-              </span>
-              <span>
-                Territorio: <strong className="text-foreground">{r.otsTerritorio}</strong>
-              </span>
-              <span>
-                Presentes: <strong className="text-foreground">{r.presentes}</strong>
-              </span>
-              <span>
-                Tardanzas:{' '}
-                <strong className="text-status-derivada">{r.tardanzas}</strong>
-              </span>
-            </div>
-            <div className="ml-auto text-right">
-              <p className="font-heading text-xl font-bold text-primary">
-                <AnimatedNumber value={r.total} decimals={r.total % 1 !== 0 ? 1 : 0} />
-              </p>
-              <p className="text-[11px] text-muted-foreground">puntos</p>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                <span>
+                  Taller: <strong className="text-foreground">{r.otsTaller}</strong>
+                </span>
+                <span>
+                  Territorio: <strong className="text-foreground">{r.otsTerritorio}</strong>
+                </span>
+                <span>
+                  Presentes: <strong className="text-foreground">{r.presentes}</strong>
+                </span>
+                <span>
+                  Tardanzas:{' '}
+                  <strong className="text-status-derivada">{r.tardanzas}</strong>
+                </span>
+              </div>
+              <div className="ml-auto text-right">
+                <p className="font-heading text-xl font-bold text-primary">
+                  <AnimatedNumber value={r.total} decimals={r.total % 1 !== 0 ? 1 : 0} />
+                </p>
+                <p className="text-[11px] text-muted-foreground">puntos</p>
+              </div>
+            </CardContent>
+          </Card>
+        )
+
+        return canView ? (
+          <Link key={r.profile.id} href={`/alumnos/${r.profile.id}`} className="block">
+            {card}
+          </Link>
+        ) : (
+          <div key={r.profile.id}>{card}</div>
+        )
+      })}
       {ranking.length === 0 && (
         <p className="py-6 text-center text-sm text-muted-foreground">
           Sin alumnos en este grupo.
