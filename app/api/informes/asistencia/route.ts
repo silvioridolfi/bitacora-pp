@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     .from('sessions')
     .select('*')
     .eq('grupo', grupo)
-    .order('sesion_n')
+    .order('sesion_n', { ascending: false })
   const sessions = (sessionsData ?? []) as Session[]
   const sessionIds = sessions.map((s) => s.id)
 
