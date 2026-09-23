@@ -16,23 +16,12 @@ import {
   WORK_ORDER_PASOS_BLOQUEANTES,
   WORK_ORDER_PASO_INFO,
   FED_PROFILE_ID,
+  sugerirResponsablePaso,
 } from '@/lib/types'
 import type { DailyRoleName, Profile, WorkOrderEvent, WorkOrderPaso } from '@/lib/types'
 import { cn, nativeSelectClass as baseSelectClass } from '@/lib/utils'
 
 const nativeSelectClass = cn(baseSelectClass, 'h-8 w-40 rounded-md px-2 text-xs')
-
-/** Qué rol del día (asignado en Asistencia) corresponde a cada paso del
- * pipeline técnico -- se usa solo para SUGERIR quién lo hizo, nunca para
- * asignarlo en silencio. */
-const ROL_PASO_A_DAILY_ROLE: Partial<Record<WorkOrderPaso, DailyRoleName>> = {
-  desarme: 'Técnico',
-  desbloqueo: 'Reprogramador',
-  armado: 'Técnico',
-  cambio_pila: 'Técnico',
-  prueba_encendido: 'Tester/Instalador',
-  instalacion_so: 'Tester/Instalador',
-}
 
 export function WorkOrderTimeline({
   workOrderId,
@@ -40,7 +29,7 @@ export function WorkOrderTimeline({
   profiles,
   isAdmin,
   currentProfileId,
-  saltarDesbloqueo = false,
+  desbloqueoSkipMotivo = null,
   rolesByProfile = {},
 }: {
   workOrderId: string
@@ -48,8 +37,9 @@ export function WorkOrderTimeline({
   profiles: Profile[]
   isAdmin: boolean
   currentProfileId: string | null
-  /** true si el equipo llegó "Enciende sin bloqueo": esa etapa no aplica. */
-  saltarDesbloqueo?: boolean
+  /** Si no es null, el equipo no requiere desbloqueo por este motivo (ej.
+   * "el equipo llegó \"Enciende sin bloqueo\"") -- esa etapa no aplica. */
+  desbloqueoSkipMotivo?: string | null
   /** Roles del día (Asistencia) por alumno -- se usa para sugerir de
    * entrada quién completó cada paso, solo cuando hay un único alumno
    * con el rol correspondiente ese día. Siempre queda editable. */
@@ -60,18 +50,12 @@ export function WorkOrderTimeline({
   const [otroDescripcion, setOtroDescripcion] = useState('')
   const router = useRouter()
 
-  /** Para un paso dado, si hay exactamente un alumno (de este grupo) con
-   * el rol del día que corresponde, lo sugiere -- si hay 0 o más de 1,
-   * no sugiere nada (mejor vacío que arriesgar una elección ambigua). */
   function sugeridoPara(clave: WorkOrderPaso): string | null {
-    const dailyRole = ROL_PASO_A_DAILY_ROLE[clave]
-    if (!dailyRole) return null
-    const candidatos = profiles.filter((p) => rolesByProfile[p.id]?.includes(dailyRole))
-    return candidatos.length === 1 ? candidatos[0].id : null
+    return sugerirResponsablePaso(clave, profiles, rolesByProfile)
   }
 
   const pasosBloqueantes = WORK_ORDER_PASOS_BLOQUEANTES.filter(
-    (p) => !(p === 'desbloqueo' && saltarDesbloqueo),
+    (p) => !(p === 'desbloqueo' && desbloqueoSkipMotivo),
   )
   const pasosOpcionales = WORK_ORDER_PASOS.filter(
     (p) => !WORK_ORDER_PASOS_BLOQUEANTES.includes(p),
@@ -255,6 +239,12 @@ export function WorkOrderTimeline({
           </div>
         )
       })}
+
+      {desbloqueoSkipMotivo && (
+        <p className="text-[11px] italic text-muted-foreground">
+          Desbloqueo: no aplica ({desbloqueoSkipMotivo}).
+        </p>
+      )}
 
       <div className="border-t border-border pt-2">
         <p className="mb-1.5 text-[11px] text-muted-foreground">

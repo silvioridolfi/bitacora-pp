@@ -21,7 +21,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { formatDate, formatHoraArgentina } from '@/lib/format'
 import { createWorkOrder, updateWorkOrder, deleteWorkOrder, changeWorkOrderTipo } from '@/lib/actions'
 import { EditEquipmentButton } from '@/components/edit-equipment-button'
-import { WORK_ORDER_ESTADOS } from '@/lib/types'
+import { WORK_ORDER_ESTADOS, motivoSinDesbloqueo } from '@/lib/types'
 import type { DailyRoleName, Profile, School, TipoOT, WorkOrder } from '@/lib/types'
 import { WorkOrderTimeline } from '@/components/work-order-timeline'
 import { EquipoIntakeFields } from '@/components/equipo-intake-fields'
@@ -280,11 +280,7 @@ export function WorkOrderForm({
                   isAdmin={isAdmin}
                   currentProfileId={currentProfileId}
                   rolesByProfile={rolesByProfile}
-                  saltarDesbloqueo={
-                    workOrder.equipment?.estado_inicial === 'Enciende sin bloqueo' ||
-                    (!!workOrder.equipment?.tipo_equipo &&
-                      workOrder.equipment.tipo_equipo !== 'netbook')
-                  }
+                  desbloqueoSkipMotivo={motivoSinDesbloqueo(workOrder.equipment)}
                 />
                 <p className="text-[11px] text-muted-foreground">
                   El estado avanza solo a medida que se completan los pasos del pipeline. Para
