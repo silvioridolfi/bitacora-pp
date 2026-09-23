@@ -132,14 +132,19 @@ export function WorkOrderForm({
       )}
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-heading">
-            {workOrder ? `Editar ${workOrder.codigo}` : `Nueva OT de ${tipo}`}
-          </DialogTitle>
-          {!workOrder && proximoCodigo && (
-            <p className="font-heading text-2xl font-bold tracking-tight text-primary">
-              {proximoCodigo}
-            </p>
-          )}
+          {/* Sticky para que el número de OT quede siempre visible al
+              bajar por el formulario -- si no, se pierde de vista justo
+              cuando más se lo necesita (para copiarlo/anotarlo). */}
+          <div className="sticky top-0 -mx-4 bg-popover px-4 pr-10">
+            <DialogTitle className="font-heading">
+              {workOrder ? `Editar ${workOrder.codigo}` : `Nueva OT de ${tipo}`}
+            </DialogTitle>
+            {!workOrder && proximoCodigo && (
+              <p className="font-heading text-2xl font-bold tracking-tight text-primary">
+                {proximoCodigo}
+              </p>
+            )}
+          </div>
           <DialogDescription>
             {workOrder
               ? hasReliableCreatedAt(workOrder.created_at)
