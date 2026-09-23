@@ -335,12 +335,16 @@ export async function setAttendance(
 
   const { data: session } = await supabase
     .from('sessions')
-    .select('fecha')
+    .select('fecha, grupo')
     .eq('id', sessionId)
     .maybeSingle()
 
   const { profile } = await getCurrentProfile()
   const isAdmin = profile?.is_admin ?? false
+
+  if (!isAdmin && session?.grupo && session.grupo !== profile?.grupo) {
+    return { ok: false, error: 'Esta sesión no es de tu grupo.' }
+  }
 
   if (!isAdmin && session?.fecha && isAttendanceLocked(session.fecha)) {
     return {
@@ -359,13 +363,22 @@ export async function setAttendance(
   }
 
   if (estado === null) {
-    const { error } = await supabase
+    const { data: deleted, error } = await supabase
       .from('attendance')
       .delete()
       .eq('student_id', studentId)
       .eq('session_id', sessionId)
+      .select('id')
 
     if (error) return { ok: false, error: error.message }
+    // Este branch solo se dispara al desmarcar una fila que ya existía
+    // (fin del ciclo Presente -> Tardanza -> Ausente -> sin marcar), así
+    // que siempre debería borrar una fila. Si RLS bloqueó el borrado en
+    // silencio (Postgrest no tira error, solo no borra nada), lo
+    // detectamos acá en vez de mostrar éxito con la marca todavía puesta.
+    if (!deleted || deleted.length === 0) {
+      return { ok: false, error: 'No se pudo desmarcar. Probá de nuevo o avisale a un admin.' }
+    }
 
     revalidatePath('/asistencia')
     revalidatePath('/ranking')
@@ -425,6 +438,11 @@ export async function createSession(grupo: Grupo, fecha: string): Promise<Action
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
 
+  const { profile } = await getCurrentProfile()
+  if (!profile?.is_admin && profile?.grupo !== grupo) {
+    return { ok: false, error: 'Solo podés crear sesiones de tu propio grupo.' }
+  }
+
   const { data: existing } = await supabase
     .from('sessions')
     .select('sesion_n')
@@ -464,6 +482,16 @@ export async function assignDailyRole(
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
 
+  const { data: session } = await supabase
+    .from('sessions')
+    .select('grupo')
+    .eq('id', sessionId)
+    .maybeSingle()
+  const { profile } = await getCurrentProfile()
+  if (!profile?.is_admin && session?.grupo && session.grupo !== profile?.grupo) {
+    return { ok: false, error: 'Esta sesión no es de tu grupo.' }
+  }
+
   if (EXCLUSIVE_DAILY_ROLES.includes(rol)) {
     const { error: delError } = await supabase
       .from('daily_roles')
@@ -496,6 +524,16 @@ export async function removeDailyRole(
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+
+  const { data: session } = await supabase
+    .from('sessions')
+    .select('grupo')
+    .eq('id', sessionId)
+    .maybeSingle()
+  const { profile } = await getCurrentProfile()
+  if (!profile?.is_admin && session?.grupo && session.grupo !== profile?.grupo) {
+    return { ok: false, error: 'Esta sesión no es de tu grupo.' }
+  }
 
   const { error } = await supabase
     .from('daily_roles')

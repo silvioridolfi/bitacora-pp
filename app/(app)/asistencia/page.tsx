@@ -14,15 +14,27 @@ export default async function AsistenciaPage({
   searchParams: Promise<{ grupo?: string }>
 }) {
   const { grupo: grupoParam } = await searchParams
-  const grupo: Grupo =
-    grupoParam === 'Grupo 2' ? 'Grupo 2' : grupoParam === 'Grupo 1' ? 'Grupo 1' : (grupoDeHoy() ?? 'Grupo 1')
+  const { profile } = await getCurrentProfile()
+  const isAdmin = profile?.is_admin ?? false
+
+  // Un alumno no-admin solo puede ver/operar sobre su propio grupo -- se
+  // ignora el ?grupo de la URL para que no pueda entrar al del otro grupo
+  // ni por accidente ni a propósito (la base también lo bloquearía, pero
+  // ni siquiera le mostramos la opción). El admin sigue pudiendo elegir
+  // cualquiera de los dos.
+  const grupo: Grupo = isAdmin
+    ? grupoParam === 'Grupo 2'
+      ? 'Grupo 2'
+      : grupoParam === 'Grupo 1'
+        ? 'Grupo 1'
+        : (grupoDeHoy() ?? 'Grupo 1')
+    : (profile?.grupo ?? grupoDeHoy() ?? 'Grupo 1')
 
   const supabase = await createClient()
 
-  const [{ data: students }, { data: sessions }, { profile }] = await Promise.all([
+  const [{ data: students }, { data: sessions }] = await Promise.all([
     supabase.from('profiles').select('*').eq('grupo', grupo).order('apellido_nombre'),
     supabase.from('sessions').select('*').eq('grupo', grupo).order('sesion_n', { ascending: false }),
-    getCurrentProfile(),
   ])
 
   const studentIds = (students ?? []).map((s) => s.id)
@@ -71,23 +83,25 @@ export default async function AsistenciaPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
-            {(['Grupo 1', 'Grupo 2'] as const).map((g) => (
-              <a
-                key={g}
-                href={`/asistencia?grupo=${encodeURIComponent(g)}`}
-                className={cn(
-                  'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                  grupo === g
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted',
-                )}
-              >
-                {g}
-              </a>
-            ))}
-          </div>
-          {profile?.is_admin && (
+          {isAdmin && (
+            <div className="flex gap-1 rounded-lg border border-border bg-card p-1">
+              {(['Grupo 1', 'Grupo 2'] as const).map((g) => (
+                <a
+                  key={g}
+                  href={`/asistencia?grupo=${encodeURIComponent(g)}`}
+                  className={cn(
+                    'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                    grupo === g
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-muted',
+                  )}
+                >
+                  {g}
+                </a>
+              ))}
+            </div>
+          )}
+          {isAdmin && (
             <ExportAttendanceButton grupo={grupo} students={(students ?? []) as Profile[]} />
           )}
         </div>
@@ -98,7 +112,7 @@ export default async function AsistenciaPage({
         students={(students ?? []) as Profile[]}
         sessions={sessionsList}
         attendance={attendanceMap}
-        isAdmin={profile?.is_admin ?? false}
+        isAdmin={isAdmin}
       />
 
       {latestSession && (
