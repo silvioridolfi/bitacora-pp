@@ -2,27 +2,24 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronRight, Lock, Plus, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Lock, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { setAttendance, createSession, deleteSession } from '@/lib/actions'
+import { setAttendance, deleteSession } from '@/lib/actions'
 import { formatDate } from '@/lib/format'
 import { isAttendanceLocked, isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
 import { ATTENDANCE_STATUS_STYLE, nextAttendanceStatus } from '@/lib/status'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import type { EstadoAsistencia, Grupo, Profile, Session } from '@/lib/types'
+import type { EstadoAsistencia, Profile, Session } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 type AttendanceMap = Record<string, EstadoAsistencia>
 
 export function AttendanceGrid({
-  grupo,
   students,
   sessions,
   attendance,
   isAdmin = false,
 }: {
-  grupo: Grupo
   students: Profile[]
   sessions: Session[]
   attendance: AttendanceMap
@@ -30,7 +27,6 @@ export function AttendanceGrid({
 }) {
   const [optimisticAttendance, setOptimisticAttendance] = useState(attendance)
   const [pending, startTransition] = useTransition()
-  const [newFecha, setNewFecha] = useState(todayInArgentina())
   const router = useRouter()
   const today = todayInArgentina()
   const pastNine = isPastNineAmArgentina()
@@ -78,19 +74,6 @@ export function AttendanceGrid({
     }, 0)
   }
 
-  function handleAddFecha() {
-    if (!newFecha) return
-    startTransition(async () => {
-      const result = await createSession(grupo, newFecha)
-      if (result.ok) {
-        toast.success('Sesión agregada (4hs)')
-        router.refresh()
-      } else {
-        toast.error(result.error)
-      }
-    })
-  }
-
   function handleDeleteFecha(session: Session) {
     if (
       !confirm(
@@ -111,45 +94,27 @@ export function AttendanceGrid({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-border p-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground" htmlFor="new-fecha">
-            Nueva sesión (4hs)
-          </label>
-          <Input
-            id="new-fecha"
-            type="date"
-            value={newFecha}
-            onChange={(e) => setNewFecha(e.target.value)}
-            className="h-9 w-40"
-          />
-        </div>
-        <Button type="button" size="sm" disabled={pending} onClick={handleAddFecha}>
-          <Plus className="size-4" data-icon="inline-start" />
-          Agregar sesión
+      <div className="flex justify-end gap-1 sm:hidden">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="size-7"
+          onClick={() => scrollByStep(-1)}
+          title="Desplazar hacia la izquierda"
+        >
+          <ChevronLeft className="size-3.5" />
         </Button>
-        <div className="ml-auto flex gap-1 sm:hidden">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-7"
-            onClick={() => scrollByStep(-1)}
-            title="Desplazar hacia la izquierda"
-          >
-            <ChevronLeft className="size-3.5" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-7"
-            onClick={() => scrollByStep(1)}
-            title="Desplazar hacia la derecha"
-          >
-            <ChevronRight className="size-3.5" />
-          </Button>
-        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="size-7"
+          onClick={() => scrollByStep(1)}
+          title="Desplazar hacia la derecha"
+        >
+          <ChevronRight className="size-3.5" />
+        </Button>
       </div>
 
       <div ref={scrollRef} className="overflow-x-auto rounded-xl border border-border bg-card">

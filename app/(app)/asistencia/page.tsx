@@ -2,8 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { AttendanceGrid } from '@/components/attendance-grid'
 import { ExportAttendanceButton } from '@/components/export-attendance-button'
 import { DailyRolesPanel } from '@/components/daily-roles-panel'
+import { NewSessionForm } from '@/components/new-session-form'
 import { getCurrentProfile } from '@/lib/data'
-import { formatDate } from '@/lib/format'
 import { todayInArgentina, grupoDeHoy } from '@/lib/timezone'
 import { cn } from '@/lib/utils'
 import type { Attendance, DailyRole, Grupo, Profile, Session } from '@/lib/types'
@@ -50,10 +50,10 @@ export default async function AsistenciaPage({
 
   const sessionsList = (sessions ?? []) as Session[]
   const today = todayInArgentina()
-  // sessionsList viene ordenada de la más nueva a la más vieja (ver
-  // query arriba), así que la última sesión creada es el primer elemento.
-  const latestSession = sessionsList.find((s) => s.fecha === today) ?? sessionsList[0] ?? null
-  const isActuallyToday = latestSession?.fecha === today
+  // A propósito NO cae a la sesión más reciente si no hay una de hoy --
+  // si no, el panel de Roles seguiría mostrando la sesión de ayer (o de
+  // la semana pasada) hasta que alguien cargue la de hoy.
+  const latestSession = sessionsList.find((s) => s.fecha === today) ?? null
 
   const presentStudents = latestSession
     ? ((students ?? []) as Profile[]).filter((s) => {
@@ -107,11 +107,12 @@ export default async function AsistenciaPage({
         </div>
       </div>
 
-      {latestSession && (
-        <div className="flex flex-col gap-2">
+      <NewSessionForm grupo={grupo} />
+
+      {latestSession ? (
+        <div className="flex animate-in flex-col gap-2 fade-in slide-in-from-bottom-2 duration-500">
           <p className="text-sm font-medium text-foreground">
-            Roles -- sesión #{latestSession.sesion_n}
-            {isActuallyToday ? ' (hoy)' : ` (${formatDate(latestSession.fecha)})`}
+            Roles -- sesión #{latestSession.sesion_n} (hoy)
           </p>
           <DailyRolesPanel
             sessionId={latestSession.id}
@@ -119,10 +120,13 @@ export default async function AsistenciaPage({
             roles={(dailyRolesRaw ?? []) as DailyRole[]}
           />
         </div>
+      ) : (
+        <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+          Todavía no cargaste la sesión de hoy -- agregala arriba.
+        </div>
       )}
 
       <AttendanceGrid
-        grupo={grupo}
         students={(students ?? []) as Profile[]}
         sessions={sessionsList}
         attendance={attendanceMap}
