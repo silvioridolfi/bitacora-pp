@@ -14,6 +14,7 @@ import type {
   WorkOrderPaso,
 } from '@/lib/types'
 import { AuditoriaViewer } from '@/components/auditoria-viewer'
+import { PageHint } from '@/components/page-hint'
 import { formatDate } from '@/lib/format'
 
 type FinishedOrder = { id: string; codigo: string; tipo: TipoOT; fecha: string | null }
@@ -178,12 +179,12 @@ export default async function AuditoriaPage() {
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="font-heading text-2xl font-bold text-foreground">Auditoría de puntos</h1>
-        <p className="text-sm text-muted-foreground">
+        <PageHint label="¿Qué es esto?">
           Desglose completo de cómo se arma el puntaje de cada alumno: por cada OT, cuántos
           pasos hizo cada uno respecto al total de la OT y qué fracción le tocó (proporcional,
           no partes iguales); por cada paso individual completado; y por asistencia. Generado el{' '}
           {formatDate(new Date().toISOString().slice(0, 10))}.
-        </p>
+        </PageHint>
       </div>
       <AuditoriaViewer auditoria={auditoria} />
     </div>

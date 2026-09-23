@@ -3,6 +3,7 @@ import { AttendanceGrid } from '@/components/attendance-grid'
 import { ExportAttendanceButton } from '@/components/export-attendance-button'
 import { DailyRolesTrigger } from '@/components/daily-roles-trigger'
 import { NewSessionForm } from '@/components/new-session-form'
+import { PageHint } from '@/components/page-hint'
 import { getCurrentProfile } from '@/lib/data'
 import { todayInArgentina, grupoDeHoy } from '@/lib/timezone'
 import { cn } from '@/lib/utils'
@@ -74,13 +75,13 @@ export default async function AsistenciaPage({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl font-bold text-foreground">Asistencia</h1>
-          <p className="text-sm text-muted-foreground">
+          <PageHint label="Cómo marcar la asistencia">
             Click en una celda para rotar el estado: Presente → Tardanza → Ausente → sin
             marcar.
             <br />
             Antes de las 9:00 se puede marcar Presente; después de las 12:00 la fecha de hoy
             queda bloqueada para evitar cambios accidentales.
-          </p>
+          </PageHint>
         </div>
         <div className="flex items-center gap-2">
           {isAdmin && (

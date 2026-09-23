@@ -205,7 +205,7 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
                 Todavía no completó ningún paso en una OT.
               </p>
             ) : (
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {estadoCounts.map(({ estado, count }, idx) => {
                   const style = WORK_ORDER_STATUS_STYLE[estado]
                   return (
@@ -213,16 +213,16 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
                       key={estado}
                       href={`/alumnos/${id}/ordenes?estado=${encodeURIComponent(estado)}`}
                       className={cn(
-                        'flex animate-in flex-col gap-1 rounded-lg border p-4 fade-in slide-in-from-bottom-2 fill-mode-backwards duration-500 transition-opacity hover:opacity-80',
+                        'flex min-w-0 animate-in flex-col gap-0.5 rounded-lg border p-2 fade-in slide-in-from-bottom-2 fill-mode-backwards duration-500 transition-opacity hover:opacity-80 sm:gap-1 sm:p-4',
                         style.bg,
                         style.border,
                       )}
                       style={{ animationDelay: `${idx * 40}ms` }}
                     >
-                      <span className={cn('text-sm font-medium leading-tight', style.text)}>
+                      <span className={cn('text-[11px] font-medium leading-tight sm:text-sm', style.text)}>
                         {style.label}
                       </span>
-                      <span className="font-heading text-3xl font-bold text-foreground">
+                      <span className="font-heading text-xl font-bold text-foreground sm:text-3xl">
                         <AnimatedNumber value={count} />
                       </span>
                     </Link>
