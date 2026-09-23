@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Trophy, CalendarCheck, Clock, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/data'
 import { fetchAllRows } from '@/lib/supabase/fetch-all'
@@ -90,60 +91,80 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Link href="/ranking">
           <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
-            <CardContent className="flex flex-col gap-1 p-4">
-              <span className="text-xs text-muted-foreground">Puntos totales</span>
-              <span className="font-heading text-2xl font-bold text-primary">
-                <AnimatedNumber
-                  value={rankingEntry?.total ?? 0}
-                  decimals={(rankingEntry?.total ?? 0) % 1 !== 0 ? 1 : 0}
-                />
-              </span>
-              <span className="text-[11px] text-muted-foreground">
-                {rankingEntry?.puntosOT ?? 0} por OTs · {rankingEntry?.puntosAsistencia ?? 0} por
-                asistencia
-              </span>
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Trophy className="size-6" />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">Puntos totales</span>
+                <span className="font-heading text-3xl font-bold text-primary">
+                  <AnimatedNumber
+                    value={rankingEntry?.total ?? 0}
+                    decimals={(rankingEntry?.total ?? 0) % 1 !== 0 ? 1 : 0}
+                  />
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {rankingEntry?.puntosOT ?? 0} por OTs · {rankingEntry?.puntosAsistencia ?? 0} por
+                  asistencia
+                </span>
+              </div>
             </CardContent>
           </Card>
         </Link>
         <Link href="/asistencia">
           <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
-            <CardContent className="flex flex-col gap-1 p-4">
-              <span className="text-xs text-muted-foreground">% Asistencia</span>
-              <span className="font-heading text-2xl font-bold text-foreground">
-                <AnimatedNumber value={attStats.porcentaje} suffix="%" />
-              </span>
-              <span className="text-[11px] text-muted-foreground">
-                {attStats.presentes} presentes · {attStats.tardanzas} tardanzas ·{' '}
-                {attStats.ausentes} ausentes
-              </span>
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-status-presente/10 text-status-presente">
+                <CalendarCheck className="size-6" />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">% Asistencia</span>
+                <span className="font-heading text-3xl font-bold text-foreground">
+                  <AnimatedNumber value={attStats.porcentaje} suffix="%" />
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {attStats.presentes} presentes · {attStats.tardanzas} tardanzas ·{' '}
+                  {attStats.ausentes} ausentes
+                </span>
+              </div>
             </CardContent>
           </Card>
         </Link>
         <Link href="/asistencia">
           <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
-            <CardContent className="flex flex-col gap-1 p-4">
-              <span className="text-xs text-muted-foreground">Horas acreditadas</span>
-              <span className="font-heading text-2xl font-bold text-foreground">
-                <AnimatedNumber value={attStats.horas} suffix="hs" />
-              </span>
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+                <Clock className="size-6" />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">Horas acreditadas</span>
+                <span className="font-heading text-3xl font-bold text-foreground">
+                  <AnimatedNumber value={attStats.horas} suffix="hs" />
+                </span>
+              </div>
             </CardContent>
           </Card>
         </Link>
-        <Link href={`/alumnos/${id}/ordenes`}>
+        <Link href={`/alumnos/${id}/ordenes?estado=${encodeURIComponent('Finalizada OK')}`}>
           <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
-            <CardContent className="flex flex-col gap-1 p-4">
-              <span className="text-xs text-muted-foreground">OTs finalizadas</span>
-              <span className="font-heading text-2xl font-bold text-foreground">
-                <AnimatedNumber value={finalizadas} />
-              </span>
-              <span className="text-[11px] text-muted-foreground">
-                {rankingEntry?.otsTaller ?? 0} taller · {rankingEntry?.otsTerritorio ?? 0}{' '}
-                territorio
-                {derivadas > 0 && ` · ${derivadas} derivadas`}
-              </span>
+            <CardContent className="flex items-center gap-4 p-6">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-status-finalizada/10 text-status-finalizada">
+                <CheckCircle2 className="size-6" />
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">OTs finalizadas</span>
+                <span className="font-heading text-3xl font-bold text-foreground">
+                  <AnimatedNumber value={finalizadas} />
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {rankingEntry?.otsTaller ?? 0} taller · {rankingEntry?.otsTerritorio ?? 0}{' '}
+                  territorio
+                  {derivadas > 0 && ` · ${derivadas} derivadas`}
+                </span>
+              </div>
             </CardContent>
           </Card>
         </Link>
@@ -174,7 +195,7 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
                   return (
                     <Link
                       key={estado}
-                      href={`/alumnos/${id}/ordenes`}
+                      href={`/alumnos/${id}/ordenes?estado=${encodeURIComponent(estado)}`}
                       className={cn(
                         'flex animate-in flex-col gap-0.5 rounded-lg border p-2 fade-in slide-in-from-bottom-2 fill-mode-backwards duration-500 transition-opacity hover:opacity-80',
                         style.bg,

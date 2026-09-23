@@ -9,10 +9,13 @@ import type { Profile, School, WorkOrder, WorkOrderEvent } from '@/lib/types'
 
 export default async function AlumnoOrdenesPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ estado?: string }>
 }) {
   const { id } = await params
+  const { estado: estadoFiltro } = await searchParams
   const supabase = await createClient()
   const { profile: currentProfile } = await getCurrentProfile()
 
@@ -50,7 +53,8 @@ export default async function AlumnoOrdenesPage({
     supabase.from('schools').select('*').order('nombre'),
   ])
 
-  const orders = (ordersData ?? []) as unknown as WorkOrder[]
+  const allOrders = (ordersData ?? []) as unknown as WorkOrder[]
+  const orders = estadoFiltro ? allOrders.filter((o) => o.estado === estadoFiltro) : allOrders
 
   return (
     <div className="flex flex-col gap-4">
@@ -66,12 +70,25 @@ export default async function AlumnoOrdenesPage({
         <h1 className="font-heading text-2xl font-bold text-foreground">
           OTs de {student.apellido_nombre}
         </h1>
-        <p className="text-sm text-muted-foreground">{orders.length} en total</p>
+        <p className="text-sm text-muted-foreground">
+          {estadoFiltro ? (
+            <>
+              {orders.length} en estado &quot;{estadoFiltro}&quot; ·{' '}
+              <Link href={`/alumnos/${id}/ordenes`} className="text-primary hover:underline">
+                ver todas ({allOrders.length})
+              </Link>
+            </>
+          ) : (
+            `${allOrders.length} en total`
+          )}
+        </p>
       </div>
 
       {orders.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Todavía no completó ningún paso en una OT.
+          {estadoFiltro
+            ? `No hay OT en estado "${estadoFiltro}".`
+            : 'Todavía no completó ningún paso en una OT.'}
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
