@@ -4,6 +4,7 @@ import { Trophy, Medal, CalendarCheck, Clock, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/data'
 import { fetchAllRows } from '@/lib/supabase/fetch-all'
+import { RankingCelebration } from '@/components/ranking-celebration'
 import {
   attendanceByKeyFrom,
   attendanceStatsFor,
@@ -64,6 +65,8 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
   const ranking = buildRanking(groupmates, finishedOrders, workOrderEvents, attendance)
   const rankingEntry = ranking.find((r) => r.profile.id === id)
   const puestoEnGrupo = ranking.findIndex((r) => r.profile.id === id) + 1
+  const tier = puestoEnGrupo > 0 ? podioTier(puestoEnGrupo) : null
+  const esGanador = tier === 'oro' && currentProfile.id === id
 
   const attStats = attendanceStatsFor(id, sessions, attendanceByKeyFrom(attendance))
 
@@ -88,42 +91,28 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-3">
-        {puestoEnGrupo > 0 &&
-          (() => {
-            const tier = podioTier(puestoEnGrupo)
-            if (!tier) return null
-            const Icon = tier === 'oro' ? Trophy : Medal
-            return (
-              <div
-                className={cn(
-                  'flex size-11 shrink-0 items-center justify-center rounded-full ring-2',
-                  PODIO_STYLE[tier].bg,
-                  PODIO_STYLE[tier].text,
-                  PODIO_STYLE[tier].ring,
-                )}
-              >
-                <Icon className="size-5" />
-              </div>
-            )
-          })()}
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-foreground">
-            {student.apellido_nombre}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {student.grupo ?? 'Sin grupo'}
-            {puestoEnGrupo > 0 && ` · #${puestoEnGrupo} en el ranking de su grupo`}
-          </p>
-        </div>
+      <RankingCelebration esGanador={esGanador} />
+      <div>
+        <h1 className="font-heading text-2xl font-bold text-foreground">
+          {student.apellido_nombre}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {student.grupo ?? 'Sin grupo'}
+          {puestoEnGrupo > 0 && ` · #${puestoEnGrupo} en el ranking de su grupo`}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Link href="/ranking">
           <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
             <CardContent className="flex items-center gap-4 p-6">
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Trophy className="size-6" />
+              <div
+                className={cn(
+                  'flex size-12 shrink-0 items-center justify-center rounded-full',
+                  tier ? cn(PODIO_STYLE[tier].bg, PODIO_STYLE[tier].text) : 'bg-primary/10 text-primary',
+                )}
+              >
+                {tier && tier !== 'oro' ? <Medal className="size-6" /> : <Trophy className="size-6" />}
               </div>
               <div className="flex flex-col gap-0.5">
                 <span className="text-xs text-muted-foreground">Puntos totales</span>
