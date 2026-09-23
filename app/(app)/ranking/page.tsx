@@ -6,6 +6,7 @@ import { Trophy, Medal } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { AnimatedNumber } from '@/components/animated-number'
 import { RankingCelebration, ProbarCelebracionButton } from '@/components/ranking-celebration'
+import { PageHint } from '@/components/page-hint'
 import { RANKING_PUNTOS } from '@/lib/status'
 import { buildRanking, podioTier, PODIO_STYLE, type FinishedOrder } from '@/lib/student-stats'
 import type { Attendance, Grupo, Profile, WorkOrderEvent } from '@/lib/types'
@@ -142,7 +143,7 @@ export default async function RankingPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="font-heading text-2xl font-bold text-foreground">Ranking</h1>
-          <p className="text-sm text-muted-foreground">
+          <PageHint label="¿Cómo se calcula?">
             Cómo se calcula: cada OT finalizada reparte +{RANKING_PUNTOS.taller}pts (taller) o +
             {RANKING_PUNTOS.territorio}pts (territorio) entre quienes completaron pasos en ella,
             proporcional a cuántos pasos hizo cada uno -- quien hizo más trabajo en una OT se
@@ -150,7 +151,7 @@ export default async function RankingPage() {
             <br />
             +{RANKING_PUNTOS.presente}pts por cada asistencia presente, y{' '}
             {RANKING_PUNTOS.tardanza}pts por cada tardanza. Hay un ranking por grupo.
-          </p>
+          </PageHint>
         </div>
         {currentProfile?.is_admin && <ProbarCelebracionButton />}
       </div>
