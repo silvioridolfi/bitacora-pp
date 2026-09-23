@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { AttendanceGrid } from '@/components/attendance-grid'
 import { ExportAttendanceButton } from '@/components/export-attendance-button'
-import { DailyRolesPanel } from '@/components/daily-roles-panel'
+import { DailyRolesTrigger } from '@/components/daily-roles-trigger'
 import { NewSessionForm } from '@/components/new-session-form'
 import { getCurrentProfile } from '@/lib/data'
 import { todayInArgentina, grupoDeHoy } from '@/lib/timezone'
@@ -110,16 +110,12 @@ export default async function AsistenciaPage({
       <NewSessionForm grupo={grupo} />
 
       {latestSession ? (
-        <div className="flex animate-in flex-col gap-2 fade-in slide-in-from-bottom-2 duration-500">
-          <p className="text-sm font-medium text-foreground">
-            Roles -- sesión #{latestSession.sesion_n} (hoy)
-          </p>
-          <DailyRolesPanel
-            sessionId={latestSession.id}
-            presentStudents={presentStudents}
-            roles={(dailyRolesRaw ?? []) as DailyRole[]}
-          />
-        </div>
+        <DailyRolesTrigger
+          sessionId={latestSession.id}
+          sesionN={latestSession.sesion_n}
+          presentStudents={presentStudents}
+          roles={(dailyRolesRaw ?? []) as DailyRole[]}
+        />
       ) : (
         <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
           Todavía no cargaste la sesión de hoy -- agregala arriba.
