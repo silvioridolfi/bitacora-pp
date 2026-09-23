@@ -132,7 +132,6 @@ export default async function EquipoPage({
                   <WorkOrderCard
                     workOrder={wo}
                     isAdmin={profile?.is_admin ?? false}
-                    currentProfileId={profile?.id ?? null}
                   />
                 }
                 isAdmin={profile?.is_admin ?? false}

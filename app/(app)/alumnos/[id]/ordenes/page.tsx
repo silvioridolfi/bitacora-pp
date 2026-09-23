@@ -103,7 +103,6 @@ export default async function AlumnoOrdenesPage({
                 <WorkOrderCard
                   workOrder={wo}
                   isAdmin={currentProfile.is_admin}
-                  currentProfileId={currentProfile.id}
                 />
               }
               isAdmin={currentProfile.is_admin}

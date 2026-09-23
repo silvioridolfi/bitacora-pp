@@ -199,11 +199,12 @@ export function TableroBoard({
                       <WorkOrderCard
                         workOrder={wo}
                         isAdmin={isAdmin}
-                        currentProfileId={currentProfileId}
                         onClick={() => setSelectedId(wo.id)}
                         responsableRoles={
                           wo.responsable_id ? (rolesByProfile[wo.responsable_id] ?? []) : []
                         }
+                        profiles={profiles}
+                        rolesByProfile={rolesByProfile}
                       />
                     </motion.div>
                   ))}

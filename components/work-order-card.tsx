@@ -9,8 +9,14 @@ import { formatDate, formatHoraArgentina } from '@/lib/format'
 import { hasReliableCreatedAt } from '@/lib/timezone'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import { toggleWorkOrderEvent } from '@/lib/actions'
-import { FED_PROFILE_ID, WORK_ORDER_PASOS_BLOQUEANTES, WORK_ORDER_PASO_INFO } from '@/lib/types'
-import type { DailyRoleName, WorkOrder } from '@/lib/types'
+import {
+  FED_PROFILE_ID,
+  WORK_ORDER_PASOS_BLOQUEANTES,
+  WORK_ORDER_PASO_INFO,
+  motivoSinDesbloqueo,
+  sugerirResponsablePaso,
+} from '@/lib/types'
+import type { DailyRoleName, Profile, WorkOrder } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 const DAILY_ROLE_SHORT: Record<DailyRoleName, string> = {
@@ -26,14 +32,20 @@ export function WorkOrderCard({
   workOrder,
   onClick,
   isAdmin = false,
-  currentProfileId = null,
   responsableRoles = [],
+  profiles = [],
+  rolesByProfile = {},
 }: {
   workOrder: WorkOrder
   onClick?: () => void
   isAdmin?: boolean
-  currentProfileId?: string | null
   responsableRoles?: DailyRoleName[]
+  /** Perfiles del grupo -- junto con rolesByProfile, se usan para sugerir
+   * automáticamente quién hizo cada paso al marcarlo rápido desde acá
+   * (mismo criterio que el selector del detalle), en vez de atribuírselo
+   * siempre a quien está mirando la pantalla. */
+  profiles?: Profile[]
+  rolesByProfile?: Record<string, DailyRoleName[]>
 }) {
   const style = WORK_ORDER_STATUS_STYLE[workOrder.estado]
   const [pending, startTransition] = useTransition()
@@ -54,10 +66,10 @@ export function WorkOrderCard({
   }, [workOrder.estado])
 
   const doneClaves = new Set((workOrder.work_order_events ?? []).map((e) => e.clave))
-  // El equipo ya vino "Enciende sin bloqueo" -- esa etapa no aplica, se
-  // libera directo y nunca vuelve a bloquearse.
+  // Si el desbloqueo no aplica a este equipo (mismo criterio que el
+  // detalle), esa etapa se salta acá también.
   const pasosAplicables = WORK_ORDER_PASOS_BLOQUEANTES.filter(
-    (p) => !(p === 'desbloqueo' && workOrder.equipment?.estado_inicial === 'Enciende sin bloqueo'),
+    (p) => !(p === 'desbloqueo' && motivoSinDesbloqueo(workOrder.equipment)),
   )
   const nextPaso =
     workOrder.estado !== 'Finalizada OK' && workOrder.estado !== 'Derivada'
@@ -65,12 +77,24 @@ export function WorkOrderCard({
       : undefined
   const nextInfo = nextPaso ? WORK_ORDER_PASO_INFO[nextPaso] : undefined
 
+  // Quién quedaría acreditado si se marca este paso desde acá -- nunca
+  // quien está mirando la pantalla (salvo que además sea a quien le tocó
+  // el rol del día), para no atribuirle a un admin o a otro alumno el
+  // trabajo de quien realmente lo hizo.
+  const gruposProfiles = workOrder.grupo
+    ? profiles.filter((p) => p.grupo === workOrder.grupo)
+    : profiles
+  const quickActionProfileId = nextPaso
+    ? nextInfo?.responsableFijo
+      ? FED_PROFILE_ID
+      : sugerirResponsablePaso(nextPaso, gruposProfiles, rolesByProfile)
+    : null
+
   function handleQuickAction(e: React.MouseEvent) {
     e.stopPropagation()
-    if (!nextPaso) return
-    const profileId = nextInfo?.responsableFijo ? FED_PROFILE_ID : currentProfileId
+    if (!nextPaso || !quickActionProfileId) return
     startTransition(async () => {
-      const result = await toggleWorkOrderEvent(workOrder.id, nextPaso, profileId)
+      const result = await toggleWorkOrderEvent(workOrder.id, nextPaso, quickActionProfileId)
       if (result.ok) {
         toast.success(`${WORK_ORDER_PASO_INFO[nextPaso].label} completado`)
         router.refresh()
@@ -183,7 +207,7 @@ export function WorkOrderCard({
           </p>
         )}
 
-      {nextInfo && (
+      {nextInfo && quickActionProfileId && (
         <button
           type="button"
           disabled={pending}
