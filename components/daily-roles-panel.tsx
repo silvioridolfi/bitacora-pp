@@ -52,7 +52,7 @@ export function DailyRolesPanel({
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4">
+    <div className="flex animate-in flex-col gap-4 rounded-lg border border-border bg-card p-4 fade-in slide-in-from-bottom-2 duration-500">
       <p className="text-xs font-semibold text-foreground">Roles de hoy</p>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
