@@ -15,6 +15,22 @@ const THIN_BORDER = {
   right: { style: 'thin' as const, color: { argb: 'FFDDDDDD' } },
 }
 
+// Los nombres de hoja de Excel no pueden pasar 31 caracteres ni contener
+// \ / ? * [ ] : -- y tienen que ser únicos dentro del libro (dos alumnos
+// con el mismo apellido y nombre, aunque sea raro, no pueden chocar).
+function sheetNameFor(apellidoNombre: string, used: Set<string>): string {
+  const base = apellidoNombre.replace(/[\\/?*[\]:]/g, '').slice(0, 31) || 'Alumno'
+  let name = base
+  let i = 2
+  while (used.has(name)) {
+    const suffix = ` (${i})`
+    name = base.slice(0, 31 - suffix.length) + suffix
+    i++
+  }
+  used.add(name)
+  return name
+}
+
 export async function buildAttendanceExcel({
   students,
   sessions,
@@ -56,101 +72,110 @@ export async function buildAttendanceExcel({
     return { presentes, tardanzas, ausentes, horas, porcentaje }
   }
 
-  // -- Hoja 1: matriz de asistencia (una fila por sesión, una columna por alumno)
-  const sheet = workbook.addWorksheet('Asistencia', {
-    views: [{ state: 'frozen', xSplit: 2, ySplit: 4 }],
-  })
-  sheet.addRow([titulo]).font = { name: 'Encode Sans', bold: true, size: 14 }
-  sheet.addRow([`Generado el ${formatDate(new Date().toISOString().slice(0, 10))}`]).font = {
-    name: 'Encode Sans',
-    italic: true,
-    color: { argb: 'FF666666' },
-  }
-  sheet.addRow([])
+  // -- Hoja "Resumen": un vistazo rápido de todo el grupo (solo tiene
+  // sentido cuando hay más de un alumno en el informe).
+  if (students.length > 1) {
+    const summarySheet = workbook.addWorksheet('Resumen')
+    summarySheet.addRow([titulo]).font = { name: 'Encode Sans', bold: true, size: 14 }
+    summarySheet.addRow([`Generado el ${formatDate(new Date().toISOString().slice(0, 10))}`]).font = {
+      name: 'Encode Sans',
+      italic: true,
+      color: { argb: 'FF666666' },
+    }
+    summarySheet.addRow([])
 
-  const headerRow = sheet.addRow(['Sesión', 'Fecha', ...students.map((s) => s.apellido_nombre)])
-  headerRow.eachCell((cell) => {
-    cell.font = { name: 'Encode Sans', bold: true }
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5EEF5' } }
-    cell.border = THIN_BORDER
-    cell.alignment = { horizontal: 'center', vertical: 'middle' }
-  })
-  headerRow.getCell(1).alignment = { horizontal: 'left' }
-  headerRow.getCell(2).alignment = { horizontal: 'left' }
-
-  for (const session of sessions) {
-    const row = sheet.addRow([
-      `Sesión #${session.sesion_n}`,
-      formatDate(session.fecha),
-      ...students.map((student) => attendanceByKey.get(`${student.id}:${session.id}`) ?? '—'),
+    const summaryHeader = summarySheet.addRow([
+      'Alumno',
+      'Presentes',
+      'Tardanzas',
+      'Ausentes',
+      '% Asistencia',
+      'Horas acreditadas',
     ])
-    row.eachCell((cell, colNumber) => {
-      cell.font = { name: 'Encode Sans' }
+    summaryHeader.eachCell((cell) => {
+      cell.font = { name: 'Encode Sans', bold: true }
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5EEF5' } }
       cell.border = THIN_BORDER
-      if (colNumber > 2) {
-        cell.alignment = { horizontal: 'center' }
-        const estado = String(cell.value)
-        if (ESTADO_ARGB[estado]) {
-          cell.font = { name: 'Encode Sans', bold: true, color: { argb: ESTADO_ARGB[estado] } }
-        }
-      }
+      cell.alignment = { horizontal: 'center', vertical: 'middle' }
     })
+    summaryHeader.getCell(1).alignment = { horizontal: 'left' }
+
+    for (const student of students) {
+      const stats = statsFor(student.id)
+      const row = summarySheet.addRow([
+        student.apellido_nombre,
+        stats.presentes,
+        stats.tardanzas,
+        stats.ausentes,
+        `${stats.porcentaje}%`,
+        stats.horas,
+      ])
+      row.eachCell((cell, colNumber) => {
+        cell.font = { name: 'Encode Sans' }
+        cell.border = THIN_BORDER
+        if (colNumber > 1) cell.alignment = { horizontal: 'center' }
+      })
+    }
+
+    summarySheet.getColumn(1).width = 28
+    for (let i = 2; i <= 6; i++) summarySheet.getColumn(i).width = 16
   }
 
-  const totalRow = sheet.addRow([
-    'Total (horas)',
-    '',
-    ...students.map((s) => statsFor(s.id).horas),
-  ])
-  totalRow.eachCell((cell, colNumber) => {
-    cell.font = { name: 'Encode Sans', bold: true }
-    cell.border = THIN_BORDER
-    if (colNumber > 2) cell.alignment = { horizontal: 'center' }
-  })
-
-  sheet.getColumn(1).width = 16
-  sheet.getColumn(2).width = 14
-  students.forEach((_, i) => {
-    sheet.getColumn(i + 3).width = 20
-  })
-
-  // -- Hoja 2: resumen por alumno
-  const summarySheet = workbook.addWorksheet('Resumen por alumno')
-  const summaryHeader = summarySheet.addRow([
-    'Alumno',
-    'Presentes',
-    'Tardanzas',
-    'Ausentes',
-    '% Asistencia',
-    'Horas acreditadas',
-  ])
-  summaryHeader.eachCell((cell) => {
-    cell.font = { name: 'Encode Sans', bold: true }
-    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5EEF5' } }
-    cell.border = THIN_BORDER
-    cell.alignment = { horizontal: 'center', vertical: 'middle' }
-  })
-  summaryHeader.getCell(1).alignment = { horizontal: 'left' }
-
+  // -- Una hoja por alumno, con su propio historial de sesiones (de la
+  // más nueva a la más vieja) -- así el seguimiento de cada uno queda
+  // autocontenido y no se corta por tener que compartir una sola hoja
+  // ancha con el resto del grupo.
+  const usedSheetNames = new Set<string>()
   for (const student of students) {
     const stats = statsFor(student.id)
-    const row = summarySheet.addRow([
-      student.apellido_nombre,
-      stats.presentes,
-      stats.tardanzas,
-      stats.ausentes,
-      `${stats.porcentaje}%`,
-      stats.horas,
-    ])
-    row.eachCell((cell, colNumber) => {
-      cell.font = { name: 'Encode Sans' }
-      cell.border = THIN_BORDER
-      if (colNumber > 1) cell.alignment = { horizontal: 'center' }
+    const sheet = workbook.addWorksheet(sheetNameFor(student.apellido_nombre, usedSheetNames), {
+      views: [{ state: 'frozen', ySplit: 7 }],
     })
-  }
 
-  summarySheet.getColumn(1).width = 28
-  for (let i = 2; i <= 6; i++) summarySheet.getColumn(i).width = 16
+    sheet.addRow([student.apellido_nombre]).font = { name: 'Encode Sans', bold: true, size: 14 }
+    sheet.addRow([titulo]).font = {
+      name: 'Encode Sans',
+      italic: true,
+      color: { argb: 'FF666666' },
+    }
+    sheet.addRow([])
+
+    const totalRow = sheet.addRow(['Total (horas)', stats.horas])
+    totalRow.getCell(1).font = { name: 'Encode Sans', bold: true }
+    totalRow.getCell(2).font = { name: 'Encode Sans', bold: true, size: 13 }
+    sheet.addRow([
+      `${stats.presentes} presentes · ${stats.tardanzas} tardanzas · ${stats.ausentes} ausentes (${stats.porcentaje}% de asistencia)`,
+    ]).font = { name: 'Encode Sans', italic: true, color: { argb: 'FF666666' } }
+    sheet.addRow([])
+
+    const headerRow = sheet.addRow(['Sesión', 'Fecha', 'Estado'])
+    headerRow.eachCell((cell) => {
+      cell.font = { name: 'Encode Sans', bold: true }
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5EEF5' } }
+      cell.border = THIN_BORDER
+      cell.alignment = { horizontal: 'center', vertical: 'middle' }
+    })
+    headerRow.getCell(1).alignment = { horizontal: 'left' }
+    headerRow.getCell(2).alignment = { horizontal: 'left' }
+
+    for (const session of sessions) {
+      const estado = attendanceByKey.get(`${student.id}:${session.id}`) ?? '—'
+      const row = sheet.addRow([`Sesión #${session.sesion_n}`, formatDate(session.fecha), estado])
+      row.eachCell((cell, colNumber) => {
+        cell.font = { name: 'Encode Sans' }
+        cell.border = THIN_BORDER
+        if (colNumber === 3) {
+          cell.alignment = { horizontal: 'center' }
+          const argb = ESTADO_ARGB[estado]
+          if (argb) cell.font = { name: 'Encode Sans', bold: true, color: { argb } }
+        }
+      })
+    }
+
+    sheet.getColumn(1).width = 16
+    sheet.getColumn(2).width = 14
+    sheet.getColumn(3).width = 16
+  }
 
   const buffer = await workbook.xlsx.writeBuffer()
   return Buffer.from(buffer)

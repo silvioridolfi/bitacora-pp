@@ -235,10 +235,13 @@ function AttendanceDocument({
           </View>
         )}
 
-        {students.map((student) => {
+        {students.map((student, index) => {
           const stats = computeStats(student.id, sessions, attendanceByKey)
           return (
-            <View key={student.id}>
+            // Cada alumno arranca en una hoja nueva -- si no, su propia
+            // tabla de sesiones puede quedar cortada a mitad de página
+            // (o empezar pegada al resumen del alumno anterior).
+            <View key={student.id} break={index > 0}>
               <View wrap={false}>
                 <Text style={styles.studentHeading}>{student.apellido_nombre}</Text>
                 <Text style={styles.studentSubheading}>

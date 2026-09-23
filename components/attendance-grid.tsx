@@ -168,6 +168,21 @@ export function AttendanceGrid({
                 </th>
               ))}
             </tr>
+            {sessions.length > 0 && (
+              <tr className="border-b border-border bg-muted/30">
+                <th className="sticky left-0 z-10 bg-muted/30 px-3 py-2 text-left font-medium text-foreground">
+                  Total (hs)
+                </th>
+                {students.map((student) => (
+                  <th
+                    key={student.id}
+                    className="min-w-20 px-1 py-2 text-center text-sm font-semibold text-foreground"
+                  >
+                    {horasAcreditadas(student.id)}h
+                  </th>
+                ))}
+              </tr>
+            )}
           </thead>
           <tbody>
             {sessions.map((s) => {
@@ -253,31 +268,6 @@ export function AttendanceGrid({
               </tr>
             )}
           </tbody>
-          {sessions.length > 0 && (
-            <tfoot>
-              <tr className="border-t border-border bg-muted/30">
-                <td className="sticky left-0 z-10 bg-muted/30 px-3 py-2 font-medium text-foreground">
-                  Total
-                </td>
-                {students.map((student) => (
-                  <td
-                    key={student.id}
-                    className="min-w-20 px-1 py-2 text-center font-medium text-foreground"
-                  >
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-xs leading-tight text-muted-foreground">
-                        {student.apellido_nombre}
-                      </span>
-                      <span className="w-6 border-t border-border" />
-                      <span className="text-sm font-semibold">
-                        {horasAcreditadas(student.id)}h
-                      </span>
-                    </div>
-                  </td>
-                ))}
-              </tr>
-            </tfoot>
-          )}
         </table>
       </div>
     </div>
