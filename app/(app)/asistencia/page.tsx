@@ -21,7 +21,7 @@ export default async function AsistenciaPage({
 
   const [{ data: students }, { data: sessions }, { profile }] = await Promise.all([
     supabase.from('profiles').select('*').eq('grupo', grupo).order('apellido_nombre'),
-    supabase.from('sessions').select('*').eq('grupo', grupo).order('sesion_n'),
+    supabase.from('sessions').select('*').eq('grupo', grupo).order('sesion_n', { ascending: false }),
     getCurrentProfile(),
   ])
 
@@ -38,8 +38,9 @@ export default async function AsistenciaPage({
 
   const sessionsList = (sessions ?? []) as Session[]
   const today = todayInArgentina()
-  const latestSession =
-    sessionsList.find((s) => s.fecha === today) ?? sessionsList[sessionsList.length - 1] ?? null
+  // sessionsList viene ordenada de la más nueva a la más vieja (ver
+  // query arriba), así que la última sesión creada es el primer elemento.
+  const latestSession = sessionsList.find((s) => s.fecha === today) ?? sessionsList[0] ?? null
   const isActuallyToday = latestSession?.fecha === today
 
   const presentStudents = latestSession
