@@ -29,6 +29,7 @@ import {
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
@@ -65,10 +66,34 @@ export function AppSidebar({
   // next-themes no sabe el tema real hasta montar en el cliente -- sin
   // este guard, el ícono parpadearía entre sol/luna al hidratar.
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  // "Nuevo" al lado de Mi perfil hasta que lo clickeen una vez -- así se
+  // enteran de que existe sin depender de que alguien se los avise a
+  // mano. Arranca en true (oculto) hasta montar para no mostrarlo de
+  // más un instante mientras se lee localStorage.
+  const [miPerfilVisto, setMiPerfilVisto] = useState(true)
+  useEffect(() => {
+    setMounted(true)
+    try {
+      setMiPerfilVisto(localStorage.getItem('mi-perfil-visto') === 'true')
+    } catch {
+      // Si localStorage no está disponible (modo privado, etc.), no
+      // rompe nada -- simplemente no se muestra la etiqueta.
+    }
+  }, [])
 
   function handleNavClick() {
     if (isMobile) setOpenMobile(false)
+  }
+
+  function handleMiPerfilClick() {
+    handleNavClick()
+    setMiPerfilVisto(true)
+    try {
+      localStorage.setItem('mi-perfil-visto', 'true')
+    } catch {
+      // Sin localStorage, la etiqueta vuelve a aparecer en la próxima
+      // visita -- no ideal, pero no bloquea nada.
+    }
   }
 
   async function handleLogout() {
@@ -109,7 +134,7 @@ export function AppSidebar({
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     render={
-                      <Link href={`/alumnos/${profileId}`} onClick={handleNavClick} />
+                      <Link href={`/alumnos/${profileId}`} onClick={handleMiPerfilClick} />
                     }
                     isActive={pathname.startsWith(`/alumnos/${profileId}`)}
                     tooltip="Mi perfil"
@@ -117,6 +142,11 @@ export function AppSidebar({
                     <UserRound />
                     <span>Mi perfil</span>
                   </SidebarMenuButton>
+                  {mounted && !miPerfilVisto && (
+                    <SidebarMenuBadge className="bg-primary text-primary-foreground">
+                      Nuevo
+                    </SidebarMenuBadge>
+                  )}
                 </SidebarMenuItem>
               )}
               {NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin).map((item) => {
