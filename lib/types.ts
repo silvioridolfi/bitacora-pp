@@ -234,16 +234,14 @@ export function sugerirResponsablePaso(
   return candidatos.length === 1 ? candidatos[0].id : null
 }
 
-/** Por qué el paso de desbloqueo no aplica a este equipo (null si sí aplica):
- * o llegó "Enciende sin bloqueo", o no es una netbook (el desbloqueo es un
- * concepto específico de netbooks con contraseña de bloqueo). */
+/** Por qué el paso de reprogramación no aplica a este equipo (null si sí
+ * aplica): solo si no es una netbook -- la reprogramación con el ch341a
+ * es un procedimiento preventivo (evita bloqueos futuros de BIOS), no
+ * depende de si el equipo llegó bloqueado o "Enciende sin bloqueo". */
 export function motivoSinDesbloqueo(
-  equipment: Pick<Equipment, 'estado_inicial' | 'tipo_equipo'> | null | undefined,
+  equipment: Pick<Equipment, 'tipo_equipo'> | null | undefined,
 ): string | null {
   if (!equipment) return null
-  if (equipment.estado_inicial === 'Enciende sin bloqueo') {
-    return 'el equipo llegó "Enciende sin bloqueo"'
-  }
   if (equipment.tipo_equipo && equipment.tipo_equipo !== 'netbook') {
     return `no aplica a equipos tipo "${TIPO_EQUIPO_LABEL[equipment.tipo_equipo]}"`
   }
