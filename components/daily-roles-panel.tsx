@@ -52,7 +52,7 @@ export function DailyRolesPanel({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {EXCLUSIVE_DAILY_ROLES.map((rol) => {
           const holder = holderOf(rol)
@@ -77,7 +77,7 @@ export function DailyRolesPanel({
         })}
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="min-w-0 overflow-x-auto">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-border">
