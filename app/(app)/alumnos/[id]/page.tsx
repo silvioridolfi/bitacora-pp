@@ -1,10 +1,17 @@
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Trophy, CalendarCheck, Clock, CheckCircle2 } from 'lucide-react'
+import { Trophy, Medal, CalendarCheck, Clock, CheckCircle2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/data'
 import { fetchAllRows } from '@/lib/supabase/fetch-all'
-import { attendanceByKeyFrom, attendanceStatsFor, buildRanking, type FinishedOrder } from '@/lib/student-stats'
+import {
+  attendanceByKeyFrom,
+  attendanceStatsFor,
+  buildRanking,
+  podioTier,
+  PODIO_STYLE,
+  type FinishedOrder,
+} from '@/lib/student-stats'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import { Card, CardContent } from '@/components/ui/card'
 import { AnimatedNumber } from '@/components/animated-number'
@@ -81,14 +88,34 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">
-          {student.apellido_nombre}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {student.grupo ?? 'Sin grupo'}
-          {puestoEnGrupo > 0 && ` · #${puestoEnGrupo} en el ranking de su grupo`}
-        </p>
+      <div className="flex items-center gap-3">
+        {puestoEnGrupo > 0 &&
+          (() => {
+            const tier = podioTier(puestoEnGrupo)
+            if (!tier) return null
+            const Icon = tier === 'oro' ? Trophy : Medal
+            return (
+              <div
+                className={cn(
+                  'flex size-11 shrink-0 items-center justify-center rounded-full ring-2',
+                  PODIO_STYLE[tier].bg,
+                  PODIO_STYLE[tier].text,
+                  PODIO_STYLE[tier].ring,
+                )}
+              >
+                <Icon className="size-5" />
+              </div>
+            )
+          })()}
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-foreground">
+            {student.apellido_nombre}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {student.grupo ?? 'Sin grupo'}
+            {puestoEnGrupo > 0 && ` · #${puestoEnGrupo} en el ranking de su grupo`}
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
