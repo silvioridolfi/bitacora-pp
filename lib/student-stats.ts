@@ -18,8 +18,10 @@ export function podioTier(puesto: number): PodioTier | null {
  * reusa las clases que ya tenía el 1° puesto en el ranking. */
 export const PODIO_STYLE: Record<PodioTier, { bg: string; text: string; ring: string }> = {
   oro: { bg: 'bg-status-pendiente', text: 'text-foreground', ring: 'ring-yellow-400/60' },
-  plata: { bg: 'bg-slate-300/40', text: 'text-slate-600', ring: 'ring-slate-400/50' },
-  bronce: { bg: 'bg-amber-700/20', text: 'text-amber-700', ring: 'ring-amber-700/40' },
+  // Fondo sólido (no atenuado) + ícono blanco -- con opacidad baja el
+  // ícono quedaba casi invisible en tema oscuro (gris sobre gris).
+  plata: { bg: 'bg-slate-400', text: 'text-white', ring: 'ring-slate-400/50' },
+  bronce: { bg: 'bg-amber-700', text: 'text-white', ring: 'ring-amber-700/40' },
 }
 
 /**
