@@ -131,20 +131,24 @@ export function WorkOrderForm({
         />
       )}
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto sm:max-w-lg">
+        {/* Sticky para que el número de OT quede siempre visible al bajar
+            por el formulario -- si no, se pierde de vista justo cuando
+            más se lo necesita (para copiarlo/anotarlo). Tiene que ser
+            hijo directo de DialogContent (el contenedor con scroll), no
+            de DialogHeader: si quedara anidado ahí, solo se mantendría
+            fijo mientras la altura del propio header estuviera a la
+            vista, y se perdería apenas se scrollea más allá de eso. */}
+        <div className="sticky top-0 -mx-4 bg-popover px-4 pr-10">
+          <DialogTitle className="font-heading">
+            {workOrder ? `Editar ${workOrder.codigo}` : `Nueva OT de ${tipo}`}
+          </DialogTitle>
+          {!workOrder && proximoCodigo && (
+            <p className="font-heading text-2xl font-bold tracking-tight text-primary">
+              {proximoCodigo}
+            </p>
+          )}
+        </div>
         <DialogHeader>
-          {/* Sticky para que el número de OT quede siempre visible al
-              bajar por el formulario -- si no, se pierde de vista justo
-              cuando más se lo necesita (para copiarlo/anotarlo). */}
-          <div className="sticky top-0 -mx-4 bg-popover px-4 pr-10">
-            <DialogTitle className="font-heading">
-              {workOrder ? `Editar ${workOrder.codigo}` : `Nueva OT de ${tipo}`}
-            </DialogTitle>
-            {!workOrder && proximoCodigo && (
-              <p className="font-heading text-2xl font-bold tracking-tight text-primary">
-                {proximoCodigo}
-              </p>
-            )}
-          </div>
           <DialogDescription>
             {workOrder
               ? hasReliableCreatedAt(workOrder.created_at)
