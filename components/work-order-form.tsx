@@ -22,6 +22,7 @@ import { formatDate, formatHoraArgentina } from '@/lib/format'
 import { createWorkOrder, updateWorkOrder, deleteWorkOrder, changeWorkOrderTipo } from '@/lib/actions'
 import { EditEquipmentButton } from '@/components/edit-equipment-button'
 import { WORK_ORDER_ESTADOS, motivoSinDesbloqueo } from '@/lib/types'
+import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import type { DailyRoleName, Profile, School, TipoOT, WorkOrder } from '@/lib/types'
 import { WorkOrderTimeline } from '@/components/work-order-timeline'
 import { EquipoIntakeFields } from '@/components/equipo-intake-fields'
@@ -268,7 +269,9 @@ export function WorkOrderForm({
 
             {workOrder ? (
               <Field>
-                <FieldLabel>Estado ({workOrder.estado})</FieldLabel>
+                <FieldLabel>
+                  Estado ({WORK_ORDER_STATUS_STYLE[workOrder.estado].label})
+                </FieldLabel>
                 <WorkOrderTimeline
                   workOrderId={workOrder.id}
                   events={workOrder.work_order_events ?? []}
@@ -296,7 +299,7 @@ export function WorkOrderForm({
                 >
                   {WORK_ORDER_ESTADOS.map((e) => (
                     <option key={e} value={e}>
-                      {e}
+                      {WORK_ORDER_STATUS_STYLE[e].label}
                     </option>
                   ))}
                 </select>
@@ -313,7 +316,7 @@ export function WorkOrderForm({
                 >
                   {WORK_ORDER_ESTADOS.map((e) => (
                     <option key={e} value={e}>
-                      {e}
+                      {WORK_ORDER_STATUS_STYLE[e].label}
                     </option>
                   ))}
                 </select>

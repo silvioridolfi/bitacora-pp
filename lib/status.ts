@@ -24,7 +24,7 @@ export const WORK_ORDER_STATUS_STYLE: Record<WorkOrderEstado, StatusStyle> = {
     dot: 'bg-status-diagnosticando',
   },
   Desbloqueada: {
-    label: 'Desbloqueada',
+    label: 'Reprogramada',
     bg: 'bg-status-desbloqueada/10',
     border: 'border-status-desbloqueada/40',
     text: 'text-status-desbloqueada',

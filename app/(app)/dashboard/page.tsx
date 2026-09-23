@@ -85,7 +85,7 @@ export default async function DashboardPage() {
       )}`,
     },
     {
-      label: 'Desbloqueados',
+      label: 'Reprogramados',
       value: desbloqueados,
       href: `/tablero?estados=${encodeURIComponent(
         'Desbloqueada,Instalando SO,Configurando,Probando,Finalizada OK',

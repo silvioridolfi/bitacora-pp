@@ -173,7 +173,7 @@ export const WORK_ORDER_PASO_INFO: Record<
 > = {
   desarme: { label: 'Desarme', rol: 'Técnico', resultingEstado: 'Diagnosticando' },
   desbloqueo: {
-    label: 'Desbloqueo',
+    label: 'Reprogramación',
     rol: 'Reprogramador',
     resultingEstado: 'Desbloqueada',
     responsableFijo: true,

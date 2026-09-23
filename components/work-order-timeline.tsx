@@ -242,7 +242,7 @@ export function WorkOrderTimeline({
 
       {desbloqueoSkipMotivo && (
         <p className="text-[11px] italic text-muted-foreground">
-          Desbloqueo: no aplica ({desbloqueoSkipMotivo}).
+          Reprogramación: no aplica ({desbloqueoSkipMotivo}).
         </p>
       )}
 
