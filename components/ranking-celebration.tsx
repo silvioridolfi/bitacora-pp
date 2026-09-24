@@ -14,14 +14,15 @@ const COLORS = ['#f43f91', '#705ccb', '#02afc9', '#ebb715', '#1f9d5a']
  * explosión nueva en CADA frame durante ~2s (hasta ~120 disparos de
  * 60 partículas, miles de partículas simultáneas) -- muy pesado en
  * hardware viejo, se notaba clarísimo cómo se iba frenando a medida
- * que caían. Ahora son 6 disparos discretos y espaciados en el
- * tiempo, con menos partículas cada uno y una vida más corta
- * (`ticks`), así que nunca hay tantas partículas juntas en pantalla.
- * Cada disparo sale de un punto aleatorio de la pantalla (no siempre
- * los mismos 6 puntos en el mismo orden), para que se sienta más
- * como fuegos artificiales y menos como una secuencia prearmada. */
+ * que caían. Ahora son 15 disparos discretos y espaciados en el
+ * tiempo, con menos partículas cada uno (bajado a 20 al pasar de 6 a
+ * 15 disparos, para que el pico de partículas simultáneas en pantalla
+ * no crezca demasiado) y una vida más corta (`ticks`). Cada disparo
+ * sale de un punto aleatorio de la pantalla (no siempre los mismos
+ * puntos en el mismo orden), para que se sienta más como fuegos
+ * artificiales y menos como una secuencia prearmada. */
 function dispararFuegosArtificiales() {
-  const disparos = Array.from({ length: 6 }, (_, i) => ({
+  const disparos = Array.from({ length: 15 }, (_, i) => ({
     originX: 0.1 + Math.random() * 0.8,
     originY: 0.25 + Math.random() * 0.4,
     delay: i * 150,
@@ -30,7 +31,7 @@ function dispararFuegosArtificiales() {
   for (const { originX, originY, delay } of disparos) {
     setTimeout(() => {
       confetti({
-        particleCount: 35,
+        particleCount: 20,
         spread: 65,
         startVelocity: 40,
         ticks: 150,
