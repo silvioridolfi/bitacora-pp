@@ -14,15 +14,17 @@ const COLORS = ['#f43f91', '#705ccb', '#02afc9', '#ebb715', '#1f9d5a']
  * explosión nueva en CADA frame durante ~2s (hasta ~120 disparos de
  * 60 partículas, miles de partículas simultáneas) -- muy pesado en
  * hardware viejo, se notaba clarísimo cómo se iba frenando a medida
- * que caían. Ahora son 4 disparos discretos y espaciados en el
+ * que caían. Ahora son 6 disparos discretos y espaciados en el
  * tiempo, con menos partículas cada uno y una vida más corta
  * (`ticks`), así que nunca hay tantas partículas juntas en pantalla. */
 function dispararFuegosArtificiales() {
   const disparos = [
-    { originX: 0.2, delay: 0 },
-    { originX: 0.5, delay: 200 },
-    { originX: 0.8, delay: 400 },
-    { originX: 0.35, delay: 650 },
+    { originX: 0.15, delay: 0 },
+    { originX: 0.35, delay: 150 },
+    { originX: 0.55, delay: 300 },
+    { originX: 0.75, delay: 450 },
+    { originX: 0.9, delay: 600 },
+    { originX: 0.5, delay: 800 },
   ]
 
   for (const { originX, delay } of disparos) {
