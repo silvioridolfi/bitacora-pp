@@ -141,8 +141,11 @@ export function WorkOrderForm({
         <div className="flex flex-col gap-4">
           {/* Sticky para que el número de OT quede siempre visible al bajar
               por el formulario -- si no, se pierde de vista justo cuando
-              más se lo necesita (para copiarlo/anotarlo). */}
-          <div className="sticky top-0 -mx-4 -mt-4 border-b border-border bg-popover px-4 pt-4 pr-10 pb-3">
+              más se lo necesita (para copiarlo/anotarlo). z-10 para que
+              quede siempre por encima de campos del formulario con su
+              propio position (ej. el combobox de escuela), que si no
+              terminan pintándose por encima del fondo de esta barra. */}
+          <div className="sticky top-0 z-10 -mx-4 -mt-4 border-b border-border bg-popover px-4 pt-4 pr-10 pb-3">
             <DialogTitle className="font-heading">
               {workOrder ? `Editar ${workOrder.codigo}` : `Nueva OT de ${tipo}`}
             </DialogTitle>
