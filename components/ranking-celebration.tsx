@@ -16,25 +16,25 @@ const COLORS = ['#f43f91', '#705ccb', '#02afc9', '#ebb715', '#1f9d5a']
  * hardware viejo, se notaba clarísimo cómo se iba frenando a medida
  * que caían. Ahora son 6 disparos discretos y espaciados en el
  * tiempo, con menos partículas cada uno y una vida más corta
- * (`ticks`), así que nunca hay tantas partículas juntas en pantalla. */
+ * (`ticks`), así que nunca hay tantas partículas juntas en pantalla.
+ * Cada disparo sale de un punto aleatorio de la pantalla (no siempre
+ * los mismos 6 puntos en el mismo orden), para que se sienta más
+ * como fuegos artificiales y menos como una secuencia prearmada. */
 function dispararFuegosArtificiales() {
-  const disparos = [
-    { originX: 0.15, delay: 0 },
-    { originX: 0.35, delay: 150 },
-    { originX: 0.55, delay: 300 },
-    { originX: 0.75, delay: 450 },
-    { originX: 0.9, delay: 600 },
-    { originX: 0.5, delay: 800 },
-  ]
+  const disparos = Array.from({ length: 6 }, (_, i) => ({
+    originX: 0.1 + Math.random() * 0.8,
+    originY: 0.25 + Math.random() * 0.4,
+    delay: i * 150,
+  }))
 
-  for (const { originX, delay } of disparos) {
+  for (const { originX, originY, delay } of disparos) {
     setTimeout(() => {
       confetti({
         particleCount: 35,
         spread: 65,
         startVelocity: 40,
         ticks: 150,
-        origin: { x: originX, y: 0.55 },
+        origin: { x: originX, y: originY },
         colors: COLORS,
       })
     }, delay)
