@@ -15,6 +15,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -103,7 +114,6 @@ export function WorkOrderForm({
 
   function handleDelete() {
     if (!workOrder) return
-    if (!confirm(`¿Borrar la OT ${workOrder.codigo}? Esta acción no se puede deshacer.`)) return
     startTransition(async () => {
       const result = await deleteWorkOrder(workOrder.id)
       if (result.ok) {
@@ -130,7 +140,7 @@ export function WorkOrderForm({
           }
         />
       )}
-      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90dvh] max-w-lg overflow-y-auto sm:max-w-lg">
         {/* DialogContent es un grid con gap-4: cada hijo directo es su
             propia fila, cuya altura (el "contenedor" del sticky) es solo
             la de su propio contenido. Por eso todo va envuelto acá en un
@@ -377,16 +387,35 @@ export function WorkOrderForm({
   
             <DialogFooter className="mt-4">
               {workOrder && isAdmin && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full text-destructive hover:text-destructive sm:mr-auto sm:w-auto"
-                  disabled={pending}
-                  onClick={handleDelete}
-                >
-                  <Trash2 data-icon="inline-start" />
-                  Borrar OT
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full text-destructive hover:text-destructive sm:mr-auto sm:w-auto"
+                        disabled={pending}
+                      />
+                    }
+                  >
+                    <Trash2 data-icon="inline-start" />
+                    Borrar OT
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Borrar la OT {workOrder.codigo}?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acción no se puede deshacer.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction variant="destructive" onClick={handleDelete}>
+                        Borrar OT
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
               <DialogClose render={<Button variant="outline" type="button" />}>
                 Cancelar

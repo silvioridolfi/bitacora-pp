@@ -9,6 +9,17 @@ import { formatDate } from '@/lib/format'
 import { isAttendanceLocked, isPastNineAmArgentina, todayInArgentina } from '@/lib/timezone'
 import { ATTENDANCE_STATUS_STYLE, nextAttendanceStatus } from '@/lib/status'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import type { EstadoAsistencia, Profile, Session } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -75,12 +86,6 @@ export function AttendanceGrid({
   }
 
   function handleDeleteFecha(session: Session) {
-    if (
-      !confirm(
-        `¿Borrar la Sesión #${session.sesion_n} (${formatDate(session.fecha)})? Se borra también la asistencia y los roles de ese día, y se desvinculan las OT que estaban asociadas a esta sesión. No se puede deshacer.`,
-      )
-    )
-      return
     startTransition(async () => {
       const result = await deleteSession(session.id)
       if (result.ok) {
@@ -101,6 +106,7 @@ export function AttendanceGrid({
           size="icon"
           className="size-7"
           onClick={() => scrollByStep(-1)}
+          aria-label="Desplazar hacia la izquierda"
           title="Desplazar hacia la izquierda"
         >
           <ChevronLeft className="size-3.5" />
@@ -111,6 +117,7 @@ export function AttendanceGrid({
           size="icon"
           className="size-7"
           onClick={() => scrollByStep(1)}
+          aria-label="Desplazar hacia la derecha"
           title="Desplazar hacia la derecha"
         >
           <ChevronRight className="size-3.5" />
@@ -163,14 +170,41 @@ export function AttendanceGrid({
                         <Lock className="size-3 text-muted-foreground" />
                       )}
                       {isAdmin && (
-                        <button
-                          type="button"
-                          title="Borrar esta sesión"
-                          onClick={() => handleDeleteFecha(s)}
-                          className="ml-auto text-muted-foreground hover:text-destructive"
-                        >
-                          <Trash2 className="size-3" />
-                        </button>
+                        <AlertDialog>
+                          <AlertDialogTrigger
+                            render={
+                              <button
+                                type="button"
+                                aria-label={`Borrar Sesión #${s.sesion_n}`}
+                                title="Borrar esta sesión"
+                                className="ml-auto text-muted-foreground hover:text-destructive"
+                              />
+                            }
+                          >
+                            <Trash2 className="size-3" />
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                ¿Borrar la Sesión #{s.sesion_n} ({formatDate(s.fecha)})?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Se borra también la asistencia y los roles de ese día, y se
+                                desvinculan las OT que estaban asociadas a esta sesión. No se
+                                puede deshacer.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                variant="destructive"
+                                onClick={() => handleDeleteFecha(s)}
+                              >
+                                Borrar sesión
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       )}
                     </div>
                     <div className="text-[11px] text-muted-foreground">
@@ -200,6 +234,9 @@ export function AttendanceGrid({
                             type="button"
                             onClick={() => handleClick(student.id, s)}
                             disabled={locked}
+                            aria-label={`${student.apellido_nombre} -- Sesión #${s.sesion_n}: ${
+                              locked ? 'fecha cerrada' : (estado ?? 'sin registrar')
+                            }`}
                             title={
                               locked
                                 ? 'Fecha cerrada -- no se puede modificar'

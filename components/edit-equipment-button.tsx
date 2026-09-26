@@ -70,7 +70,7 @@ export function EditEquipmentButton({
           </Button>
         }
       />
-      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90dvh] max-w-lg overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-heading">Editar equipo</DialogTitle>
           <DialogDescription>

@@ -47,7 +47,7 @@ export function DailyRolesTrigger({
         </div>
         <DialogTrigger render={<Button type="button" size="sm" />}>Asignar roles</DialogTrigger>
       </div>
-      <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[85dvh] max-w-lg overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-heading">Roles -- sesión #{sesionN} (hoy)</DialogTitle>
           <DialogDescription>

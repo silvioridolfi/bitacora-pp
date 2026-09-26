@@ -60,6 +60,7 @@ export function SchoolCombobox({
             type="button"
             onClick={handleClear}
             className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-muted"
+            aria-label="Cambiar escuela"
             title="Cambiar escuela"
           >
             <X className="size-4" />
