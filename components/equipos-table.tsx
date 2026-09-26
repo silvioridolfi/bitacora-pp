@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowDown, ArrowUp } from 'lucide-react'
 import { SearchInput } from '@/components/search-input'
 import {
   Table,
@@ -45,7 +44,6 @@ export function EquiposTable({
   // montado, si el usuario había elegido otro orden en una visita
   // anterior, se aplica acá.
   const [fechaSort, setFechaSort] = useState<'asc' | 'desc'>('desc')
-  const containerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const stored = window.localStorage.getItem(FECHA_SORT_STORAGE_KEY)
@@ -58,11 +56,6 @@ export function EquiposTable({
       window.localStorage.setItem(FECHA_SORT_STORAGE_KEY, next)
       return next
     })
-  }
-
-  function scrollByStep(direction: 1 | -1) {
-    const scrollable = containerRef.current?.querySelector('[data-slot="table-container"]')
-    scrollable?.scrollBy({ left: direction * 240, behavior: 'smooth' })
   }
 
   const estados = useMemo(
@@ -157,37 +150,53 @@ export function EquiposTable({
         </select>
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">
-          {filtered.length} de {equipment.length} equipos.
-        </p>
-        <div className="flex gap-1 sm:hidden">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-7"
-            onClick={() => scrollByStep(-1)}
-            aria-label="Desplazar hacia la izquierda"
-            title="Desplazar hacia la izquierda"
+      <p className="text-xs text-muted-foreground">
+        {filtered.length} de {equipment.length} equipos.
+      </p>
+
+      {/* Mobile: cards en vez de una tabla de 7 columnas con scroll
+          horizontal -- mucho más cómodo de leer en el celu. */}
+      <div className="flex flex-col gap-2 sm:hidden">
+        {filtered.map((eq) => (
+          <Link
+            key={eq.id}
+            href={`/equipos/${eq.id}`}
+            className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-muted/40"
           >
-            <ChevronLeft className="size-3.5" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="size-7"
-            onClick={() => scrollByStep(1)}
-            aria-label="Desplazar hacia la derecha"
-            title="Desplazar hacia la derecha"
-          >
-            <ChevronRight className="size-3.5" />
-          </Button>
-        </div>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate font-medium text-primary">{eq.numero_serie}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {[eq.marca, eq.modelo].filter(Boolean).join(' ') || 'Sin marca/modelo'}
+                  {eq.generacion ? ` · ${eq.generacion}` : ''}
+                </p>
+              </div>
+              <EstadoBadge estado={eq.estado_actual} className="shrink-0" />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+              <span>
+                {tipoByEquipmentId[eq.id] ? TIPO_LABEL[tipoByEquipmentId[eq.id]] : 'Sin tipo'}
+              </span>
+              {eq.grupo && <span>{eq.grupo}</span>}
+              <span>{formatDate(eq.fecha_ingreso)}</span>
+              {(otCodigoByEquipmentId[eq.id] || ottCodigoByEquipmentId[eq.id]) && (
+                <span>
+                  {[otCodigoByEquipmentId[eq.id], ottCodigoByEquipmentId[eq.id]]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
+              )}
+            </div>
+          </Link>
+        ))}
+        {filtered.length === 0 && (
+          <p className="rounded-xl border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+            Ningún equipo coincide con los filtros.
+          </p>
+        )}
       </div>
 
-      <div ref={containerRef} className="rounded-xl border border-border bg-card">
+      <div className="hidden rounded-xl border border-border bg-card sm:block">
         <Table>
           <TableHeader>
             <TableRow>

@@ -4,7 +4,7 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 
 export function TrendChart({ data }: { data: { semana: string; cantidad: number }[] }) {
   return (
-    <ResponsiveContainer width="100%" height={140}>
+    <ResponsiveContainer width="100%" height={160}>
       <AreaChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
         <defs>
           <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
@@ -17,6 +17,13 @@ export function TrendChart({ data }: { data: { semana: string; cantidad: number 
           tick={{ fontSize: 11, fill: 'var(--color-muted-foreground)' }}
           axisLine={false}
           tickLine={false}
+          // Con las 8 semanas fijas, en mobile las etiquetas quedaban
+          // pegadas/superpuestas -- inclinadas entran todas sin perder
+          // ninguna, a costa de un poco más de alto para el eje.
+          interval={0}
+          angle={-35}
+          textAnchor="end"
+          height={40}
         />
         <Tooltip
           contentStyle={{

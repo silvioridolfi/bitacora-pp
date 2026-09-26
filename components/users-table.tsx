@@ -51,7 +51,55 @@ export function UsersTable({
           contraseñas desde acá -- mientras tanto, solo se muestra el listado.
         </p>
       )}
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      {/* Mobile: cards en vez de una tabla de 5 columnas con scroll
+          horizontal -- el email largo y el botón de acción entran
+          mejor así que apretados en una fila. */}
+      <div className="flex flex-col gap-2 sm:hidden">
+        {profiles.map((p) => (
+          <div
+            key={p.id}
+            className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate font-medium text-foreground">
+                  {p.is_admin ? (
+                    p.apellido_nombre
+                  ) : (
+                    <Link href={`/alumnos/${p.id}`} className="hover:underline">
+                      {p.apellido_nombre}
+                    </Link>
+                  )}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {emailById[p.id] || 'Sin email'}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                {p.is_admin ? 'FED' : 'Alumno'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground">{p.grupo ?? 'Sin grupo'}</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={!hasEmails}
+                onClick={() => {
+                  setTarget(p)
+                  setNewPassword('')
+                }}
+              >
+                <KeyRound className="size-3.5" data-icon="inline-start" />
+                Resetear contraseña
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-xl border border-border bg-card sm:block">
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-border">
