@@ -5,6 +5,7 @@ import { Search, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import type { School } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { searchSchools } from '@/lib/school-search'
 
 export function SchoolCombobox({
   schools,
@@ -19,19 +20,7 @@ export function SchoolCombobox({
   const [activeIndex, setActiveIndex] = useState(-1)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return []
-    return schools
-      .filter(
-        (s) =>
-          s.nombre?.toLowerCase().includes(q) ||
-          s.distrito?.toLowerCase().includes(q) ||
-          s.nombre_completo?.toLowerCase().includes(q) ||
-          String(s.cue ?? '').includes(q),
-      )
-      .slice(0, 20)
-  }, [schools, query])
+  const results = useMemo(() => searchSchools(schools, query), [schools, query])
 
   function handleSelect(school: School) {
     setSelected(school)

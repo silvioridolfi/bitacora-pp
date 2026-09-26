@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { MapPin, X } from 'lucide-react'
 import { toast } from 'sonner'
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { setEscuelaActiva } from '@/lib/actions'
 import { useRealtimeEscuelaActiva } from '@/hooks/use-realtime-escuela-activa'
 import { cn } from '@/lib/utils'
+import { searchSchools } from '@/lib/school-search'
 import type { EscuelaActiva, Grupo, School } from '@/lib/types'
 
 export function EscuelaActivaPanel({
@@ -138,16 +139,7 @@ function ActiveSchoolPicker({
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
 
-  const results = query.trim()
-    ? schools
-        .filter(
-          (s) =>
-            s.nombre?.toLowerCase().includes(query.toLowerCase()) ||
-            s.distrito?.toLowerCase().includes(query.toLowerCase()) ||
-            String(s.cue ?? '').includes(query),
-        )
-        .slice(0, 20)
-    : []
+  const results = useMemo(() => searchSchools(schools, query), [schools, query])
 
   function handleSelect(schoolId: string) {
     onSelect(schoolId)
