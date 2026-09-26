@@ -139,7 +139,10 @@ export function EquipoIntakeFields() {
               disabled={sinDatos}
               placeholder="Resto del N° de serie"
               required={!sinDatos}
-              className="h-9 flex-1 border-0 bg-transparent px-2.5 text-sm outline-none disabled:opacity-50"
+              // text-base (no text-sm) + md:text-sm: con menos de 16px,
+              // iOS hace zoom automático al enfocar el campo -- este es
+              // uno de los más tocados de toda la carga de OT.
+              className="h-10 flex-1 border-0 bg-transparent px-2.5 text-base outline-none disabled:opacity-50 md:text-sm"
             />
           </div>
         ) : (

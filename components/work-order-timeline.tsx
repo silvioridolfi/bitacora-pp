@@ -21,7 +21,7 @@ import {
 import type { DailyRoleName, Profile, WorkOrderEvent, WorkOrderPaso } from '@/lib/types'
 import { cn, nativeSelectClass as baseSelectClass } from '@/lib/utils'
 
-const nativeSelectClass = cn(baseSelectClass, 'h-8 w-40 rounded-md px-2 text-xs')
+const nativeSelectClass = cn(baseSelectClass, 'w-44 rounded-md px-2 text-xs')
 
 export function WorkOrderTimeline({
   workOrderId,
@@ -159,7 +159,7 @@ export function WorkOrderTimeline({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/30 p-3">
+    <div className="flex flex-col gap-4 rounded-lg border border-border bg-muted/30 p-4">
       <span className="text-xs font-semibold text-foreground">Línea de tiempo de la OT</span>
 
       {pasosBloqueantes.map((clave) => {
@@ -169,7 +169,7 @@ export function WorkOrderTimeline({
         return (
           <div
             key={clave}
-            className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-2.5 text-sm sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="flex items-start gap-2">
               {done ? (
@@ -193,7 +193,7 @@ export function WorkOrderTimeline({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="h-7 self-end text-xs sm:self-auto"
+                className="self-end sm:self-auto"
                 disabled={pending || (info.responsableFijo && !isAdmin)}
                 onClick={() => handleUndo(clave)}
               >
@@ -203,7 +203,7 @@ export function WorkOrderTimeline({
               <Button
                 type="button"
                 size="sm"
-                className="h-7 self-end text-xs sm:self-auto"
+                className="self-end sm:self-auto"
                 disabled={pending}
                 onClick={() => handleToggle(clave)}
               >
@@ -228,7 +228,6 @@ export function WorkOrderTimeline({
                 <Button
                   type="button"
                   size="sm"
-                  className="h-7 text-xs"
                   disabled={pending || !(selected[clave] ?? sugeridoPara(clave))}
                   onClick={() => handleToggle(clave)}
                 >

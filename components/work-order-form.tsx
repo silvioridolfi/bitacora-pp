@@ -32,6 +32,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { formatDate, formatHoraArgentina } from '@/lib/format'
 import { createWorkOrder, updateWorkOrder, deleteWorkOrder, changeWorkOrderTipo } from '@/lib/actions'
 import { EditEquipmentButton } from '@/components/edit-equipment-button'
+import { CopyButton } from '@/components/copy-button'
 import { WORK_ORDER_ESTADOS, motivoSinDesbloqueo } from '@/lib/types'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import type { DailyRoleName, Profile, School, TipoOT, WorkOrder } from '@/lib/types'
@@ -156,13 +157,21 @@ export function WorkOrderForm({
               propio position (ej. el combobox de escuela), que si no
               terminan pintándose por encima del fondo de esta barra. */}
           <div className="sticky top-0 z-10 -mx-4 -mt-4 border-b border-border bg-popover px-4 pt-4 pr-10 pb-3">
-            <DialogTitle className="font-heading">
-              {workOrder ? `Editar ${workOrder.codigo}` : `Nueva OT de ${tipo}`}
-            </DialogTitle>
+            <div className="flex items-center gap-1">
+              <DialogTitle className="font-heading">
+                {workOrder ? `Editar ${workOrder.codigo}` : `Nueva OT de ${tipo}`}
+              </DialogTitle>
+              {workOrder && (
+                <CopyButton value={workOrder.codigo} label="código de la OT" className="-my-1" />
+              )}
+            </div>
             {!workOrder && proximoCodigo && (
-              <p className="font-heading text-2xl font-bold tracking-tight text-primary">
-                {proximoCodigo}
-              </p>
+              <div className="flex items-center gap-1">
+                <p className="font-heading text-2xl font-bold tracking-tight text-primary">
+                  {proximoCodigo}
+                </p>
+                <CopyButton value={proximoCodigo} label="código de la OT" />
+              </div>
             )}
           </div>
           <DialogHeader>
@@ -190,7 +199,7 @@ export function WorkOrderForm({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="ml-auto h-7 text-xs"
+                  className="ml-auto"
                   disabled={cambiandoTipo}
                   onClick={() => {
                     const nuevoTipo = workOrder.tipo === 'taller' ? 'territorio' : 'taller'
@@ -223,16 +232,26 @@ export function WorkOrderForm({
                       <EditEquipmentButton equipment={workOrder.equipment} compact />
                     )}
                   </div>
-                  <div className="rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
-                    <p className="font-medium text-foreground">
-                      {workOrder.equipment?.numero_serie ?? '—'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {[workOrder.equipment?.marca, workOrder.equipment?.modelo]
-                        .filter(Boolean)
-                        .join(' ') || 'Sin marca/modelo'}
-                      {workOrder.equipment?.generacion ? ` · ${workOrder.equipment.generacion}` : ''}
-                    </p>
+                  <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">
+                        {workOrder.equipment?.numero_serie ?? '—'}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {[workOrder.equipment?.marca, workOrder.equipment?.modelo]
+                          .filter(Boolean)
+                          .join(' ') || 'Sin marca/modelo'}
+                        {workOrder.equipment?.generacion
+                          ? ` · ${workOrder.equipment.generacion}`
+                          : ''}
+                      </p>
+                    </div>
+                    {workOrder.equipment?.numero_serie && (
+                      <CopyButton
+                        value={workOrder.equipment.numero_serie}
+                        label="N° de serie"
+                      />
+                    )}
                   </div>
                 </Field>
               ) : (
