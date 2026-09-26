@@ -39,6 +39,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: 'light dark',
+  // 'cover' para que env(safe-area-inset-*) reporte los valores reales
+  // del notch/home-indicator en vez de 0 -- de eso depende el padding
+  // de seguridad del sidebar mobile y el botón flotante de scroll.
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#0d3b52' },
     { media: '(prefers-color-scheme: dark)', color: '#0a1620' },
