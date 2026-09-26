@@ -139,6 +139,14 @@ export function EquipoIntakeFields() {
               disabled={sinDatos}
               placeholder="Resto del N° de serie"
               required={!sinDatos}
+              // El resto del N° de serie de las netbooks (después del
+              // prefijo del programa) siempre es numérico -- con
+              // inputMode="numeric" el celu abre el teclado numérico en
+              // vez del completo. type="text" (no "number") a propósito,
+              // para no perder ceros a la izquierda.
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               // text-base (no text-sm) + md:text-sm: con menos de 16px,
               // iOS hace zoom automático al enfocar el campo -- este es
               // uno de los más tocados de toda la carga de OT.
