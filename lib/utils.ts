@@ -13,4 +13,4 @@ export function cn(...inputs: ClassValue[]) {
  * aplicado donde alguien se acordara de copiarlo.
  */
 export const nativeSelectClass =
-  'h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
+  'h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'

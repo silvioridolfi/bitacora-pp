@@ -70,6 +70,12 @@
   --yellow: #ebb715;
   --light-blue: #90d6e6;
 
+  /* Gradientes de marca del login/registro (AuthShell) -- fijos, no
+     cambian con el tema claro/oscuro, es la misma identidad visual de
+     la pantalla de acceso en los dos casos. */
+  --gradient-auth-header: linear-gradient(135deg, #03466e 0%, #623b75 55%, #cd2b7b 100%);
+  --gradient-auth-footer: linear-gradient(90deg, #e81f76 0%, #417099 50%, #00aec3 100%);
+
   --background: #f5f9fb;
   --foreground: var(--navy);
   --card: #ffffff;
@@ -201,5 +207,18 @@
   select option {
     background-color: var(--popover);
     color: var(--popover-foreground);
+  }
+}
+
+/* Las animaciones de entrada (animate-in/fade-in/slide-in-from-*, de
+   tw-animate-css) usadas en cards, listas y grillas de toda la app no
+   chequeaban prefers-reduced-motion cada una por separado -- se
+   neutralizan acá una sola vez, para quien lo pida a nivel sistema
+   operativo, sin tener que auditar cada uso individual. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  .animate-out {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
