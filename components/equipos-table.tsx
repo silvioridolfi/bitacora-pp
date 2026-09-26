@@ -168,6 +168,7 @@ export function EquiposTable({
             size="icon"
             className="size-7"
             onClick={() => scrollByStep(-1)}
+            aria-label="Desplazar hacia la izquierda"
             title="Desplazar hacia la izquierda"
           >
             <ChevronLeft className="size-3.5" />
@@ -178,6 +179,7 @@ export function EquiposTable({
             size="icon"
             className="size-7"
             onClick={() => scrollByStep(1)}
+            aria-label="Desplazar hacia la derecha"
             title="Desplazar hacia la derecha"
           >
             <ChevronRight className="size-3.5" />
