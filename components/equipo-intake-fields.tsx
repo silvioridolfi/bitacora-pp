@@ -128,7 +128,7 @@ export function EquipoIntakeFields() {
       <Field>
         <FieldLabel htmlFor="numero_serie_resto">N° de serie</FieldLabel>
         {prefix ? (
-          <div className="flex items-stretch overflow-hidden rounded-lg border border-input">
+          <div className="flex items-stretch overflow-hidden rounded-lg border border-input transition-colors focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
             <span className="flex items-center bg-muted px-2.5 text-sm font-semibold text-muted-foreground select-none">
               {prefix}
             </span>
