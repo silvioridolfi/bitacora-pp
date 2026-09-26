@@ -36,25 +36,36 @@ function RankingList({
             )}
             style={{ animationDelay: `${idx * 60}ms` }}
           >
-            <CardContent className="flex flex-wrap items-center gap-4 p-4">
-              <div
-                className={cn(
-                  'flex size-9 shrink-0 items-center justify-center rounded-full font-heading text-sm font-bold',
-                  tier ? cn(PODIO_STYLE[tier].bg, PODIO_STYLE[tier].text) : 'bg-muted text-muted-foreground',
-                )}
-              >
-                {tier === 'oro' ? (
-                  <Trophy className="size-4" />
-                ) : tier ? (
-                  <Medal className="size-4" />
-                ) : (
-                  idx + 1
-                )}
-              </div>
-              <div className="min-w-32 flex-1">
-                <p className={cn('font-medium text-foreground', canView && 'hover:underline')}>
+            <CardContent className="flex flex-col gap-2 p-4">
+              <div className="flex items-center gap-4">
+                <div
+                  className={cn(
+                    'flex size-9 shrink-0 items-center justify-center rounded-full font-heading text-sm font-bold',
+                    tier ? cn(PODIO_STYLE[tier].bg, PODIO_STYLE[tier].text) : 'bg-muted text-muted-foreground',
+                  )}
+                >
+                  {tier === 'oro' ? (
+                    <Trophy className="size-4" />
+                  ) : tier ? (
+                    <Medal className="size-4" />
+                  ) : (
+                    idx + 1
+                  )}
+                </div>
+                <p
+                  className={cn(
+                    'min-w-0 flex-1 truncate font-medium text-foreground',
+                    canView && 'hover:underline',
+                  )}
+                >
                   {r.profile.apellido_nombre}
                 </p>
+                <div className="shrink-0 text-right">
+                  <p className="font-heading text-xl font-bold text-primary leading-tight">
+                    <AnimatedNumber value={r.total} decimals={r.total % 1 !== 0 ? 1 : 0} />
+                  </p>
+                  <p className="text-[11px] leading-tight text-muted-foreground">puntos</p>
+                </div>
               </div>
               <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                 <span>
@@ -70,12 +81,6 @@ function RankingList({
                   Tardanzas:{' '}
                   <strong className="text-status-derivada">{r.tardanzas}</strong>
                 </span>
-              </div>
-              <div className="ml-auto text-right">
-                <p className="font-heading text-xl font-bold text-primary">
-                  <AnimatedNumber value={r.total} decimals={r.total % 1 !== 0 ? 1 : 0} />
-                </p>
-                <p className="text-[11px] text-muted-foreground">puntos</p>
               </div>
             </CardContent>
           </Card>
