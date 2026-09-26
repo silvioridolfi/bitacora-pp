@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { setEscuelaActiva } from '@/lib/actions'
 import { useRealtimeEscuelaActiva } from '@/hooks/use-realtime-escuela-activa'
+import { cn } from '@/lib/utils'
 import type { EscuelaActiva, Grupo, School } from '@/lib/types'
 
 export function EscuelaActivaPanel({
@@ -135,6 +136,7 @@ function ActiveSchoolPicker({
 }) {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
 
   const results = query.trim()
     ? schools
@@ -147,6 +149,32 @@ function ActiveSchoolPicker({
         .slice(0, 20)
     : []
 
+  function handleSelect(schoolId: string) {
+    onSelect(schoolId)
+    setQuery('')
+    setOpen(false)
+    setActiveIndex(-1)
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!open || results.length === 0) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIndex((i) => (i + 1) % results.length)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIndex((i) => (i <= 0 ? results.length - 1 : i - 1))
+    } else if (e.key === 'Enter') {
+      if (activeIndex >= 0 && activeIndex < results.length) {
+        e.preventDefault()
+        handleSelect(results[activeIndex].id)
+      }
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+      setActiveIndex(-1)
+    }
+  }
+
   return (
     <div className="relative">
       <input
@@ -154,27 +182,43 @@ function ActiveSchoolPicker({
         onChange={(e) => {
           setQuery(e.target.value)
           setOpen(true)
+          setActiveIndex(-1)
         }}
         onFocus={() => setOpen(true)}
+        onKeyDown={handleKeyDown}
         disabled={disabled}
         placeholder="Buscar por nombre, distrito o CUE…"
         className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        role="combobox"
+        aria-expanded={open && !!query.trim()}
+        aria-controls="active-school-listbox"
+        aria-autocomplete="list"
+        aria-activedescendant={
+          activeIndex >= 0 && results[activeIndex] ? `active-school-option-${results[activeIndex].id}` : undefined
+        }
       />
       {open && query.trim() && (
-        <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
+        <div
+          id="active-school-listbox"
+          role="listbox"
+          className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-border bg-card shadow-lg"
+        >
           {results.length === 0 && (
             <p className="p-3 text-sm text-muted-foreground">Sin resultados.</p>
           )}
-          {results.map((s) => (
+          {results.map((s, i) => (
             <button
               key={s.id}
+              id={`active-school-option-${s.id}`}
+              role="option"
+              aria-selected={i === activeIndex}
               type="button"
-              onClick={() => {
-                onSelect(s.id)
-                setQuery('')
-                setOpen(false)
-              }}
-              className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm transition-colors hover:bg-muted"
+              onClick={() => handleSelect(s.id)}
+              onMouseEnter={() => setActiveIndex(i)}
+              className={cn(
+                'flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm transition-colors hover:bg-muted',
+                i === activeIndex && 'bg-muted',
+              )}
             >
               <span className="font-medium text-foreground">{s.nombre}</span>
               <span className="text-xs text-muted-foreground">
