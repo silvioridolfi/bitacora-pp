@@ -28,9 +28,7 @@ export default async function AppLayout({
       <SidebarInset>
         <header
           className="relative grid h-16 shrink-0 grid-cols-[auto_1fr_auto] items-center gap-2 overflow-hidden px-3 sm:h-20 sm:px-4"
-          style={{
-            background: 'linear-gradient(135deg, #03466e 0%, #623b75 55%, #cd2b7b 100%)',
-          }}
+          style={{ background: 'var(--gradient-brand-header)' }}
         >
           <div
             aria-hidden
