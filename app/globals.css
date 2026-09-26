@@ -20,6 +20,14 @@
   --color-status-tardanza: var(--status-tardanza);
   --color-status-justificado: var(--status-justificado);
   --color-status-ausente: var(--status-ausente);
+  --color-status-pendiente-text: var(--status-pendiente-text);
+  --color-status-instalando-so-text: var(--status-instalando-so-text);
+  --color-status-pendiente-so-text: var(--status-pendiente-so-text);
+  --color-status-finalizada-text: var(--status-finalizada-text);
+  --color-status-derivada-text: var(--status-derivada-text);
+  --color-status-presente-text: var(--status-presente-text);
+  --color-status-tardanza-text: var(--status-tardanza-text);
+  --color-status-ausente-text: var(--status-ausente-text);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -130,6 +138,23 @@
   --status-tardanza: var(--yellow);
   --status-justificado: var(--light-blue);
   --status-ausente: var(--pink);
+
+  /* Versiones de texto de los estados de arriba: como color de fondo/punto
+     dan bien, pero como texto sobre fondo claro varios no llegan al 4.5:1
+     de contraste que pide WCAG AA (amarillo, turquesa, naranja, celeste
+     quedan entre 1.6:1 y 2.8:1; verde y rosa quedan justo en el límite,
+     ~3.5:1). Son la misma tonalidad oscurecida, solo para texto -- el
+     punto/fondo de la badge sigue usando el color de marca original. En
+     modo oscuro no hace falta, ahí el color base ya tiene contraste de
+     sobra (ver .dark más abajo). */
+  --status-pendiente-text: #90700c;
+  --status-instalando-so-text: #018093;
+  --status-pendiente-so-text: #c15205;
+  --status-finalizada-text: #1a854d;
+  --status-derivada-text: #e20d6e;
+  --status-presente-text: var(--status-finalizada-text);
+  --status-tardanza-text: var(--status-pendiente-text);
+  --status-ausente-text: var(--status-derivada-text);
 }
 
 .dark {
@@ -185,6 +210,17 @@
   --status-tardanza: #f1c026;
   --status-justificado: #8dd7e8;
   --status-ausente: #f83a90;
+
+  /* En oscuro los colores base ya tienen contraste de sobra como texto,
+     así que las variantes de texto son las mismas (ver :root). */
+  --status-pendiente-text: var(--status-pendiente);
+  --status-instalando-so-text: var(--status-instalando-so);
+  --status-pendiente-so-text: var(--status-pendiente-so);
+  --status-finalizada-text: var(--status-finalizada);
+  --status-derivada-text: var(--status-derivada);
+  --status-presente-text: var(--status-presente);
+  --status-tardanza-text: var(--status-tardanza);
+  --status-ausente-text: var(--status-ausente);
 }
 
 @layer base {

@@ -16,6 +16,7 @@ export function SchoolCombobox({
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState<School | null>(defaultSchool ?? null)
   const [open, setOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const results = useMemo(() => {
@@ -36,11 +37,31 @@ export function SchoolCombobox({
     setSelected(school)
     setQuery('')
     setOpen(false)
+    setActiveIndex(-1)
   }
 
   function handleClear() {
     setSelected(null)
     setQuery('')
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!open || results.length === 0) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIndex((i) => (i + 1) % results.length)
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIndex((i) => (i <= 0 ? results.length - 1 : i - 1))
+    } else if (e.key === 'Enter') {
+      if (activeIndex >= 0 && activeIndex < results.length) {
+        e.preventDefault()
+        handleSelect(results[activeIndex])
+      }
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+      setActiveIndex(-1)
+    }
   }
 
   return (
@@ -74,23 +95,41 @@ export function SchoolCombobox({
             onChange={(e) => {
               setQuery(e.target.value)
               setOpen(true)
+              setActiveIndex(-1)
             }}
             onFocus={() => setOpen(true)}
+            onKeyDown={handleKeyDown}
             placeholder="Buscar por nombre, distrito o CUE…"
             className="pl-8"
+            role="combobox"
+            aria-expanded={open && !!query.trim()}
+            aria-controls="school-combobox-listbox"
+            aria-autocomplete="list"
+            aria-activedescendant={
+              activeIndex >= 0 && results[activeIndex] ? `school-option-${results[activeIndex].id}` : undefined
+            }
           />
           {open && query.trim() && (
-            <div className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
+            <div
+              id="school-combobox-listbox"
+              role="listbox"
+              className="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-border bg-card shadow-lg"
+            >
               {results.length === 0 && (
                 <p className="p-3 text-sm text-muted-foreground">Sin resultados.</p>
               )}
-              {results.map((s) => (
+              {results.map((s, i) => (
                 <button
                   key={s.id}
+                  id={`school-option-${s.id}`}
+                  role="option"
+                  aria-selected={i === activeIndex}
                   type="button"
                   onClick={() => handleSelect(s)}
+                  onMouseEnter={() => setActiveIndex(i)}
                   className={cn(
                     'flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm transition-colors hover:bg-muted',
+                    i === activeIndex && 'bg-muted',
                   )}
                 >
                   <span className="font-medium text-foreground">{s.nombre}</span>

@@ -279,6 +279,8 @@ export function WorkOrderTimeline({
                 type="button"
                 onClick={() => handleRemoveOtro(e.id)}
                 disabled={pending}
+                aria-label={`Quitar "${e.descripcion}"`}
+                title="Quitar"
                 className="text-muted-foreground hover:text-destructive"
               >
                 <Trash2 className="size-3.5" />
