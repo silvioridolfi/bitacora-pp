@@ -345,7 +345,14 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="sidebar-footer"
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      // mb (no pb) a propósito: así sobrevive a cualquier className que
+      // pise el padding vertical (ej. "py-3" en app-sidebar.tsx) sin
+      // perder el resguardo del home-indicator en mobile -- en
+      // desktop/sin notch, env() da 0 y no cambia nada.
+      className={cn(
+        "mb-[env(safe-area-inset-bottom)] flex flex-col gap-2 p-2",
+        className
+      )}
       {...props}
     />
   )

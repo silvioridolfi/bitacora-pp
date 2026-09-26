@@ -33,7 +33,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           <div className="mb-8 flex flex-col items-center gap-3 text-center">
             <div
               className="flex w-full flex-col items-center gap-2 rounded-2xl border border-border/40 px-8 py-6 shadow-lg"
-              style={{ background: 'var(--gradient-auth-header)' }}
+              style={{ background: 'var(--gradient-brand-header)' }}
             >
               <h1 className="font-heading text-xl font-bold leading-tight text-white sm:text-2xl">
                 Prácticas Educativas en Ambientes de Trabajo

@@ -70,10 +70,12 @@
   --yellow: #ebb715;
   --light-blue: #90d6e6;
 
-  /* Gradientes de marca del login/registro (AuthShell) -- fijos, no
-     cambian con el tema claro/oscuro, es la misma identidad visual de
-     la pantalla de acceso en los dos casos. */
-  --gradient-auth-header: linear-gradient(135deg, #03466e 0%, #623b75 55%, #cd2b7b 100%);
+  /* Gradiente de marca -- fijo, no cambia con el tema claro/oscuro.
+     Compartido por el header del login (AuthShell) y el header del
+     layout principal de la app (antes duplicado como el mismo hex
+     literal en los dos lugares). */
+  --gradient-brand-header: linear-gradient(135deg, #03466e 0%, #623b75 55%, #cd2b7b 100%);
+  /* Gradiente del pie de la pantalla de login -- solo se usa ahí. */
   --gradient-auth-footer: linear-gradient(90deg, #e81f76 0%, #417099 50%, #00aec3 100%);
 
   --background: #f5f9fb;
