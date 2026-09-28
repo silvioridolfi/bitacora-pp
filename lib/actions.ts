@@ -246,7 +246,7 @@ export async function toggleWorkOrderEvent(
  */
 export async function removeWorkOrderEvent(
   workOrderId: string,
-  clave: WorkOrderPaso,
+  eventId: string,
 ): Promise<ActionResult> {
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
@@ -254,12 +254,16 @@ export async function removeWorkOrderEvent(
   const hoursError = await assertWithinWorkOrderEditHours()
   if (hoursError) return hoursError
 
+  // Se borra por id puntual (no por work_order_id+clave) para no arrasar
+  // con el historial de rondas anteriores a una reapertura -- ver
+  // reabrirWorkOrder. Solo se puede deshacer un paso de la ronda actual,
+  // nunca uno de una ronda ya cerrada.
   const { data: deleted, error: deleteError } = await supabase
     .from('work_order_events')
     .delete()
+    .eq('id', eventId)
     .eq('work_order_id', workOrderId)
-    .eq('clave', clave)
-    .select('id')
+    .select('id, clave')
 
   if (deleteError) return { ok: false, error: deleteError.message }
   // Si RLS bloquea el borrado, Postgrest no tira error -- simplemente no
@@ -269,13 +273,29 @@ export async function removeWorkOrderEvent(
     return { ok: false, error: 'No se pudo deshacer este paso. Probá de nuevo o avisale a un admin.' }
   }
 
+  const clave = deleted[0].clave as WorkOrderPaso
   if (WORK_ORDER_PASOS_BLOQUEANTES.includes(clave)) {
+    const { data: workOrder } = await supabase
+      .from('work_orders')
+      .select('reopened_at')
+      .eq('id', workOrderId)
+      .single()
+    const reopenedAt = workOrder?.reopened_at ?? null
+
     const { data: remaining } = await supabase
       .from('work_order_events')
-      .select('clave')
+      .select('clave, completed_at')
       .eq('work_order_id', workOrderId)
 
-    const completed = new Set((remaining ?? []).map((r) => r.clave as WorkOrderPaso))
+    // Solo los eventos de la ronda actual (posteriores a la última
+    // reapertura, si la hubo) determinan a qué estado recae la OT --
+    // el trabajo de rondas anteriores queda como historial, sin volver
+    // a mover el estado hacia adelante.
+    const completed = new Set(
+      (remaining ?? [])
+        .filter((r) => !reopenedAt || r.completed_at > reopenedAt)
+        .map((r) => r.clave as WorkOrderPaso),
+    )
 
     let estado: WorkOrderEstado | null = null
     for (const p of WORK_ORDER_PASOS_BLOQUEANTES) {
@@ -321,6 +341,52 @@ export async function removeWorkOrderEventById(id: string): Promise<ActionResult
   revalidatePath('/taller')
   revalidatePath('/territorio')
   revalidatePath('/tablero')
+  return { ok: true }
+}
+
+/**
+ * Reabre una OT Finalizada OK/Derivada para que se le vuelva a hacer
+ * trabajo (ej. volvió con una falla). No toca work_order_events -- todo
+ * lo que ya se completó queda como historial permanente (y sigue
+ * sumando puntos a quien lo hizo). Vuelve el estado a 'Pendiente' y
+ * marca reopened_at, que es lo que le indica a la línea de tiempo que
+ * arrancó una ronda nueva.
+ */
+export async function reabrirWorkOrder(workOrderId: string): Promise<ActionResult> {
+  const supabase = await createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
+  const hoursError = await assertWithinWorkOrderEditHours()
+  if (hoursError) return hoursError
+
+  const { data: current, error: fetchError } = await supabase
+    .from('work_orders')
+    .select('estado')
+    .eq('id', workOrderId)
+    .single()
+  if (fetchError || !current) return { ok: false, error: 'No se encontró la OT.' }
+  if (current.estado !== 'Finalizada OK' && current.estado !== 'Derivada') {
+    return { ok: false, error: 'Solo se puede reabrir una OT que esté Finalizada OK o Derivada.' }
+  }
+
+  const now = new Date().toISOString()
+  const { error } = await supabase
+    .from('work_orders')
+    .update({
+      estado: 'Pendiente',
+      reopened_at: now,
+      last_edited_by: userData.user.id,
+      last_edited_at: now,
+    })
+    .eq('id', workOrderId)
+
+  if (error) return { ok: false, error: error.message }
+
+  revalidatePath('/taller')
+  revalidatePath('/territorio')
+  revalidatePath('/tablero')
+  revalidatePath('/dashboard')
+  revalidatePath('/equipos')
   return { ok: true }
 }
 

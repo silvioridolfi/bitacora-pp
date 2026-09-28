@@ -65,7 +65,14 @@ export function WorkOrderCard({
     return () => clearTimeout(t)
   }, [workOrder.estado])
 
-  const doneClaves = new Set((workOrder.work_order_events ?? []).map((e) => e.clave))
+  // Solo cuenta lo hecho en la ronda actual -- si la OT se reabrió
+  // (volvió con una falla), los pasos de rondas anteriores quedan como
+  // historial y no deberían tapar el botón de "siguiente paso".
+  const doneClaves = new Set(
+    (workOrder.work_order_events ?? [])
+      .filter((e) => !workOrder.reopened_at || e.completed_at > workOrder.reopened_at)
+      .map((e) => e.clave),
+  )
   // Si el desbloqueo no aplica a este equipo (mismo criterio que el
   // detalle), esa etapa se salta acá también.
   const pasosAplicables = WORK_ORDER_PASOS_BLOQUEANTES.filter(
