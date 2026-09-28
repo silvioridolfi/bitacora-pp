@@ -33,6 +33,7 @@ export function WorkOrderTimeline({
   desbloqueoSkipMotivo = null,
   rolesByProfile = {},
   reopenedAt = null,
+  locked = false,
 }: {
   workOrderId: string
   events: WorkOrderEvent[]
@@ -52,6 +53,13 @@ export function WorkOrderTimeline({
    * ni dejar de sumar esos puntos, solo para no confundir "esto ya se
    * hizo antes" con "esto ya está hecho en la ronda de ahora". */
   reopenedAt?: string | null
+  /** true cuando la OT ya está Finalizada OK/Derivada -- los pasos del
+   * pipeline (bloqueantes) quedan de solo lectura hasta que se reabra.
+   * Los opcionales ('cambio_pila', 'otro') siguen editables: no mueven
+   * el estado, son solo una anotación. El server igual lo re-valida
+   * (ver toggleWorkOrderEvent/removeWorkOrderEvent), esto es nada más
+   * para no ofrecer un botón que va a fallar. */
+  locked?: boolean
 }) {
   const [pending, startTransition] = useTransition()
   const [selected, setSelected] = useState<Record<string, string>>({})
@@ -178,6 +186,12 @@ export function WorkOrderTimeline({
     <div className="flex flex-col gap-4 rounded-lg border border-border bg-muted/30 p-4">
       <span className="text-xs font-semibold text-foreground">Línea de tiempo de la OT</span>
 
+      {locked && (
+        <p className="text-[11px] italic text-muted-foreground">
+          Esta OT ya está cerrada -- el pipeline queda de solo lectura hasta que se reabra.
+        </p>
+      )}
+
       {pasosBloqueantes.map((clave) => {
         const info = WORK_ORDER_PASO_INFO[clave]
         const done = doneByClave.get(clave)
@@ -222,7 +236,7 @@ export function WorkOrderTimeline({
                 variant="ghost"
                 size="sm"
                 className="self-end sm:self-auto"
-                disabled={pending || (info.responsableFijo && !isAdmin)}
+                disabled={pending || locked || (info.responsableFijo && !isAdmin)}
                 onClick={() => handleUndo(done.id, info.label)}
               >
                 Deshacer
@@ -232,7 +246,7 @@ export function WorkOrderTimeline({
                 type="button"
                 size="sm"
                 className="self-end sm:self-auto"
-                disabled={pending}
+                disabled={pending || locked}
                 onClick={() => handleToggle(clave)}
               >
                 Marcar hecho
@@ -242,6 +256,7 @@ export function WorkOrderTimeline({
                 <select
                   className={nativeSelectClass}
                   value={selected[clave] ?? sugeridoPara(clave) ?? ''}
+                  disabled={locked}
                   onChange={(e) =>
                     setSelected((prev) => ({ ...prev, [clave]: e.target.value }))
                   }
@@ -256,7 +271,7 @@ export function WorkOrderTimeline({
                 <Button
                   type="button"
                   size="sm"
-                  disabled={pending || !(selected[clave] ?? sugeridoPara(clave))}
+                  disabled={pending || locked || !(selected[clave] ?? sugeridoPara(clave))}
                   onClick={() => handleToggle(clave)}
                 >
                   Marcar hecho
