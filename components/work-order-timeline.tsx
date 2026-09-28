@@ -20,6 +20,7 @@ import {
 } from '@/lib/types'
 import type { DailyRoleName, Profile, WorkOrderEvent, WorkOrderPaso } from '@/lib/types'
 import { cn, nativeSelectClass as baseSelectClass } from '@/lib/utils'
+import { formatDate } from '@/lib/format'
 
 const nativeSelectClass = cn(baseSelectClass, 'w-44 rounded-md px-2 text-xs')
 
@@ -31,6 +32,7 @@ export function WorkOrderTimeline({
   currentProfileId,
   desbloqueoSkipMotivo = null,
   rolesByProfile = {},
+  reopenedAt = null,
 }: {
   workOrderId: string
   events: WorkOrderEvent[]
@@ -44,6 +46,12 @@ export function WorkOrderTimeline({
    * entrada quién completó cada paso, solo cuando hay un único alumno
    * con el rol correspondiente ese día. Siempre queda editable. */
   rolesByProfile?: Record<string, DailyRoleName[]>
+  /** Si la OT se reabrió alguna vez (ver reabrirWorkOrder), todo lo
+   * completado ANTES de esa fecha se muestra como historial de rondas
+   * anteriores en vez de como el estado actual del paso -- sin borrar
+   * ni dejar de sumar esos puntos, solo para no confundir "esto ya se
+   * hizo antes" con "esto ya está hecho en la ronda de ahora". */
+  reopenedAt?: string | null
 }) {
   const [pending, startTransition] = useTransition()
   const [selected, setSelected] = useState<Record<string, string>>({})
@@ -62,8 +70,16 @@ export function WorkOrderTimeline({
   )
 
   const doneByClave = new Map<WorkOrderPaso, WorkOrderEvent>()
+  const historialByClave = new Map<WorkOrderPaso, WorkOrderEvent[]>()
   for (const e of events) {
-    if (e.clave !== 'otro') doneByClave.set(e.clave, e)
+    if (e.clave === 'otro') continue
+    if (!reopenedAt || e.completed_at > reopenedAt) {
+      doneByClave.set(e.clave, e)
+    } else {
+      const previas = historialByClave.get(e.clave) ?? []
+      previas.push(e)
+      historialByClave.set(e.clave, previas)
+    }
   }
   const otros = events.filter((e) => e.clave === 'otro')
 
@@ -120,11 +136,11 @@ export function WorkOrderTimeline({
     })
   }
 
-  function handleUndo(clave: WorkOrderPaso) {
+  function handleUndo(eventId: string, label: string) {
     startTransition(async () => {
-      const result = await removeWorkOrderEvent(workOrderId, clave)
+      const result = await removeWorkOrderEvent(workOrderId, eventId)
       if (result.ok) {
-        toast.success(`${WORK_ORDER_PASO_INFO[clave].label} revertido`)
+        toast.success(`${label} revertido`)
         router.refresh()
       } else {
         toast.error(result.error)
@@ -165,6 +181,7 @@ export function WorkOrderTimeline({
       {pasosBloqueantes.map((clave) => {
         const info = WORK_ORDER_PASO_INFO[clave]
         const done = doneByClave.get(clave)
+        const previas = historialByClave.get(clave) ?? []
 
         return (
           <div
@@ -185,6 +202,17 @@ export function WorkOrderTimeline({
                   {info.rol}
                   {done?.profile?.apellido_nombre ? ` · ${done.profile.apellido_nombre}` : ''}
                 </span>
+                {previas.length > 0 && (
+                  <span className="text-[11px] italic text-muted-foreground">
+                    Ronda{previas.length > 1 ? 's' : ''} anterior{previas.length > 1 ? 'es' : ''}:{' '}
+                    {previas
+                      .map(
+                        (e) =>
+                          `${e.profile?.apellido_nombre ?? 'Alguien'} (${formatDate(e.completed_at)})`,
+                      )
+                      .join(' · ')}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -195,7 +223,7 @@ export function WorkOrderTimeline({
                 size="sm"
                 className="self-end sm:self-auto"
                 disabled={pending || (info.responsableFijo && !isAdmin)}
-                onClick={() => handleUndo(clave)}
+                onClick={() => handleUndo(done.id, info.label)}
               >
                 Deshacer
               </Button>
@@ -259,7 +287,9 @@ export function WorkOrderTimeline({
                   type="checkbox"
                   checked={!!done}
                   disabled={pending}
-                  onChange={() => (done ? handleUndo(clave) : handleToggle(clave))}
+                  onChange={() =>
+                    done ? handleUndo(done.id, WORK_ORDER_PASO_INFO[clave].label) : handleToggle(clave)
+                  }
                 />
                 <span className={done ? 'text-foreground' : 'text-muted-foreground'}>
                   {WORK_ORDER_PASO_INFO[clave].label}

@@ -281,6 +281,10 @@ export type WorkOrder = {
   /** Quién hizo la última edición del encabezado de la OT, y cuándo. */
   last_edited_by: string | null
   last_edited_at: string | null
+  /** Cuándo se reabrió por última vez (null si nunca se reabrió). Marca
+   * el corte entre "ronda actual" e "historial de rondas anteriores" en
+   * la línea de tiempo -- ver reabrirWorkOrder en lib/actions.ts. */
+  reopened_at: string | null
   /** Se calcula solo (trigger), matcheando grupo+fecha con una sesión de asistencia real. */
   session_id: string | null
   created_at: string

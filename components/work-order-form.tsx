@@ -30,7 +30,13 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { formatDate, formatHoraArgentina } from '@/lib/format'
-import { createWorkOrder, updateWorkOrder, deleteWorkOrder, changeWorkOrderTipo } from '@/lib/actions'
+import {
+  createWorkOrder,
+  updateWorkOrder,
+  deleteWorkOrder,
+  changeWorkOrderTipo,
+  reabrirWorkOrder,
+} from '@/lib/actions'
 import { EditEquipmentButton } from '@/components/edit-equipment-button'
 import { CopyButton } from '@/components/copy-button'
 import { WORK_ORDER_ESTADOS, motivoSinDesbloqueo } from '@/lib/types'
@@ -82,6 +88,7 @@ export function WorkOrderForm({
   const setOpen = onOpenChangeProp ?? setOpenState
   const [pending, startTransition] = useTransition()
   const [cambiandoTipo, startCambioTipo] = useTransition()
+  const [reabriendo, startReabrir] = useTransition()
   const [grupo, setGrupo] = useState(workOrder?.grupo ?? grupoDeHoy() ?? '')
   const [estado, setEstado] = useState(workOrder?.estado ?? 'Pendiente')
   const router = useRouter()
@@ -106,6 +113,20 @@ export function WorkOrderForm({
       if (result.ok) {
         toast.success(workOrder ? 'OT actualizada' : 'OT creada correctamente')
         setOpen(false)
+        router.refresh()
+      } else {
+        toast.error(result.error)
+      }
+    })
+  }
+
+  function handleReabrir() {
+    if (!workOrder) return
+    startReabrir(async () => {
+      const result = await reabrirWorkOrder(workOrder.id)
+      if (result.ok) {
+        toast.success(`${workOrder.codigo} reabierta -- lo que ya se completó queda como historial`)
+        setEstado('Pendiente')
         router.refresh()
       } else {
         toast.error(result.error)
@@ -317,6 +338,42 @@ export function WorkOrderForm({
                   <FieldLabel>
                     Estado ({WORK_ORDER_STATUS_STYLE[workOrder.estado].label})
                   </FieldLabel>
+                  {(workOrder.estado === 'Finalizada OK' || workOrder.estado === 'Derivada') && (
+                    <div className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-border p-2 text-xs">
+                      <span className="text-muted-foreground">
+                        ¿El equipo volvió con una falla y hay que rehacer trabajo?
+                      </span>
+                      <AlertDialog>
+                        <AlertDialogTrigger
+                          render={
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="shrink-0"
+                              disabled={reabriendo}
+                            />
+                          }
+                        >
+                          Reabrir OT
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Reabrir {workOrder.codigo}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Vuelve a Pendiente para que se puedan volver a tildar los pasos que
+                              hagan falta. Lo que ya se completó antes queda guardado como
+                              historial (sigue sumando puntos a quien lo hizo).
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleReabrir}>Reabrir OT</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  )}
                   <WorkOrderTimeline
                     workOrderId={workOrder.id}
                     events={workOrder.work_order_events ?? []}
@@ -329,6 +386,7 @@ export function WorkOrderForm({
                     currentProfileId={currentProfileId}
                     rolesByProfile={rolesByProfile}
                     desbloqueoSkipMotivo={motivoSinDesbloqueo(workOrder.equipment)}
+                    reopenedAt={workOrder.reopened_at}
                   />
                   <p className="text-[11px] text-muted-foreground">
                     El estado avanza solo a medida que se completan los pasos del pipeline. Para
