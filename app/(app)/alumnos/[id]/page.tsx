@@ -47,8 +47,14 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
     { data: sessionsData },
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('grupo', student.grupo).eq('is_admin', false),
+    // 'Derivada' cuenta igual que 'Finalizada OK' -- ver misma nota en
+    // app/(app)/ranking/page.tsx.
     fetchAllRows<FinishedOrder>((from, to) =>
-      supabase.from('work_orders').select('id, tipo').eq('estado', 'Finalizada OK').range(from, to),
+      supabase
+        .from('work_orders')
+        .select('id, tipo')
+        .in('estado', ['Finalizada OK', 'Derivada'])
+        .range(from, to),
     ),
     fetchAllRows<WorkOrderEvent>((from, to) =>
       supabase.from('work_order_events').select('*').range(from, to),

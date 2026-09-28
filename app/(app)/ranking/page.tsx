@@ -109,8 +109,15 @@ export default async function RankingPage() {
 
   const [{ data: students }, finishedOrders, workOrderEvents, attendance] = await Promise.all([
     supabase.from('profiles').select('*').eq('is_admin', false).order('apellido_nombre'),
+    // 'Derivada' cuenta igual que 'Finalizada OK': el resto de la app ya
+    // trata a ambas como estados cerrados (dashboard, tablero), y el
+    // trabajo que un alumno hizo antes de que la OT se derivara es real.
     fetchAllRows<FinishedOrder>((from, to) =>
-      supabase.from('work_orders').select('id, tipo').eq('estado', 'Finalizada OK').range(from, to),
+      supabase
+        .from('work_orders')
+        .select('id, tipo')
+        .in('estado', ['Finalizada OK', 'Derivada'])
+        .range(from, to),
     ),
     fetchAllRows<WorkOrderEvent>((from, to) =>
       supabase.from('work_order_events').select('*').range(from, to),
