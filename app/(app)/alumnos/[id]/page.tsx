@@ -136,7 +136,14 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
             </CardContent>
           </Card>
         </Link>
-        <Link href="/asistencia">
+        {/* Con ?grupo -- si no, para un admin la página de Asistencia cae al
+            grupo que le toca hoy (grupoDeHoy), no al de este alumno, y
+            termina mostrando el registro de otro grupo por error. */}
+        <Link
+          href={
+            student.grupo ? `/asistencia?grupo=${encodeURIComponent(student.grupo)}` : '/asistencia'
+          }
+        >
           <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
             <CardContent className="flex h-full items-center gap-4 p-6">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-status-presente/10 text-status-presente">
@@ -155,7 +162,11 @@ export default async function AlumnoPage({ params }: { params: Promise<{ id: str
             </CardContent>
           </Card>
         </Link>
-        <Link href="/asistencia">
+        <Link
+          href={
+            student.grupo ? `/asistencia?grupo=${encodeURIComponent(student.grupo)}` : '/asistencia'
+          }
+        >
           <Card className="h-full transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm">
             <CardContent className="flex h-full items-center gap-4 p-6">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
