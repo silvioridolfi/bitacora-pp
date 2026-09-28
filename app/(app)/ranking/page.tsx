@@ -52,12 +52,11 @@ function RankingList({
                     idx + 1
                   )}
                 </div>
-                <p
-                  className={cn(
-                    'min-w-0 flex-1 truncate font-medium text-foreground',
-                    canView && 'hover:underline',
-                  )}
-                >
+                {/* Sin hover:underline acá -- toda la card ya es el link (el
+                    cursor cambia en cualquier punto), subrayar solo el
+                    nombre al pasar el mouse justo por arriba daba la señal
+                    equivocada de que nada más era clickeable. */}
+                <p className="min-w-0 flex-1 truncate font-medium text-foreground">
                   {r.profile.apellido_nombre}
                 </p>
                 <div className="shrink-0 text-right">
