@@ -210,6 +210,24 @@ export async function toggleWorkOrderEvent(
   const hoursError = await assertWithinWorkOrderEditHours()
   if (hoursError) return hoursError
 
+  // Los pasos del pipeline (bloqueantes) quedan bloqueados una vez que la
+  // OT está Finalizada OK/Derivada -- hay que reabrirla primero (ver
+  // reabrirWorkOrder). Los pasos opcionales ('cambio_pila', 'otro') no
+  // mueven el estado, así que se pueden seguir anotando sin reabrir.
+  if (WORK_ORDER_PASOS_BLOQUEANTES.includes(clave)) {
+    const { data: workOrder } = await supabase
+      .from('work_orders')
+      .select('estado')
+      .eq('id', workOrderId)
+      .single()
+    if (workOrder?.estado === 'Finalizada OK' || workOrder?.estado === 'Derivada') {
+      return {
+        ok: false,
+        error: 'Esta OT ya está cerrada. Reabrila primero para poder tocar el pipeline.',
+      }
+    }
+  }
+
   const { error: insertError } = await supabase.from('work_order_events').insert({
     work_order_id: workOrderId,
     clave,
@@ -253,6 +271,30 @@ export async function removeWorkOrderEvent(
   if (!userData.user) return { ok: false, error: 'No hay sesión activa.' }
   const hoursError = await assertWithinWorkOrderEditHours()
   if (hoursError) return hoursError
+
+  const { data: eventToDelete } = await supabase
+    .from('work_order_events')
+    .select('clave')
+    .eq('id', eventId)
+    .eq('work_order_id', workOrderId)
+    .single()
+
+  // Los pasos del pipeline (bloqueantes) quedan bloqueados una vez que la
+  // OT está Finalizada OK/Derivada -- hay que reabrirla primero (ver
+  // reabrirWorkOrder), para no poder tocar el historial de una OT cerrada.
+  if (eventToDelete && WORK_ORDER_PASOS_BLOQUEANTES.includes(eventToDelete.clave as WorkOrderPaso)) {
+    const { data: workOrder } = await supabase
+      .from('work_orders')
+      .select('estado')
+      .eq('id', workOrderId)
+      .single()
+    if (workOrder?.estado === 'Finalizada OK' || workOrder?.estado === 'Derivada') {
+      return {
+        ok: false,
+        error: 'Esta OT ya está cerrada. Reabrila primero para poder tocar el pipeline.',
+      }
+    }
+  }
 
   // Se borra por id puntual (no por work_order_id+clave) para no arrasar
   // con el historial de rondas anteriores a una reapertura -- ver

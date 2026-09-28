@@ -387,6 +387,7 @@ export function WorkOrderForm({
                     rolesByProfile={rolesByProfile}
                     desbloqueoSkipMotivo={motivoSinDesbloqueo(workOrder.equipment)}
                     reopenedAt={workOrder.reopened_at}
+                    locked={workOrder.estado === 'Finalizada OK' || workOrder.estado === 'Derivada'}
                   />
                   <p className="text-[11px] text-muted-foreground">
                     El estado avanza solo a medida que se completan los pasos del pipeline. Para
