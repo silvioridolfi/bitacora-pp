@@ -154,11 +154,15 @@ export default async function AuditoriaPage() {
   const [{ data: students }, finishedOrders, workOrderEvents, attendance, { data: sessionsData }] =
     await Promise.all([
       supabase.from('profiles').select('*').eq('is_admin', false).order('apellido_nombre'),
+      // 'Derivada' cuenta igual que 'Finalizada OK' -- ver misma nota en
+      // app/(app)/ranking/page.tsx. La auditoría tiene que coincidir con
+      // el ranking, si no un alumno puede "auditar" y ver menos puntos
+      // de los que en realidad tiene.
       fetchAllRows<FinishedOrder>((from, to) =>
         supabase
           .from('work_orders')
           .select('id, codigo, tipo, fecha')
-          .eq('estado', 'Finalizada OK')
+          .in('estado', ['Finalizada OK', 'Derivada'])
           .range(from, to),
       ),
       fetchAllRows<WorkOrderEvent>((from, to) =>
