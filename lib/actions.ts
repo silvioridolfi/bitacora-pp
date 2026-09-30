@@ -416,6 +416,14 @@ export async function reabrirWorkOrder(workOrderId: string): Promise<ActionResul
     .from('work_orders')
     .update({
       estado: 'Pendiente',
+      // La fecha "de portada" pasa a ser la de la reapertura -- así la OT
+      // se ve como trabajo reciente en listados/dashboard/exportaciones,
+      // en vez de quedar fechada el día de su primera intervención. La
+      // fecha original no se pierde: sigue en created_at (ver "Creada
+      // el..." en el encabezado de este form) y cada paso de la ronda
+      // vieja conserva su propio completed_at en el historial del
+      // checklist.
+      fecha: todayInArgentina(),
       reopened_at: now,
       last_edited_by: userData.user.id,
       last_edited_at: now,
