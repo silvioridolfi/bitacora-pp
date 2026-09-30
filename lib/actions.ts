@@ -164,6 +164,20 @@ export async function updateWorkOrder(
     : null
   const observaciones = (formData.get('observaciones') as string) || null
 
+  // Reabrir no es solo el botón "Reabrir OT" -- el selector de estado de
+  // acá abajo también puede sacar una OT de Finalizada OK/Derivada hacia
+  // atrás. Si no se detecta como reapertura acá también, los pasos que se
+  // vuelvan a tildar en esta OT chocan contra el índice único
+  // work_order_events_bloqueante_unique (misma fila de la ronda vieja).
+  const ESTADOS_CERRADOS = new Set<WorkOrderEstado>(['Finalizada OK', 'Derivada'])
+  const { data: current } = await supabase
+    .from('work_orders')
+    .select('estado, ronda_actual')
+    .eq('id', id)
+    .single()
+  const seReabreDesdeElSelector =
+    !!current && ESTADOS_CERRADOS.has(current.estado) && !ESTADOS_CERRADOS.has(estado)
+
   const { error } = await supabase
     .from('work_orders')
     .update({
@@ -179,6 +193,9 @@ export async function updateWorkOrder(
       observaciones,
       last_edited_by: userData.user.id,
       last_edited_at: new Date().toISOString(),
+      ...(seReabreDesdeElSelector
+        ? { reopened_at: new Date().toISOString(), ronda_actual: (current!.ronda_actual ?? 0) + 1 }
+        : {}),
     })
     .eq('id', id)
 
@@ -210,22 +227,33 @@ export async function toggleWorkOrderEvent(
   const hoursError = await assertWithinWorkOrderEditHours()
   if (hoursError) return hoursError
 
-  // Los pasos del pipeline (bloqueantes) quedan bloqueados una vez que la
-  // OT está Finalizada OK/Derivada -- hay que reabrirla primero (ver
-  // reabrirWorkOrder). Los pasos opcionales ('cambio_pila', 'otro') no
-  // mueven el estado, así que se pueden seguir anotando sin reabrir.
-  if (WORK_ORDER_PASOS_BLOQUEANTES.includes(clave)) {
+  // Todo paso salvo 'otro' está cubierto por el índice único
+  // work_order_events_bloqueante_unique (work_order_id, clave, ronda) --
+  // solo puede haber una fila por ronda, así que hay que saber en qué
+  // ronda está la OT ahora para taguear el evento correctamente (si no,
+  // reintentar un paso ya hecho en una ronda anterior choca contra la
+  // fila vieja en vez de crear una nueva).
+  let ronda = 0
+  if (clave !== 'otro') {
     const { data: workOrder } = await supabase
       .from('work_orders')
-      .select('estado')
+      .select('estado, ronda_actual')
       .eq('id', workOrderId)
       .single()
-    if (workOrder?.estado === 'Finalizada OK' || workOrder?.estado === 'Derivada') {
+    // Los pasos del pipeline (bloqueantes) quedan bloqueados una vez que
+    // la OT está Finalizada OK/Derivada -- hay que reabrirla primero (ver
+    // reabrirWorkOrder). 'cambio_pila' no mueve el estado, así que se
+    // puede seguir anotando sin reabrir.
+    if (
+      WORK_ORDER_PASOS_BLOQUEANTES.includes(clave) &&
+      (workOrder?.estado === 'Finalizada OK' || workOrder?.estado === 'Derivada')
+    ) {
       return {
         ok: false,
         error: 'Esta OT ya está cerrada. Reabrila primero para poder tocar el pipeline.',
       }
     }
+    ronda = workOrder?.ronda_actual ?? 0
   }
 
   const { error: insertError } = await supabase.from('work_order_events').insert({
@@ -233,6 +261,7 @@ export async function toggleWorkOrderEvent(
     clave,
     profile_id: profileId,
     descripcion,
+    ronda,
   })
 
   if (insertError) return { ok: false, error: insertError.message }
@@ -319,23 +348,22 @@ export async function removeWorkOrderEvent(
   if (WORK_ORDER_PASOS_BLOQUEANTES.includes(clave)) {
     const { data: workOrder } = await supabase
       .from('work_orders')
-      .select('reopened_at')
+      .select('ronda_actual')
       .eq('id', workOrderId)
       .single()
-    const reopenedAt = workOrder?.reopened_at ?? null
+    const rondaActual = workOrder?.ronda_actual ?? 0
 
     const { data: remaining } = await supabase
       .from('work_order_events')
-      .select('clave, completed_at')
+      .select('clave, ronda')
       .eq('work_order_id', workOrderId)
 
-    // Solo los eventos de la ronda actual (posteriores a la última
-    // reapertura, si la hubo) determinan a qué estado recae la OT --
-    // el trabajo de rondas anteriores queda como historial, sin volver
-    // a mover el estado hacia adelante.
+    // Solo los eventos de la ronda actual determinan a qué estado recae
+    // la OT -- el trabajo de rondas anteriores queda como historial, sin
+    // volver a mover el estado hacia adelante.
     const completed = new Set(
       (remaining ?? [])
-        .filter((r) => !reopenedAt || r.completed_at > reopenedAt)
+        .filter((r) => r.ronda === rondaActual)
         .map((r) => r.clave as WorkOrderPaso),
     )
 
@@ -403,7 +431,7 @@ export async function reabrirWorkOrder(workOrderId: string): Promise<ActionResul
 
   const { data: current, error: fetchError } = await supabase
     .from('work_orders')
-    .select('estado')
+    .select('estado, ronda_actual')
     .eq('id', workOrderId)
     .single()
   if (fetchError || !current) return { ok: false, error: 'No se encontró la OT.' }
@@ -425,6 +453,11 @@ export async function reabrirWorkOrder(workOrderId: string): Promise<ActionResul
       // checklist.
       fecha: todayInArgentina(),
       reopened_at: now,
+      // Una ronda nueva: los pasos que se vuelvan a tildar ahora quedan
+      // en una fila aparte de los de la ronda anterior (mismo work
+      // order + clave, ronda distinta) -- así no chocan contra el
+      // índice único work_order_events_bloqueante_unique.
+      ronda_actual: (current.ronda_actual ?? 0) + 1,
       last_edited_by: userData.user.id,
       last_edited_at: now,
     })

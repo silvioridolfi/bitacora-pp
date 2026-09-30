@@ -70,7 +70,7 @@ export function WorkOrderCard({
   // historial y no deberían tapar el botón de "siguiente paso".
   const doneClaves = new Set(
     (workOrder.work_order_events ?? [])
-      .filter((e) => !workOrder.reopened_at || e.completed_at > workOrder.reopened_at)
+      .filter((e) => e.ronda === workOrder.ronda_actual)
       .map((e) => e.clave),
   )
   // Si el desbloqueo no aplica a este equipo (mismo criterio que el
