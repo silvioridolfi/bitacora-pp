@@ -199,12 +199,22 @@ export function WorkOrderForm({
             <DialogDescription>
               {workOrder
                 ? hasReliableCreatedAt(workOrder.created_at)
-                  ? `Creada el ${formatDate(workOrder.fecha)} a las ${formatHoraArgentina(workOrder.created_at)}${workOrder.session ? ` · Sesión #${workOrder.session.sesion_n}` : ''}.`
+                  ? // La fecha de creación se toma de created_at, no de
+                    // fecha -- fecha ahora se mueve a la del día en que se
+                    // reabre la OT (ver reabrirWorkOrder), así que ya no
+                    // sirve para mostrar "cuándo se creó".
+                    `Creada el ${formatDate(workOrder.created_at)} a las ${formatHoraArgentina(workOrder.created_at)}${workOrder.session ? ` · Sesión #${workOrder.session.sesion_n}` : ''}.`
                   : `Creada el ${formatDate(workOrder.fecha)}${workOrder.session ? ` · Sesión #${workOrder.session.sesion_n}` : ''}.`
                 : tipo === 'taller'
                   ? 'Registrá una intervención sobre un equipo en el taller.'
                   : 'Registrá una intervención en territorio (escuela).'}
             </DialogDescription>
+            {workOrder?.reopened_at && (
+              <p className="text-[11px] text-muted-foreground">
+                Reabierta el {formatDate(workOrder.reopened_at)} a las{' '}
+                {formatHoraArgentina(workOrder.reopened_at)}.
+              </p>
+            )}
             {isAdmin && workOrder?.last_edited_by_profile && workOrder.last_edited_at && (
               <p className="text-[11px] text-muted-foreground">
                 Última edición: {workOrder.last_edited_by_profile.apellido_nombre} ·{' '}

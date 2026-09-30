@@ -202,7 +202,12 @@ export function WorkOrderCard({
               : undefined
           }
         >
-          {formatDate(workOrder.fecha)}
+          {/* Fecha de created_at, no de fecha -- fecha se mueve al
+              reabrir la OT (ver reabrirWorkOrder), y mezclarla acá con
+              la hora fija de created_at quedaba inconsistente. */}
+          {formatDate(
+            hasReliableCreatedAt(workOrder.created_at) ? workOrder.created_at : workOrder.fecha,
+          )}
           {hasReliableCreatedAt(workOrder.created_at) &&
             ` · ${formatHoraArgentina(workOrder.created_at)}`}
         </span>
