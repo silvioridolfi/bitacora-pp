@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { PlusIcon, Trash2 } from 'lucide-react'
+import { Lock, PlusIcon, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -103,6 +103,10 @@ export function WorkOrderForm({
   }, [grupo, profiles])
 
   const showTrabajoRealizado = estado === 'Finalizada OK' || estado === 'Derivada'
+  // A diferencia de showTrabajoRealizado (que sigue el select sin guardar
+  // todavía), esto refleja el estado REAL ya guardado -- es lo que decide
+  // si el pipeline está bloqueado de verdad (ver WorkOrderTimeline).
+  const otCerrada = !!workOrder && (workOrder.estado === 'Finalizada OK' || workOrder.estado === 'Derivada')
 
   async function handleSubmit(formData: FormData) {
     startTransition(async () => {
@@ -345,24 +349,25 @@ export function WorkOrderForm({
   
               {workOrder ? (
                 <Field>
-                  <FieldLabel>
+                  <FieldLabel className="items-center gap-1.5">
                     Estado ({WORK_ORDER_STATUS_STYLE[workOrder.estado].label})
+                    {otCerrada && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-status-pendiente/15 px-1.5 py-0.5 text-[10px] font-medium text-status-pendiente-text">
+                        <Lock className="size-3" />
+                        cerrada
+                      </span>
+                    )}
                   </FieldLabel>
-                  {(workOrder.estado === 'Finalizada OK' || workOrder.estado === 'Derivada') && (
-                    <div className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-border p-2 text-xs">
-                      <span className="text-muted-foreground">
+                  {otCerrada && (
+                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-status-pendiente/40 bg-status-pendiente/10 p-2.5 text-xs">
+                      <span className="flex items-center gap-1.5 text-foreground">
+                        <Lock className="size-3.5 shrink-0 text-status-pendiente-text" />
                         ¿El equipo volvió con una falla y hay que rehacer trabajo?
                       </span>
                       <AlertDialog>
                         <AlertDialogTrigger
                           render={
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="shrink-0"
-                              disabled={reabriendo}
-                            />
+                            <Button type="button" size="sm" className="shrink-0" disabled={reabriendo} />
                           }
                         >
                           Reabrir OT
@@ -397,7 +402,7 @@ export function WorkOrderForm({
                     rolesByProfile={rolesByProfile}
                     desbloqueoSkipMotivo={motivoSinDesbloqueo(workOrder.equipment)}
                     reopenedAt={workOrder.reopened_at}
-                    locked={workOrder.estado === 'Finalizada OK' || workOrder.estado === 'Derivada'}
+                    locked={otCerrada}
                   />
                   <p className="text-[11px] text-muted-foreground">
                     El estado avanza solo a medida que se completan los pasos del pipeline. Para
