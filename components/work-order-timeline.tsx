@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Circle, Trash2 } from 'lucide-react'
+import { CheckCircle2, Circle, Lock, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -91,7 +91,18 @@ export function WorkOrderTimeline({
   }
   const otros = events.filter((e) => e.clave === 'otro')
 
+  /** Mismo mensaje en todos los puntos donde se intenta tocar un paso
+   * bloqueado -- que un botón no responda a nada, sin explicar por qué,
+   * es justo lo que hacía que no fuera obvio que había que reabrir. */
+  function avisarCerrada() {
+    toast.error('Esta OT está cerrada -- tocá "Reabrir OT" arriba para poder editarla.')
+  }
+
   function handleToggle(clave: WorkOrderPaso) {
+    if (locked && WORK_ORDER_PASOS_BLOQUEANTES.includes(clave)) {
+      avisarCerrada()
+      return
+    }
     const info = WORK_ORDER_PASO_INFO[clave]
     if (info.responsableFijo) {
       startTransition(async () => {
@@ -144,7 +155,11 @@ export function WorkOrderTimeline({
     })
   }
 
-  function handleUndo(eventId: string, label: string) {
+  function handleUndo(eventId: string, label: string, bloqueante = false) {
+    if (locked && bloqueante) {
+      avisarCerrada()
+      return
+    }
     startTransition(async () => {
       const result = await removeWorkOrderEvent(workOrderId, eventId)
       if (result.ok) {
@@ -187,9 +202,13 @@ export function WorkOrderTimeline({
       <span className="text-xs font-semibold text-foreground">Línea de tiempo de la OT</span>
 
       {locked && (
-        <p className="text-[11px] italic text-muted-foreground">
-          Esta OT ya está cerrada -- el pipeline queda de solo lectura hasta que se reabra.
-        </p>
+        <div className="flex items-center gap-2 rounded-lg border border-status-pendiente/40 bg-status-pendiente/10 p-2.5 text-xs text-foreground">
+          <Lock className="size-4 shrink-0 text-status-pendiente-text" />
+          <span>
+            Esta OT ya está cerrada -- el pipeline queda de solo lectura hasta que se reabra
+            (botón <strong>Reabrir OT</strong> arriba).
+          </span>
+        </div>
       )}
 
       {pasosBloqueantes.map((clave) => {
@@ -205,6 +224,8 @@ export function WorkOrderTimeline({
             <div className="flex items-start gap-2">
               {done ? (
                 <CheckCircle2 className="mt-0.5 size-4 shrink-0 animate-in zoom-in-50 spin-in-45 text-status-finalizada duration-300" />
+              ) : locked ? (
+                <Lock className="mt-0.5 size-4 shrink-0 text-status-pendiente-text" />
               ) : (
                 <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
               )}
@@ -235,9 +256,9 @@ export function WorkOrderTimeline({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="self-end sm:self-auto"
-                disabled={pending || locked || (info.responsableFijo && !isAdmin)}
-                onClick={() => handleUndo(done.id, info.label)}
+                className={cn('self-end sm:self-auto', locked && 'opacity-60')}
+                disabled={pending || (info.responsableFijo && !isAdmin)}
+                onClick={() => handleUndo(done.id, info.label, true)}
               >
                 Deshacer
               </Button>
@@ -245,8 +266,8 @@ export function WorkOrderTimeline({
               <Button
                 type="button"
                 size="sm"
-                className="self-end sm:self-auto"
-                disabled={pending || locked}
+                className={cn('self-end sm:self-auto', locked && 'opacity-60')}
+                disabled={pending}
                 onClick={() => handleToggle(clave)}
               >
                 Marcar hecho
@@ -254,7 +275,7 @@ export function WorkOrderTimeline({
             ) : (
               <div className="flex items-center gap-1.5 self-end sm:self-auto">
                 <select
-                  className={nativeSelectClass}
+                  className={cn(nativeSelectClass, locked && 'opacity-60')}
                   value={selected[clave] ?? sugeridoPara(clave) ?? ''}
                   disabled={locked}
                   onChange={(e) =>
@@ -271,7 +292,8 @@ export function WorkOrderTimeline({
                 <Button
                   type="button"
                   size="sm"
-                  disabled={pending || locked || !(selected[clave] ?? sugeridoPara(clave))}
+                  className={cn(locked && 'opacity-60')}
+                  disabled={pending || (!locked && !(selected[clave] ?? sugeridoPara(clave)))}
                   onClick={() => handleToggle(clave)}
                 >
                   Marcar hecho
