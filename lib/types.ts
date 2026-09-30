@@ -255,6 +255,11 @@ export type WorkOrderEvent = {
   descripcion: string | null
   profile_id: string | null
   completed_at: string
+  /** Ronda de la OT en la que se completó este paso (0 = primera vez,
+   * antes de cualquier reapertura). Un paso bloqueante/cambio_pila solo
+   * puede tener una fila por (work_order_id, clave, ronda) -- ver el
+   * índice único work_order_events_bloqueante_unique. */
+  ronda: number
   profile?: Profile | null
 }
 
@@ -281,10 +286,16 @@ export type WorkOrder = {
   /** Quién hizo la última edición del encabezado de la OT, y cuándo. */
   last_edited_by: string | null
   last_edited_at: string | null
-  /** Cuándo se reabrió por última vez (null si nunca se reabrió). Marca
-   * el corte entre "ronda actual" e "historial de rondas anteriores" en
-   * la línea de tiempo -- ver reabrirWorkOrder en lib/actions.ts. */
+  /** Cuándo se reabrió por última vez (null si nunca se reabrió) -- solo
+   * para mostrarlo ("Reabierta el..."). Qué es "ronda actual" lo decide
+   * ronda_actual, no esto (ver reabrirWorkOrder en lib/actions.ts). */
   reopened_at: string | null
+  /** Se incrementa en 1 cada vez que se reabre la OT (por el botón
+   * "Reabrir OT" o al sacarla a mano de Finalizada OK/Derivada desde el
+   * selector de estado). Junto con WorkOrderEvent.ronda, separa el
+   * historial de rondas anteriores de la ronda que se puede seguir
+   * completando ahora. */
+  ronda_actual: number
   /** Se calcula solo (trigger), matcheando grupo+fecha con una sesión de asistencia real. */
   session_id: string | null
   created_at: string

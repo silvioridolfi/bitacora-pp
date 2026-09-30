@@ -401,7 +401,7 @@ export function WorkOrderForm({
                     currentProfileId={currentProfileId}
                     rolesByProfile={rolesByProfile}
                     desbloqueoSkipMotivo={motivoSinDesbloqueo(workOrder.equipment)}
-                    reopenedAt={workOrder.reopened_at}
+                    rondaActual={workOrder.ronda_actual}
                     locked={otCerrada}
                   />
                   <p className="text-[11px] text-muted-foreground">

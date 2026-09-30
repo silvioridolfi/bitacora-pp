@@ -32,7 +32,7 @@ export function WorkOrderTimeline({
   currentProfileId,
   desbloqueoSkipMotivo = null,
   rolesByProfile = {},
-  reopenedAt = null,
+  rondaActual = 0,
   locked = false,
 }: {
   workOrderId: string
@@ -47,12 +47,11 @@ export function WorkOrderTimeline({
    * entrada quién completó cada paso, solo cuando hay un único alumno
    * con el rol correspondiente ese día. Siempre queda editable. */
   rolesByProfile?: Record<string, DailyRoleName[]>
-  /** Si la OT se reabrió alguna vez (ver reabrirWorkOrder), todo lo
-   * completado ANTES de esa fecha se muestra como historial de rondas
-   * anteriores en vez de como el estado actual del paso -- sin borrar
-   * ni dejar de sumar esos puntos, solo para no confundir "esto ya se
-   * hizo antes" con "esto ya está hecho en la ronda de ahora". */
-  reopenedAt?: string | null
+  /** Ronda actual de la OT (work_orders.ronda_actual). Un evento con una
+   * ronda distinta a esta es de una ronda anterior a una reapertura --
+   * se muestra como historial en vez de como el estado actual del paso,
+   * sin borrar ni dejar de sumar esos puntos. */
+  rondaActual?: number
   /** true cuando la OT ya está Finalizada OK/Derivada -- los pasos del
    * pipeline (bloqueantes) quedan de solo lectura hasta que se reabra.
    * Los opcionales ('cambio_pila', 'otro') siguen editables: no mueven
@@ -81,7 +80,7 @@ export function WorkOrderTimeline({
   const historialByClave = new Map<WorkOrderPaso, WorkOrderEvent[]>()
   for (const e of events) {
     if (e.clave === 'otro') continue
-    if (!reopenedAt || e.completed_at > reopenedAt) {
+    if (e.ronda === rondaActual) {
       doneByClave.set(e.clave, e)
     } else {
       const previas = historialByClave.get(e.clave) ?? []
