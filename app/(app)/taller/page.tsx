@@ -4,14 +4,13 @@ import { WorkOrderGrid } from '@/components/work-order-grid'
 import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Wrench } from 'lucide-react'
 import { getCurrentProfile, getTodayRolesByProfile } from '@/lib/data'
-import { nextOtCodigo } from '@/lib/status'
 import { todayInArgentina } from '@/lib/timezone'
 import type { Profile, WorkOrder } from '@/lib/types'
 
 export default async function TallerPage() {
   const supabase = await createClient()
 
-  const [{ data: workOrders }, { data: profiles }, { profile }, rolesByProfile] =
+  const [{ data: workOrders }, { data: profiles }, { profile }, rolesByProfile, { data: proximoCodigo }] =
     await Promise.all([
       supabase
         .from('work_orders')
@@ -23,6 +22,14 @@ export default async function TallerPage() {
       supabase.from('profiles').select('*').order('apellido_nombre'),
       getCurrentProfile(),
       getTodayRolesByProfile(),
+      // Mismo cálculo que hace la base al crear la OT (trigger
+      // set_ot_codigo) -- se pide acá por RPC en vez de reimplementarlo
+      // en la app, para que la vista previa nunca pueda desincronizarse
+      // de la lógica real (ver Etapa 19: eso fue justo lo que pasó).
+      supabase.rpc('generate_ot_codigo', {
+        p_tipo: 'taller',
+        p_anio: Number(todayInArgentina().slice(0, 4)),
+      }),
     ])
 
   const orders = (workOrders ?? []) as unknown as WorkOrder[]
@@ -43,7 +50,7 @@ export default async function TallerPage() {
           profiles={(profiles ?? []) as Profile[]}
           isAdmin={isAdmin}
           currentProfileId={currentProfileId}
-          proximoCodigo={nextOtCodigo(orders, 'taller', Number(todayInArgentina().slice(0, 4)))}
+          proximoCodigo={proximoCodigo ?? undefined}
         />
       </div>
 

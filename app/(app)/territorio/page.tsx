@@ -5,7 +5,6 @@ import { EscuelaActivaPanel } from '@/components/escuela-activa-panel'
 import { Empty, EmptyDescription, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { MapPin } from 'lucide-react'
 import { getCurrentProfile, getTodayRolesByProfile } from '@/lib/data'
-import { nextOtCodigo } from '@/lib/status'
 import { todayInArgentina } from '@/lib/timezone'
 import type { EscuelaActiva, Grupo, Profile, School, WorkOrder } from '@/lib/types'
 
@@ -19,6 +18,7 @@ export default async function TerritorioPage() {
     { profile },
     rolesByProfile,
     { data: escuelasActivas },
+    { data: proximoCodigo },
   ] = await Promise.all([
     supabase
       .from('work_orders')
@@ -34,6 +34,14 @@ export default async function TerritorioPage() {
     supabase
       .from('escuela_activa')
       .select('*, school:school_id(*), updated_by_profile:updated_by(*)'),
+    // Mismo cálculo que hace la base al crear la OT (trigger
+    // set_ot_codigo) -- se pide acá por RPC en vez de reimplementarlo
+    // en la app, para que la vista previa nunca pueda desincronizarse
+    // de la lógica real (ver Etapa 19: eso fue justo lo que pasó).
+    supabase.rpc('generate_ot_codigo', {
+      p_tipo: 'territorio',
+      p_anio: Number(todayInArgentina().slice(0, 4)),
+    }),
   ])
 
   const orders = (workOrders ?? []) as unknown as WorkOrder[]
@@ -70,11 +78,7 @@ export default async function TerritorioPage() {
           isAdmin={isAdmin}
           currentProfileId={currentProfileId}
           escuelaActiva={escuelaActivaPropia}
-          proximoCodigo={nextOtCodigo(
-            orders,
-            'territorio',
-            Number(todayInArgentina().slice(0, 4)),
-          )}
+          proximoCodigo={proximoCodigo ?? undefined}
         />
       </div>
 
