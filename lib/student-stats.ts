@@ -1,8 +1,21 @@
 import { RANKING_PUNTOS } from '@/lib/status'
-import { WORK_ORDER_PASOS_BLOQUEANTES } from '@/lib/types'
-import type { Attendance, Profile, Session, TipoOT, WorkOrderEvent } from '@/lib/types'
+import { WORK_ORDER_PASOS_BLOQUEANTES, motivoSinDesbloqueo } from '@/lib/types'
+import type { Attendance, Profile, Session, TipoEquipo, TipoOT, WorkOrderEvent } from '@/lib/types'
 
-export type FinishedOrder = { id: string; tipo: TipoOT }
+export type FinishedOrder = {
+  id: string
+  tipo: TipoOT
+  equipment: { tipo_equipo: TipoEquipo } | null
+}
+
+/** Cuántos pasos bloqueantes hacen falta para terminar esta OT -- 5, o 4
+ * si el equipo no es una netbook (no pasa por Reprogramación). Es el
+ * denominador fijo del reparto de puntos por paso (ver
+ * puntosPorAlumnoDesdeOTs): así un alumno cobra su parte apenas completa
+ * un paso, sin depender de cuántos pasos lleva hechos el resto todavía. */
+function pasosEsperados(ot: FinishedOrder): number {
+  return WORK_ORDER_PASOS_BLOQUEANTES.length - (motivoSinDesbloqueo(ot.equipment) ? 1 : 0)
+}
 
 export type PodioTier = 'oro' | 'plata' | 'bronce'
 
@@ -25,15 +38,21 @@ export const PODIO_STYLE: Record<PodioTier, { bg: string; text: string; ring: st
 }
 
 /**
- * Reparte los puntos de cada OT Finalizada OK entre los alumnos que
- * completaron pasos en ella, PROPORCIONAL a cuántos pasos hizo cada
- * uno respecto al total de pasos completados en esa OT (no en partes
- * iguales por persona) -- quien hizo más trabajo en una OT se lleva
- * proporcionalmente más. Ej.: OT de 10pts con 4 pasos completados en
- * total, uno hizo 3 y otro hizo 1 -> 7.5pts y 2.5pts, no 5 y 5.
+ * Reparte los puntos de cada OT entre los alumnos que completaron pasos
+ * en ella, PROPORCIONAL a cuántos pasos hizo cada uno respecto al total
+ * de pasos esperados de esa OT (pasosEsperados, no "lo que ya se hizo
+ * hasta ahora") -- así un alumno cobra su parte apenas completa un paso,
+ * sin esperar a que el equipo quede Finalizada OK/Derivada. Ej.: OT de
+ * 15pts (territorio, 5 pasos esperados), un alumno hizo 3 -> 9pts ya,
+ * sin importar si los otros 2 pasos los hizo alguien más o todavía están
+ * sin hacer.
  * 'Desbloqueo' cuenta como cualquier otro paso (ya no es rol fijo del
  * FED); solo queda afuera automáticamente si quien lo hizo es admin,
  * por el filtro de alumnoIds.
+ *
+ * Se agrupa por (OT, ronda): si una OT se reabre, la ronda nueva vuelve
+ * a repartir el valor completo -- el trabajo de la ronda anterior ya se
+ * pagó con esos puntos y no se toca (ver ronda en WorkOrderEvent).
  *
  * IMPORTANTE: alumnoIds tiene que incluir a TODOS los que pueden haber
  * contribuido a esas OT (todo el grupo, no solo el alumno que te
@@ -48,24 +67,25 @@ export function puntosPorAlumnoDesdeOTs(
   const puntos = new Map<string, number>()
   const otById = new Map(finishedOrders.map((o) => [o.id, o]))
 
-  // Por OT: cuántos pasos completó cada alumno.
-  const pasosPorOtPorAlumno = new Map<string, Map<string, number>>()
+  // Por OT y por ronda: cuántos pasos completó cada alumno.
+  const pasosPorOtRondaPorAlumno = new Map<string, Map<string, number>>()
   for (const e of events) {
     if (!e.profile_id || !alumnoIds.has(e.profile_id)) continue
     if (!WORK_ORDER_PASOS_BLOQUEANTES.includes(e.clave)) continue
     const ot = otById.get(e.work_order_id)
     if (!ot) continue
-    if (!pasosPorOtPorAlumno.has(ot.id)) pasosPorOtPorAlumno.set(ot.id, new Map())
-    const porAlumno = pasosPorOtPorAlumno.get(ot.id)!
+    const key = `${ot.id}:${e.ronda}`
+    if (!pasosPorOtRondaPorAlumno.has(key)) pasosPorOtRondaPorAlumno.set(key, new Map())
+    const porAlumno = pasosPorOtRondaPorAlumno.get(key)!
     porAlumno.set(e.profile_id, (porAlumno.get(e.profile_id) ?? 0) + 1)
   }
 
-  for (const [otId, porAlumno] of pasosPorOtPorAlumno) {
-    const ot = otById.get(otId)!
+  for (const [key, porAlumno] of pasosPorOtRondaPorAlumno) {
+    const ot = otById.get(key.slice(0, key.lastIndexOf(':')))!
     const puntosOt = ot.tipo === 'taller' ? RANKING_PUNTOS.taller : RANKING_PUNTOS.territorio
-    const totalPasos = [...porAlumno.values()].reduce((acc, n) => acc + n, 0)
+    const esperados = pasosEsperados(ot)
     for (const [alumnoId, misPasos] of porAlumno) {
-      const asignado = puntosOt * (misPasos / totalPasos)
+      const asignado = puntosOt * (misPasos / esperados)
       puntos.set(alumnoId, (puntos.get(alumnoId) ?? 0) + asignado)
     }
   }
@@ -102,8 +122,10 @@ export function buildRanking(
   const puntosOtPorAlumno = puntosPorAlumnoDesdeOTs(finishedOrders, events, alumnoIds)
 
   // Conteos "OT taller/territorio" mostrados en la card: cuántas OT
-  // finalizadas tuvieron a este alumno en al menos un paso -- ya no es
-  // "de las que soy responsable final", sino "en las que participé".
+  // tuvieron a este alumno en al menos un paso, estén cerradas o no --
+  // ya no es "de las que soy responsable final", sino "en las que
+  // participé" (y ya cobré algo por eso, aunque el equipo no haya
+  // quedado terminado todavía).
   const otsPorAlumnoPorTipo = new Map<string, { taller: Set<string>; territorio: Set<string> }>()
   const otById = new Map(finishedOrders.map((o) => [o.id, o]))
   for (const e of events) {

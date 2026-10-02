@@ -108,15 +108,18 @@ export default async function RankingPage() {
 
   const [{ data: students }, finishedOrders, workOrderEvents, attendance] = await Promise.all([
     supabase.from('profiles').select('*').eq('is_admin', false).order('apellido_nombre'),
-    // 'Derivada' cuenta igual que 'Finalizada OK': el resto de la app ya
-    // trata a ambas como estados cerrados (dashboard, tablero), y el
-    // trabajo que un alumno hizo antes de que la OT se derivara es real.
-    fetchAllRows<FinishedOrder>((from, to) =>
-      supabase
-        .from('work_orders')
-        .select('id, tipo')
-        .in('estado', ['Finalizada OK', 'Derivada'])
-        .range(from, to),
+    // Se traen TODAS las OT, no solo las cerradas: cada paso completado
+    // reparte puntos apenas se hace (ver puntosPorAlumnoDesdeOTs), así
+    // que una OT todavía abierta también tiene que entrar al cálculo.
+    fetchAllRows<FinishedOrder>(
+      (from, to) =>
+        supabase
+          .from('work_orders')
+          .select('id, tipo, equipment:equipment_id(tipo_equipo)')
+          .range(from, to) as unknown as PromiseLike<{
+          data: FinishedOrder[] | null
+          error: unknown
+        }>,
     ),
     fetchAllRows<WorkOrderEvent>((from, to) =>
       supabase.from('work_order_events').select('*').range(from, to),
@@ -155,10 +158,10 @@ export default async function RankingPage() {
         <div>
           <h1 className="font-heading text-2xl font-bold text-foreground">Ranking</h1>
           <PageHint label="¿Cómo se calcula?">
-            Cómo se calcula: cada OT finalizada reparte +{RANKING_PUNTOS.taller}pts (taller) o +
-            {RANKING_PUNTOS.territorio}pts (territorio) entre quienes completaron pasos en ella,
-            proporcional a cuántos pasos hizo cada uno -- quien hizo más trabajo en una OT se
-            lleva proporcionalmente más, no una parte igual sin importar cuánto hizo.
+            Cómo se calcula: cada OT vale +{RANKING_PUNTOS.taller}pts (taller) o +
+            {RANKING_PUNTOS.territorio}pts (territorio), repartidos entre los pasos del pipeline
+            (5, o 4 si el equipo no lleva Reprogramación) -- cada quien cobra su parte apenas
+            completa un paso, sin esperar a que el equipo quede terminado.
             <br />
             +{RANKING_PUNTOS.presente}pts por cada asistencia presente, y{' '}
             {RANKING_PUNTOS.tardanza}pts por cada tardanza. Hay un ranking por grupo.
