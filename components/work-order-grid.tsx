@@ -5,6 +5,7 @@ import { SearchInput } from '@/components/search-input'
 import { WorkOrderCard } from '@/components/work-order-card'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { useRealtimeWorkOrders } from '@/hooks/use-realtime-work-orders'
+import { schoolMatchesQuery } from '@/lib/siglas'
 import type { DailyRoleName, Profile, School, WorkOrder } from '@/lib/types'
 
 function codigoNumero(codigo: string): number {
@@ -46,7 +47,7 @@ export function WorkOrderGrid({
             o.codigo?.toLowerCase().includes(q) ||
             o.equipment?.numero_serie?.toLowerCase().includes(q) ||
             o.responsable?.apellido_nombre?.toLowerCase().includes(q) ||
-            o.school?.nombre?.toLowerCase().includes(q),
+            schoolMatchesQuery(o.school, q),
         )
       : orders
     return [...base].sort((a, b) => codigoNumero(b.codigo) - codigoNumero(a.codigo))

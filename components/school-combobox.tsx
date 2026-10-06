@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import type { School } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { searchSchools } from '@/lib/school-search'
+import { escuelaCorta } from '@/lib/siglas'
 
 export function SchoolCombobox({
   schools,
@@ -60,7 +61,9 @@ export function SchoolCombobox({
       {selected ? (
         <div className="flex items-center justify-between gap-2 rounded-lg border border-input bg-muted/30 px-3 py-2 text-sm">
           <div className="min-w-0">
-            <p className="truncate font-medium text-foreground">{selected.nombre}</p>
+            <p className="truncate font-medium text-foreground" title={selected.nombre}>
+              {escuelaCorta(selected)}
+            </p>
             <p className="truncate text-xs text-muted-foreground">
               {selected.distrito ? `${selected.distrito} · ` : ''}
               {selected.cue ? `CUE ${selected.cue}` : ''}
@@ -121,7 +124,9 @@ export function SchoolCombobox({
                     i === activeIndex && 'bg-muted',
                   )}
                 >
-                  <span className="font-medium text-foreground">{s.nombre}</span>
+                  <span className="font-medium text-foreground" title={s.nombre}>
+                    {escuelaCorta(s)}
+                  </span>
                   <span className="text-xs text-muted-foreground">
                     {s.distrito ? `${s.distrito} · ` : ''}
                     {s.cue ? `CUE ${s.cue}` : 'Sin CUE'}

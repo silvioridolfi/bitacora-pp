@@ -11,6 +11,7 @@ import { AnimatedNumber } from '@/components/animated-number'
 import { WorkOrderForm } from '@/components/work-order-form'
 import { WORK_ORDER_ESTADO_ORDER, WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import { useRealtimeWorkOrders } from '@/hooks/use-realtime-work-orders'
+import { schoolMatchesQuery } from '@/lib/siglas'
 import type { DailyRoleName, Profile, School, WorkOrder, WorkOrderEstado } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -104,7 +105,7 @@ export function TableroBoard({
         o.codigo?.toLowerCase().includes(q) ||
         o.equipment?.numero_serie?.toLowerCase().includes(q) ||
         o.responsable?.apellido_nombre?.toLowerCase().includes(q) ||
-        o.school?.nombre?.toLowerCase().includes(q)
+        schoolMatchesQuery(o.school, q)
       )
     })
   }, [orders, query])

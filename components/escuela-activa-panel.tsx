@@ -9,6 +9,7 @@ import { setEscuelaActiva } from '@/lib/actions'
 import { useRealtimeEscuelaActiva } from '@/hooks/use-realtime-escuela-activa'
 import { cn } from '@/lib/utils'
 import { searchSchools } from '@/lib/school-search'
+import { escuelaCorta } from '@/lib/siglas'
 import type { EscuelaActiva, Grupo, School } from '@/lib/types'
 
 export function EscuelaActivaPanel({
@@ -60,7 +61,9 @@ export function EscuelaActivaPanel({
               {grupo}
             </span>
             <span className="text-muted-foreground">trabajando hoy en </span>
-            <span className="font-semibold text-foreground">{escuelaActiva.school.nombre}</span>
+            <span className="font-semibold text-foreground" title={escuelaActiva.school.nombre}>
+              {escuelaCorta(escuelaActiva.school)}
+            </span>
             {escuelaActiva.updated_by_profile && (
               <span className="text-muted-foreground">
                 {' '}
@@ -212,7 +215,9 @@ function ActiveSchoolPicker({
                 i === activeIndex && 'bg-muted',
               )}
             >
-              <span className="font-medium text-foreground">{s.nombre}</span>
+              <span className="font-medium text-foreground" title={s.nombre}>
+                {escuelaCorta(s)}
+              </span>
               <span className="text-xs text-muted-foreground">
                 {s.distrito ? `${s.distrito} · ` : ''}
                 {s.cue ? `CUE ${s.cue}` : 'Sin CUE'}
