@@ -1,3 +1,4 @@
+import { siglas } from '@/lib/siglas'
 import type { School } from '@/lib/types'
 
 /**
@@ -59,14 +60,25 @@ function matchesToken(haystack: string, token: string): boolean {
   return /^\d+$/.test(token) ? numberTokenRegex(token).test(haystack) : haystack.includes(token)
 }
 
-const TYPE_AND_NUMBER =
-  /^(primaria?|secundaria?|inicial|jardin|jardín|maternal(?:es)?|tecnica?|técnica?|especial|adultos?|superior|cfp|centro|ep|ees|ji)\s+n?°?\s*(\d{1,4})$/i
+const TYPE_WORDS =
+  'primaria?|secundaria?|inicial|jardin|jardín|maternal(?:es)?|tecnica?|técnica?|especial|adultos?|superior|cfp|centro|ep|ees|ji'
+
+// Las siglas de siglas.ts (EEST, ISFDyT, CEC...) también valen como
+// "tipo" en una búsqueda "tipo + número" -- se arma el patrón a partir
+// de esa misma lista para no mantener una segunda copia a mano de las
+// abreviaturas (ver nota de "una sola fuente" en siglas.ts).
+const SIGLA_WORDS = [...new Set(siglas.map(([, sigla]) => sigla))]
+  .map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  .join('|')
+
+const TYPE_AND_NUMBER = new RegExp(`^(${TYPE_WORDS}|${SIGLA_WORDS})\\s+n?°?\\s*(\\d{1,4})$`, 'i')
 
 /**
  * Busca escuelas por nombre, distrito, nombre completo o CUE.
  * - Un CUE completo (8 dígitos) busca ese identificador exacto.
- * - "tipo + número" (ej. "primaria 21", "tecnica 5") exige el tipo Y el
- *   número de escuela como token exacto en el nombre.
+ * - "tipo + número" (ej. "primaria 21", "tecnica 5", "eest 3", "ees 31")
+ *   exige el tipo Y el número de escuela como token exacto en el nombre
+ *   -- el tipo puede ser la palabra o la sigla (ver siglas.ts).
  * - Un número solo (1 a 4 dígitos) busca ese número de escuela como
  *   token exacto -- nunca como parte de un CUE o de otro número más largo.
  * - Cualquier otra cosa es texto libre: cada palabra tiene que aparecer
@@ -84,8 +96,23 @@ export function searchSchools(schools: School[], query: string, limit = 20): Sch
 
   const typeAndNumber = trimmed.match(TYPE_AND_NUMBER)
   if (typeAndNumber) {
-    const needles = schoolTypeSynonyms(typeAndNumber[1])
+    const tipo = typeAndNumber[1]
     const regex = numberTokenRegex(typeAndNumber[2])
+
+    // Si lo tipeado es una sigla conocida (EEST, ISFD...), se prueba
+    // directo contra los regex de siglas.ts que la producen -- la misma
+    // fuente que usa escuelaCorta() para abreviar, así búsqueda y
+    // abreviación nunca se desincronizan.
+    const siglaRegexes = siglas
+      .filter(([, sigla]) => sigla.toLowerCase() === tipo.toLowerCase())
+      .map(([re]) => re)
+    if (siglaRegexes.length > 0) {
+      return schools
+        .filter((s) => siglaRegexes.some((re) => re.test(s.nombre)) && regex.test(normalizeText(s.nombre)))
+        .slice(0, limit)
+    }
+
+    const needles = schoolTypeSynonyms(tipo)
     return schools
       .filter((s) => {
         const nombre = normalizeText(s.nombre)

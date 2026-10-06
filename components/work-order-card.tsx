@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Laptop, MapPin, MessageSquareText, School, User, Wrench, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate, formatHoraArgentina } from '@/lib/format'
+import { escuelaCorta } from '@/lib/siglas'
 import { hasReliableCreatedAt } from '@/lib/timezone'
 import { WORK_ORDER_STATUS_STYLE } from '@/lib/status'
 import { toggleWorkOrderEvent } from '@/lib/actions'
@@ -178,7 +179,9 @@ export function WorkOrderCard({
       {workOrder.school && (
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <School className="size-3.5" />
-          <span className="truncate">{workOrder.school.nombre}</span>
+          <span className="truncate" title={workOrder.school.nombre}>
+            {escuelaCorta(workOrder.school)}
+          </span>
         </div>
       )}
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs text-muted-foreground">
