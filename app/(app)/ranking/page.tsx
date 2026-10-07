@@ -133,18 +133,29 @@ export default async function RankingPage() {
 
   const grupos: Grupo[] = ['Grupo 1', 'Grupo 2']
 
+  // Un solo cálculo por grupo, reutilizado para la lista, para la
+  // celebración y para decidir quién va ganando (ver "vaGanando" más
+  // abajo) -- antes se recalculaba buildRanking() por separado en cada uso.
+  const rankingPorGrupo = new Map(
+    grupos.map((g) => [
+      g,
+      buildRanking(profiles.filter((p) => p.grupo === g), finishedOrders, workOrderEvents, attendance),
+    ]),
+  )
+  const totalPorGrupo = new Map(
+    grupos.map((g) => [
+      g,
+      Math.round((rankingPorGrupo.get(g) ?? []).reduce((acc, r) => acc + r.total, 0) * 10) / 10,
+    ]),
+  )
+
   // Si el alumno logueado empata en primer puesto en su propio grupo
   // (con más de 0 puntos, para no festejar un ranking vacío), se
   // dispara la celebración -- calculado acá una sola vez para toda la
   // página, no por cada tarjeta de grupo.
   let esGanador = false
   if (currentProfile && !currentProfile.is_admin) {
-    const rankingDeSuGrupo = buildRanking(
-      profiles.filter((p) => p.grupo === currentProfile.grupo),
-      finishedOrders,
-      workOrderEvents,
-      attendance,
-    )
+    const rankingDeSuGrupo = rankingPorGrupo.get(currentProfile.grupo as Grupo) ?? []
     const mejorPuntaje = rankingDeSuGrupo[0]?.total ?? 0
     esGanador =
       mejorPuntaje > 0 &&
@@ -172,20 +183,36 @@ export default async function RankingPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {grupos.map((g) => {
-          const ranking = buildRanking(
-            profiles.filter((p) => p.grupo === g),
-            finishedOrders,
-            workOrderEvents,
-            attendance,
-          )
-          const totalGrupo = Math.round(ranking.reduce((acc, r) => acc + r.total, 0) * 10) / 10
+          const ranking = rankingPorGrupo.get(g)!
+          const totalGrupo = totalPorGrupo.get(g)!
+          // Lidera el que tiene más puntos -- en empate (incluido 0 a 0)
+          // no se resalta ninguno.
+          const vaGanando = totalGrupo > (totalPorGrupo.get(grupos.find((og) => og !== g)!) ?? 0)
 
           return (
             <div key={g} className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <h2 className="font-heading text-sm font-semibold text-foreground">{g}</h2>
-                <div className="flex items-baseline gap-1.5 rounded-lg bg-primary/10 px-3 py-1">
-                  <span className="font-heading text-lg font-bold text-primary">
+                <h2 className="flex items-center gap-1.5 font-heading text-sm font-semibold text-foreground">
+                  {g}
+                  {vaGanando && (
+                    <span className="flex items-center gap-1 rounded-full bg-status-pendiente/15 px-1.5 py-0.5 text-[10px] font-medium text-status-pendiente-text">
+                      <Trophy className="size-3" />
+                      Va ganando
+                    </span>
+                  )}
+                </h2>
+                <div
+                  className={cn(
+                    'flex items-baseline gap-1.5 rounded-lg px-3 py-1',
+                    vaGanando ? 'bg-status-pendiente/15 ring-1 ring-yellow-400/60' : 'bg-primary/10',
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'font-heading text-lg font-bold',
+                      vaGanando ? 'text-status-pendiente-text' : 'text-primary',
+                    )}
+                  >
                     <AnimatedNumber value={totalGrupo} decimals={totalGrupo % 1 !== 0 ? 1 : 0} />
                   </span>
                   <span className="text-[11px] text-muted-foreground">pts del grupo</span>
